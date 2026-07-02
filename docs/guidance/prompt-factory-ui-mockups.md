@@ -38,7 +38,7 @@ flowchart LR
 | 全局搜索 | 跨 Prompt / 片段 / 工具 / 标签 | 复用各资源 `list` 接口的 `key_word` |
 | API 访问 | PAT 凭据入口（OpenAPI 调用页） | `POST /api/auth/v1/personal_access_tokens[/list]` |
 | 用户 | 当前会话与登出 | `GET /api/foundation/v1/users/session` |
-| 左侧导航 | Prompt、片段(snippet)、工具(tool)、标签(label)、调试记录 | — |
+| 左侧导航 | Prompt、片段（snippet）、工具（tool）、标签（label）、调试记录 | — |
 
 ---
 
