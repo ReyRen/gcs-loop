@@ -1,6 +1,7 @@
 # 提示词工厂 UI 交接说明
 
 > 本文是第一版 GCS Loop 提示词工厂给 UI/前端团队的页面与状态说明，只使用当前后端真实存在的接口。
+> 功能页参考图见 [`prompt-factory-ui-mockups.md`](prompt-factory-ui-mockups.md)。
 
 ## 首屏
 
