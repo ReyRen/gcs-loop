@@ -1,1 +1,0 @@
-ALTER TABLE expt_item_result ADD COLUMN `ext` blob COMMENT '补充信息';

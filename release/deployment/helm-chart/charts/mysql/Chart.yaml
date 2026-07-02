@@ -1,6 +1,0 @@
-apiVersion: v2
-name: coze-loop-mysql
-description: Cozeloop Mysql Helm chart
-type: application
-version: 1.0.0
-appVersion: latest

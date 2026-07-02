@@ -1,6 +1,6 @@
 # 部署与环境配置指南
 
-> 本文档汇总 Docker Compose 和 Helm Chart 两种部署方式的配置细节和常用操作。
+> 本文档汇总 Docker Compose 部署方式的配置细节和常用操作。
 > 快速开始见 [`../../README.md`](../../README.md)。
 
 ## Docker Compose 部署
@@ -46,38 +46,6 @@ release/deployment/docker-compose/
 
 - 应用: `http://localhost:8082`
 
-## Helm Chart 部署 (Kubernetes)
-
-### 目录结构
-
-```
-release/deployment/helm-chart/umbrella/
-├── Chart.yaml
-├── values.yaml                   # 默认配置
-├── templates/
-│   └── ingress.yaml              # Ingress 配置（需按集群调整）
-├── conf/
-│   └── model_config.yaml         # LLM 模型配置
-└── examples/
-    └── minikube/                 # Minikube 示例 values
-```
-
-### 常用 Makefile 命令
-
-| 命令 | 说明 |
-|------|------|
-| `make helm-up` | 部署/升级 Helm Release |
-| `make helm-pod` | 查看 Pod 状态 |
-| `make helm-svc` | 查看 Service 列表 |
-| `make helm-ingress` | 查看 Ingress 配置 |
-| `make helm-logf-app` | 查看应用日志 |
-| `make helm-logf-nginx` | 查看 Nginx 日志 |
-| `make helm-ctx` | 列出 kube contexts |
-| `make helm-ctx-<context>` | 切换 kube context |
-| `make helm-ns` | 列出 namespaces |
-| `make helm-chart-deps` | 构建 chart 依赖 |
-| `make helm-up-exp-minikube-<vals>` | 使用 Minikube 示例 values 部署 |
-
 ## 镜像构建
 
 | 命令 | 说明 |
@@ -95,7 +63,7 @@ release/deployment/helm-chart/umbrella/
 
 ## 模型配置
 
-编辑 `conf/model_config.yaml`（Docker Compose 或 Helm Chart 目录下均有）:
+编辑 Docker Compose 目录下的 `conf/model_config.yaml`:
 
 - `api_key`: LLM 服务的 API Key
 - `model`: 模型 Endpoint ID

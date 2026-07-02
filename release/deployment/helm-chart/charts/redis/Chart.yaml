@@ -1,6 +1,0 @@
-apiVersion: v2
-name: coze-loop-redis
-description: Cozeloop Redis Helm chart
-type: application
-version: 1.0.0
-appVersion: latest

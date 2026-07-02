@@ -1,3 +1,0 @@
-user_register_control:
-  block: false
-  allowed_emails: "locala@doamin;localb@domain"

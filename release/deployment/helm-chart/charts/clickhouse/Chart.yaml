@@ -1,6 +1,0 @@
-apiVersion: v2
-name: coze-loop-clickhouse
-description: Cozeloop Clickhouse Helm chart
-type: application
-version: 1.0.0
-appVersion: latest

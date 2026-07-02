@@ -1,7 +1,6 @@
 # 后端 DDD 模块与 API 参考
 
 > 本文档汇总后端 6 个 DDD 业务模块的职责、领域实体和 API 路由入口，供快速查阅。
-> 详细模块导航见 [`../../backend/AGENTS.md`](../../backend/AGENTS.md)。
 
 ## 业务模块一览
 

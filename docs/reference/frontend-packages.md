@@ -1,7 +1,6 @@
 # 前端 Rush.js 包结构与分层参考
 
 > 本文档汇总前端 59 个包的分层结构、Adapter 模式和关键包职责，供快速查阅。
-> 详细模块导航见 [`../../frontend/AGENTS.md`](../../frontend/AGENTS.md)。
 
 ## 6 层依赖结构
 
