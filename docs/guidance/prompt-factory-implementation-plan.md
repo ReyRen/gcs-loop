@@ -20,6 +20,7 @@
 | --- | --- |
 | `docs/reference/prompt-factory-architecture.md` | 后端架构边界、领域模型、存储和 GCS 对齐原则 |
 | `docs/guidance/prompt-factory-ui-handoff.md` | UI 页面、控件、状态、Debug 和外部调用页说明 |
+| `docs/guidance/prompt-factory-frontend-delivery.md` | 内嵌模块（无左侧导航）核心闭环的前端接口交付 + UI 实现指南（带图） |
 | `docs/guidance/prompt-factory-api-map.md` | 前端可直接联调的真实 API、字段和调用链 |
 | `docs/guidance/gcs-deployment-overrides.md` | GCS MySQL/Redis/ClickHouse/Object Storage 覆盖部署说明 |
 
