@@ -5,15 +5,30 @@ import { createRsbuildConfig } from '@cozeloop/rsbuild-config';
 const port = 8090;
 
 export default createRsbuildConfig({
+  /** 输出配置：作为 wujie 子应用，静态资源统一从 /prompt/ 路径加载 */
+  output: {
+    assetPrefix: '/prompt/',
+  },
   server: {
     port,
     cors: {
       origin: '*',
     },
+    proxy: {
+      '/api': {
+        target: 'http://172.18.36.230:8082',
+        changeOrigin: true,
+      },
+      '/open-api': {
+        target: 'http://your-backend-host:8888',
+        changeOrigin: true,
+      },
+    },
   },
   dev: {
     lazyCompilation: false,
-    assetPrefix: `http://localhost:${port}`,
+    /** 开发模式资源前缀设为 /prompt/，与代理路径对齐 */
+    assetPrefix: '/prompt/',
     client: {
       port: `${port}`,
       host: 'localhost',

@@ -35,6 +35,14 @@ body,
     sans-serif;
 }
 
+/* wujie 子应用：打通从 wujie-app 宿主到根节点的高度链，避免白屏 */
+wujie-app,
+wujie-app[data-wujie-name] {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 #cozeloop-root {
   display: flex;
   flex-direction: column;
@@ -44,6 +52,19 @@ body,
   .semi-button-content-right {
     margin-left: 4px;
   }
+
+  /** Semi UI Primary Color **/
+  --semi-color-primary: rgba(var(--coze-up-brand-9), 1);
+  --semi-color-primary-hover: rgba(var(--coze-up-brand-8), 1);
+  --semi-color-primary-active: rgba(var(--coze-up-brand-10), 1);
+  --semi-color-primary-disabled: rgba(var(--coze-up-brand-5), 0.4);
+  --semi-color-primary-light-default: rgba(var(--coze-up-brand-9), 0.1);
+  --semi-color-primary-light-hover: rgba(var(--coze-up-brand-9), 0.15);
+  --semi-color-primary-light-active: rgba(var(--coze-up-brand-9), 0.2);
+  --semi-color-link: rgba(var(--coze-up-brand-9), 1);
+  --semi-color-link-hover: rgba(var(--coze-up-brand-8), 1);
+  --semi-color-link-active: rgba(var(--coze-up-brand-10), 1);
+  --semi-color-link-visited: rgba(var(--coze-up-brand-9), 1);
 
   /** Button **/
   .coz-btn-large {

@@ -17,3 +17,19 @@ declare module '*.svg' {
 }
 
 declare type Int64 = string | number;
+
+// ====== wujie 微前端类型声明 ======
+interface WujieInstance {
+  props: Record<string, unknown>;
+}
+
+declare interface Window {
+  /** wujie 注入：标识当前运行在 wujie 沙箱中 */
+  __POWERED_BY_WUJIE__?: boolean;
+  /** wujie 注入：当前 wujie 实例 */
+  $wujie?: WujieInstance;
+  /** 子应用挂载生命周期（由子应用注册，wujie 调用） */
+  __WUJIE_MOUNT?: () => void;
+  /** 子应用卸载生命周期（由子应用注册，wujie 调用） */
+  __WUJIE_UNMOUNT?: () => void;
+}

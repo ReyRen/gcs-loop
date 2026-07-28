@@ -7,13 +7,16 @@ import { sendEvent } from '@cozeloop/tea-adapter';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { CozeLoopProvider, PageLoading } from '@cozeloop/components';
 
+import { getRouterBasename } from './wujie-env';
 import { routeConfig } from './routes';
 import { useSetupI18n } from './hooks';
 import { LocaleProvider } from './components';
 
 import './index.css';
 
-const router = createBrowserRouter(routeConfig);
+const router = createBrowserRouter(routeConfig, {
+  basename: getRouterBasename(),
+});
 
 export function App() {
   useSetupI18n();

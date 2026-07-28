@@ -26,7 +26,7 @@ const semanticForeground = {
   /* Theme */
   'coz-fg-hglt-plus': 'colors.foreground.5',
   'coz-fg-hglt-plus-dim': 'colors.foreground.5',
-  'coz-fg-hglt': 'colors.brand.5',
+  'coz-fg-hglt': 'colors.brand.7',
   'coz-fg-hglt-dim': 'colors.brand.3',
   'coz-fg-plus': 'colors.foreground.4',
   'coz-fg': 'colors.foreground.3',
@@ -81,9 +81,9 @@ const semanticForeground = {
 
 const semanticMiddleground = {
   /* Theme */
-  'coz-mg-hglt-plus-pressed': 'colors.brand.7',
+  'coz-mg-hglt-plus-pressed': 'colors.brand.0',
   'coz-mg-hglt-plus-hovered': 'colors.brand.6',
-  'coz-mg-hglt-plus': 'colors.brand.5',
+  'coz-mg-hglt-plus': 'colors.brand.7',
   'coz-mg-hglt-plus-dim': 'colors.brand.3',
   'coz-mg-hglt-secondary-pressed': 'colors.brand.2',
   'coz-mg-hglt-secondary-hovered': 'colors.brand.1',
@@ -204,7 +204,7 @@ const inputHeight = {
 };
 
 const semanticStroke = {
-  'coz-stroke-hglt': 'colors.brand.5',
+  'coz-stroke-hglt': 'colors.brand.7',
   'coz-stroke-plus': 'colors.stroke.6',
   'coz-stroke-primary': 'colors.stroke.5',
   'coz-stroke-hglt-red': 'colors.red.5',
