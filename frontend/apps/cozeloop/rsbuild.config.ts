@@ -23,6 +23,7 @@ export default createRsbuildConfig({
     assetPrefix: '/prompt/',
   },
   server: {
+    host: '0.0.0.0',
     port,
     cors: {
       origin: '*',

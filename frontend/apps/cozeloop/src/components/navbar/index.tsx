@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import classNames from 'classnames';
-import { useHover } from 'ahooks';
+// import { useHover } from 'ahooks';
 import { useNavbarCollapsed } from '@cozeloop/hooks';
 import { useRouteInfo, useNavigateModule } from '@cozeloop/biz-hooks-adapter';
 import { IconCozSideNav } from '@coze-arch/coze-design/icons';
@@ -15,7 +15,7 @@ import logoMini from '@/assets/images/coze.svg';
 import { UserInfoSection } from '../user-info-section';
 import { NavbarList } from './navbar-list';
 import { useMenuConfig } from './menu-config';
-import { FooterMenus } from './footer-menus';
+// import { FooterMenus } from './footer-menus';
 
 import styles from './index.module.less';
 
@@ -27,7 +27,7 @@ export function Navbar() {
   const [selectedKeys, setSelectedKeys] = useState<string[]>(() => []);
   const menuConfig = useMenuConfig();
   const navRef = useRef<HTMLDivElement>(null);
-  const isHovered = useHover(navRef);
+  // const isHovered = useHover(navRef);
 
   useEffect(() => {
     if (app && subModule) {
@@ -84,7 +84,7 @@ export function Navbar() {
         />
         <Divider className="relative" />
         <div className="pt-4 pb-3 px-6 relative">
-          <FooterMenus isCollapsed={isCollapsed} isHovered={isHovered} />
+          {/* <FooterMenus isCollapsed={isCollapsed} isHovered={isHovered} /> */}
           <UserInfoSection isCollapsed={isCollapsed} />
         </div>
       </Nav>

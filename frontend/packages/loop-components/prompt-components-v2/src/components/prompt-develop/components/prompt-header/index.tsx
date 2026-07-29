@@ -810,7 +810,6 @@ export function PromptHeader() {
         }}
         isSnippet={promptInfo?.prompt_basic?.prompt_type === PromptType.Snippet}
       />
-
       <PromptDeleteModal
         data={deleteModal.data}
         visible={deleteModal.visible}
@@ -824,7 +823,6 @@ export function PromptHeader() {
           }
         }}
       />
-
       <PromptSubmit
         visible={submitModal.visible}
         onCancel={submitModal.close}
@@ -834,7 +832,6 @@ export function PromptHeader() {
         }}
         initVersion={nextVersion(promptInfo?.prompt_basic?.latest_version)}
       />
-
       <SnippetUseageModal
         spaceID={spaceID}
         visible={snippetUseageModal.visible}
