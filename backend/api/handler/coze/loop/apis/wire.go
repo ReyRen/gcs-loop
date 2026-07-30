@@ -8,7 +8,9 @@ package apis
 
 import (
 	"context"
+	"sync"
 
+	"github.com/cloudwego/kitex/client/callopt"
 	"github.com/cloudwego/kitex/pkg/endpoint"
 	"github.com/google/wire"
 
@@ -32,6 +34,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/foundation/file/fileservice"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/foundation/user/userservice"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/llm/runtime/llmruntimeservice"
+	task "github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/observability/task"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/observability/observabilitytraceservice"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/observability/task/taskservice"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/promptmanageservice"
@@ -91,6 +94,7 @@ var (
 		evaluationapp.InitEvaluationSetApplication,
 		evaluationapp.InitEvalTargetApplication,
 		evaluationapp.InitEvalOpenAPIApplication,
+		provideTaskClient,
 	)
 	dataSet = wire.NewSet(
 		NewDataHandler,
@@ -109,6 +113,42 @@ var (
 		taskhook.NewNoopTaskHookProvider,
 	)
 )
+
+// provideTaskClient converts a function factory to taskservice.Client
+func provideTaskClient(factory func() taskservice.Client) taskservice.Client {
+	return &lazyTaskClient{factory: factory}
+}
+
+type lazyTaskClient struct {
+	factory func() taskservice.Client
+	client  taskservice.Client
+	once    sync.Once
+}
+
+func (l *lazyTaskClient) CheckTaskName(ctx context.Context, req *task.CheckTaskNameRequest, callOptions ...callopt.Option) (r *task.CheckTaskNameResponse, err error) {
+	l.once.Do(func() { l.client = l.factory() })
+	return l.client.CheckTaskName(ctx, req, callOptions...)
+}
+
+func (l *lazyTaskClient) CreateTask(ctx context.Context, req *task.CreateTaskRequest, callOptions ...callopt.Option) (r *task.CreateTaskResponse, err error) {
+	l.once.Do(func() { l.client = l.factory() })
+	return l.client.CreateTask(ctx, req, callOptions...)
+}
+
+func (l *lazyTaskClient) UpdateTask(ctx context.Context, req *task.UpdateTaskRequest, callOptions ...callopt.Option) (r *task.UpdateTaskResponse, err error) {
+	l.once.Do(func() { l.client = l.factory() })
+	return l.client.UpdateTask(ctx, req, callOptions...)
+}
+
+func (l *lazyTaskClient) ListTasks(ctx context.Context, req *task.ListTasksRequest, callOptions ...callopt.Option) (r *task.ListTasksResponse, err error) {
+	l.once.Do(func() { l.client = l.factory() })
+	return l.client.ListTasks(ctx, req, callOptions...)
+}
+
+func (l *lazyTaskClient) GetTask(ctx context.Context, req *task.GetTaskRequest, callOptions ...callopt.Option) (r *task.GetTaskResponse, err error) {
+	l.once.Do(func() { l.client = l.factory() })
+	return l.client.GetTask(ctx, req, callOptions...)
+}
 
 func InitFoundationHandler(
 	idgen idgen.IIDGenerator,

@@ -54,7 +54,7 @@ export default function PromptListPage() {
           {
             label: I18n.t('prompt_call_records'),
             onClick: () =>
-              openBlank(
+              navigate(
                 `observation/traces?relation=and&selected_span_type=root_span&trace_filters=%257B%2522query_and_or%2522%253A%2522and%2522%252C%2522filter_fields%2522%253A%255B%257B%2522field_name%2522%253A%2522prompt_key%2522%252C%2522logic_field_name_type%2522%253A%2522prompt_key%2522%252C%2522query_type%2522%253A%2522in%2522%252C%2522values%2522%253A%255B%2522${row.prompt_key}%2522%255D%257D%255D%257D&trace_platform=prompt`,
               ),
           },

@@ -57,6 +57,7 @@ export function MainBreadcrumb() {
   return (
     <div className="h-[56px] flex items-center justify-between px-6 border-0 border-b border-solid coz-stroke-primary">
       <div className="flex items-center gap-2">
+        <div id="page-header-back-btn" className="flex items-center" />
         {/* 模块切换 */}
         <Dropdown
           position="bottomLeft"
@@ -97,7 +98,6 @@ export function MainBreadcrumb() {
             {activeGroup?.text || '模块'}
           </Button>
         </Dropdown>
-
         {/* 面包屑 */}
         <Breadcrumb
           separator={<div className="rotate-[22deg] coz-fg-dim">/</div>}
@@ -119,8 +119,9 @@ export function MainBreadcrumb() {
             </Breadcrumb.Item>
           ))}
         </Breadcrumb>
+        <div id="page-header-left-slot" className="flex items-center" />
       </div>
-      {/* <SwitchLang /> */}
+      <div id="page-header-slot" className="flex items-center gap-2" />
     </div>
   );
 }

@@ -4,7 +4,8 @@
 /* eslint-disable @coze-arch/max-line-per-function */
 /* eslint-disable max-lines-per-function */
 /* eslint-disable complexity */
-import { useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { useMemo, useState, useEffect } from 'react';
 
 import { useShallow } from 'zustand/react/shallow';
 import { nanoid } from 'nanoid';
@@ -461,14 +462,19 @@ export function PromptHeader() {
     autoSaving,
   ]);
 
-  return (
-    <div
-      className="flex justify-between items-center px-6 py-2 border-b !h-[56px] flex-shrink-0"
-      data-btm="c83887"
-    >
+  // const [, setPortalLeft] = useState<HTMLElement | null>(null);
+  const [portalRight, setPortalRight] = useState<HTMLElement | null>(null);
+  const [portalBack, setPortalBack] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    // setPortalLeft(document.getElementById('page-header-left-slot'));
+    setPortalRight(document.getElementById('page-header-slot'));
+    setPortalBack(document.getElementById('page-header-back-btn'));
+  }, []);
+
+  const headerLeft = (
+    <>
       {isPlayground ? (
         <div className="flex items-center gap-x-2">
-          <h1 className="text-[20px] font-medium">Playground</h1>
           {autoSaving ? (
             <Tag
               color="primary"
@@ -490,33 +496,6 @@ export function PromptHeader() {
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          {getButtonHiddenFromConfig(
-            buttonConfig?.backButton,
-            promptInfo,
-          ) ? null : (
-            <IconButton
-              color="secondary"
-              className="!w-[32px] !h-[32px]"
-              icon={
-                <IconCozLongArrowUp
-                  className="-rotate-90 text-[20px] cursor-pointer shrink-0 !coz-fg-plus !font-medium"
-                  onClick={() => {
-                    if (buttonConfig?.backButton?.onClick) {
-                      buttonConfig?.backButton?.onClick({
-                        prompt: promptInfo,
-                      });
-                    } else {
-                      history.back();
-                    }
-                  }}
-                />
-              }
-              disabled={getButtonDisabledFromConfig(
-                buttonConfig?.backButton,
-                promptInfo,
-              )}
-            />
-          )}
           <div className="flex gap-3 items-center">
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-2 cursor-pointer">
@@ -656,137 +635,181 @@ export function PromptHeader() {
           </div>
         </div>
       )}
-      <div className="flex items-center space-x-2">
-        {!compareConfig?.groups?.length ? (
-          <>
-            {isSnippet ? (
-              <Button
-                color="primary"
-                disabled={!totalReferenceCount}
-                onClick={() => snippetUseageModal.open()}
-              >
-                {I18n.t('prompt_number_of_projects_referencing', {
-                  placeholder1: totalReferenceCount ?? 0,
-                })}
-              </Button>
-            ) : null}
-            {renderHeaderButtons ? (
-              renderHeaderButtons(
-                isPlayground
-                  ? [compareBtn, quickCreateBtn]
-                  : [compareBtn, versionListBtn, submitBtn],
-                promptInfo,
-              )
-            ) : (
-              <>
-                {compareBtn}
-                {versionListBtn}
-                {quickCreateBtn}
-                {submitBtn}
-              </>
-            )}
-            {!isPlayground && !isSnippet ? (
-              <Dropdown
-                trigger="click"
-                position="bottomRight"
-                showTick={false}
-                zIndex={8}
-                render={
-                  <Dropdown.Menu>
-                    {renderExtraHeaderDropdown?.(promptInfo)}
-                    {getButtonHiddenFromConfig(
-                      buttonConfig?.copyButton,
-                      promptInfo,
-                    ) ||
-                    promptInfo?.prompt_draft ||
-                    !promptInfo?.prompt_basic?.latest_version ? null : (
-                      <Dropdown.Item
-                        className="!px-2"
-                        onClick={() => {
-                          if (buttonConfig?.copyButton?.onClick) {
-                            buttonConfig?.copyButton?.onClick({
-                              prompt: promptInfo,
-                            });
-                          } else {
-                            promptInfoModal.open({
-                              prompt: promptInfo,
-                              isEdit: false,
-                              isCopy: true,
-                            });
-                          }
-                        }}
-                        disabled={
-                          streaming ||
-                          versionChangeLoading ||
-                          globalReadonly ||
-                          getButtonDisabledFromConfig(
-                            buttonConfig?.copyButton,
-                            promptInfo,
-                          )
+    </>
+  );
+  const headerBackBtn = getButtonHiddenFromConfig(
+    buttonConfig?.backButton,
+    promptInfo,
+  ) ? null : (
+    <IconButton
+      color="secondary"
+      className="!w-[32px] !h-[32px]"
+      icon={
+        <IconCozLongArrowUp
+          className="-rotate-90 text-[20px] cursor-pointer shrink-0 !coz-fg-plus !font-medium"
+          onClick={() => {
+            if (buttonConfig?.backButton?.onClick) {
+              buttonConfig?.backButton?.onClick({ prompt: promptInfo });
+            } else {
+              history.back();
+            }
+          }}
+        />
+      }
+      disabled={getButtonDisabledFromConfig(
+        buttonConfig?.backButton,
+        promptInfo,
+      )}
+    />
+  );
+  const headerRight = (
+    <div className="flex items-center space-x-2">
+      {!compareConfig?.groups?.length ? (
+        <>
+          {isSnippet ? (
+            <Button
+              color="primary"
+              disabled={!totalReferenceCount}
+              onClick={() => snippetUseageModal.open()}
+            >
+              {I18n.t('prompt_number_of_projects_referencing', {
+                placeholder1: totalReferenceCount ?? 0,
+              })}
+            </Button>
+          ) : null}
+          {renderHeaderButtons ? (
+            renderHeaderButtons(
+              isPlayground
+                ? [compareBtn, quickCreateBtn]
+                : [compareBtn, versionListBtn, submitBtn],
+              promptInfo,
+            )
+          ) : (
+            <>
+              {compareBtn}
+              {versionListBtn}
+              {quickCreateBtn}
+              {submitBtn}
+            </>
+          )}
+          {!isPlayground && !isSnippet ? (
+            <Dropdown
+              trigger="click"
+              position="bottomRight"
+              showTick={false}
+              zIndex={8}
+              render={
+                <Dropdown.Menu>
+                  {renderExtraHeaderDropdown?.(promptInfo)}
+                  {getButtonHiddenFromConfig(
+                    buttonConfig?.copyButton,
+                    promptInfo,
+                  ) ||
+                  promptInfo?.prompt_draft ||
+                  !promptInfo?.prompt_basic?.latest_version ? null : (
+                    <Dropdown.Item
+                      className="!px-2"
+                      onClick={() => {
+                        if (buttonConfig?.copyButton?.onClick) {
+                          buttonConfig?.copyButton?.onClick({
+                            prompt: promptInfo,
+                          });
+                        } else {
+                          promptInfoModal.open({
+                            prompt: promptInfo,
+                            isEdit: false,
+                            isCopy: true,
+                          });
                         }
+                      }}
+                      disabled={
+                        streaming ||
+                        versionChangeLoading ||
+                        globalReadonly ||
+                        getButtonDisabledFromConfig(
+                          buttonConfig?.copyButton,
+                          promptInfo,
+                        )
+                      }
+                    >
+                      {I18n.t('copy')}
+                    </Dropdown.Item>
+                  )}
+                  {getButtonHiddenFromConfig(
+                    buttonConfig?.deleteButton,
+                    promptInfo,
+                  ) ? null : (
+                    <TooltipWhenDisabled
+                      content={I18n.t('prompt_no_delete_permission')}
+                      disabled={delDisabled}
+                      theme="dark"
+                    >
+                      <Dropdown.Item
+                        className={classNames('!px-2', {
+                          'opacity-50': streaming || delDisabled,
+                        })}
+                        onClick={() => onDeletePrompt(promptInfo)}
+                        disabled={streaming || delDisabled || readonly}
+                        data-btm="d75445"
+                        data-btm-title={I18n.t('delete_prompt')}
                       >
-                        {I18n.t('copy')}
+                        <Typography.Text type="danger">
+                          {I18n.t('delete')}
+                        </Typography.Text>
                       </Dropdown.Item>
-                    )}
-                    {getButtonHiddenFromConfig(
-                      buttonConfig?.deleteButton,
-                      promptInfo,
-                    ) ? null : (
-                      <TooltipWhenDisabled
-                        content={I18n.t('prompt_no_delete_permission')}
-                        disabled={delDisabled}
-                        theme="dark"
-                      >
-                        <Dropdown.Item
-                          className={classNames('!px-2', {
-                            'opacity-50': streaming || delDisabled,
-                          })}
-                          onClick={() => onDeletePrompt(promptInfo)}
-                          disabled={streaming || delDisabled || readonly}
-                          data-btm="d75445"
-                          data-btm-title={I18n.t('delete_prompt')}
-                        >
-                          <Typography.Text type="danger">
-                            {I18n.t('delete')}
-                          </Typography.Text>
-                        </Dropdown.Item>
-                      </TooltipWhenDisabled>
-                    )}
-                  </Dropdown.Menu>
-                }
-                clickToHide
-              >
-                <IconButton icon={<IconCozMore />} color="primary" />
-              </Dropdown>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <Button
-              color="primary"
-              onClick={() => {
-                setCompareConfig({ groups: [] });
-                setHistoricMessage([]);
-              }}
-              disabled={streaming}
-              data-btm="d33400"
-              data-btm-title={I18n.t('prompt_exit_compare_mode')}
+                    </TooltipWhenDisabled>
+                  )}
+                </Dropdown.Menu>
+              }
+              clickToHide
             >
-              {I18n.t('prompt_exit_compare_mode')}
-            </Button>
-            <Button
-              color="primary"
-              icon={<IconCozPlus />}
-              disabled={(compareConfig?.groups || []).length >= 3 || streaming}
-              onClick={handleAddNewComparePrompt}
-              data-btm="d29798"
-              data-btm-title={I18n.t('add_control_group')}
-            >
-              {I18n.t('add_control_group')}
-            </Button>
-          </>
-        )}
-      </div>
+              <IconButton icon={<IconCozMore />} color="primary" />
+            </Dropdown>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <Button
+            color="primary"
+            onClick={() => {
+              setCompareConfig({ groups: [] });
+              setHistoricMessage([]);
+            }}
+            disabled={streaming}
+            data-btm="d33400"
+            data-btm-title={I18n.t('prompt_exit_compare_mode')}
+          >
+            {I18n.t('prompt_exit_compare_mode')}
+          </Button>
+          <Button
+            color="primary"
+            icon={<IconCozPlus />}
+            disabled={(compareConfig?.groups || []).length >= 3 || streaming}
+            onClick={handleAddNewComparePrompt}
+            data-btm="d29798"
+            data-btm-title={I18n.t('add_control_group')}
+          >
+            {I18n.t('add_control_group')}
+          </Button>
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      {portalBack && !isPlayground
+        ? createPortal(headerBackBtn, portalBack)
+        : null}
+      {portalRight
+        ? createPortal(
+            <div className="flex justify-between items-center w-full gap-4">
+              {headerLeft}
+              {headerRight}
+            </div>,
+            portalRight,
+          )
+        : null}
       <PromptCreateModal
         spaceID={spaceID}
         visible={promptInfoModal.visible}
@@ -845,6 +868,6 @@ export function PromptHeader() {
           buttonConfig?.promptJumpButton?.onClick?.({ prompt: versionPrompt });
         }}
       />
-    </div>
+    </>
   );
 }

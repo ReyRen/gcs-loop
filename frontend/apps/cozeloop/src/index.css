@@ -35,14 +35,6 @@ body,
     sans-serif;
 }
 
-/* wujie 子应用：打通从 wujie-app 宿主到根节点的高度链，避免白屏 */
-wujie-app,
-wujie-app[data-wujie-name] {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
 #cozeloop-root {
   display: flex;
   flex-direction: column;
