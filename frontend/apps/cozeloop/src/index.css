@@ -23,19 +23,20 @@
 }
 
 html,
-body,
-#cozeloop-root {
+body {
   width: 100%;
-  /* min-width: 1220px; */
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  position: relative;
   font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial,
     sans-serif;
 }
 
 #cozeloop-root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }

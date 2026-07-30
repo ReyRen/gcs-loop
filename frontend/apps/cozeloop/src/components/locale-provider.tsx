@@ -30,7 +30,7 @@ export function LocaleProvider({ children }: PropsWithChildren) {
   const { locale, cdLocale } = langToLocale(lang);
 
   return (
-    <ConfigProvider locale={locale}>
+    <ConfigProvider locale={locale} getPopupContainer={() => document.body}>
       <CDLocaleProvider
         locale={cdLocale}
         i18n={{ t: (key: string) => I18n.unsafeT(key) }}

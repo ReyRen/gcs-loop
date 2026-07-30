@@ -43,10 +43,14 @@ export const useRouteInfo: UseRouteInfo = () => {
       spaceID,
     });
 
-    const subPath = pathname.replace(baseURL, '');
+    const rawSubPath = pathname.replace(baseURL, '');
+    // wujie 环境下路径多一个 /prompt 前缀，需跳过第一个分段
+    const isWujie =
+      typeof window !== 'undefined' &&
+      !!(window as unknown as Record<string, unknown>).__POWERED_BY_WUJIE__;
+    const subPath = isWujie ? rawSubPath.replace(/^\/[^/]+/, '') : rawSubPath;
 
     const [, app, subModule, detail] = subPath.split('/');
-
     return {
       baseURL,
       app,
