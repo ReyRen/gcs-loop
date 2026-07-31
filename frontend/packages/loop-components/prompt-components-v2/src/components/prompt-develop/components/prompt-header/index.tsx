@@ -803,7 +803,7 @@ export function PromptHeader() {
         : null}
       {portalRight
         ? createPortal(
-            <div className="flex justify-between items-center w-full gap-4">
+            <div className="flex justify-between items-center w-full gap-2">
               {headerLeft}
               {headerRight}
             </div>,

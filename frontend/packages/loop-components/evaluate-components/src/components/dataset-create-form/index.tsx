@@ -79,23 +79,25 @@ export const DatasetCreateForm = ({ header }: DatasetCreateFormProps) => {
   };
   return (
     <div className="flex h-full flex-col">
-      <div className="flex justify-between px-6 pt-[12px] py-3 h-[56px] box-border text-[18px]">
-        {header}
-        <div className="flex items-center gap-[2px]">
-          <IconCozDocument className="coz-fg-secondary" />
-          <Typography.Text
-            className="cursor-pointer !coz-fg-secondary"
-            onClick={() => {
-              window.open(
-                'https://loop.coze.cn/open/docs/cozeloop/create-dataset',
-                '_blank',
-              );
-            }}
-          >
-            {I18n.t('how_to_create_a_review_set')}
-          </Typography.Text>
+      {header ? (
+        <div className="flex justify-between px-6 pt-[12px] py-3 h-[56px] box-border text-[18px]">
+          {header}
+          <div className="flex items-center gap-[2px]">
+            <IconCozDocument className="coz-fg-secondary" />
+            <Typography.Text
+              className="cursor-pointer !coz-fg-secondary"
+              onClick={() => {
+                window.open(
+                  'https://loop.coze.cn/open/docs/cozeloop/create-dataset',
+                  '_blank',
+                );
+              }}
+            >
+              {I18n.t('how_to_create_a_review_set')}
+            </Typography.Text>
+          </div>
         </div>
-      </div>
+      ) : null}
       <SentinelForm<IDatasetCreateForm>
         formID={I18n.t('evaluate_evaluation_new_testset')}
         getFormApi={formApi => {

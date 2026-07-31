@@ -6,7 +6,7 @@ import { isArray } from 'lodash-es';
 import { useDebounceFn, useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { BaseSearchSelect } from '@cozeloop/components';
-import { useOpenWindow, useSpace } from '@cozeloop/biz-hooks-adapter';
+import { useSpace, useNavigateModule } from '@cozeloop/biz-hooks-adapter';
 import { type EvaluationSet } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
 import { IconCozPlus } from '@coze-arch/coze-design/icons';
@@ -63,7 +63,7 @@ export function EvaluateSetSelect(
   },
 ) {
   const { spaceID } = useSpace();
-  const { openBlank } = useOpenWindow();
+  const navigate = useNavigateModule();
   const { multiple, showSetCount } = props;
 
   const service = useRequest(async (text?: string) => {
@@ -134,7 +134,7 @@ export function EvaluateSetSelect(
         !props.disableAddEvalSet ? (
           <div
             onClick={() => {
-              openBlank('evaluation/datasets/create');
+              navigate('evaluation/datasets/create');
             }}
             className="h-8 px-2 flex flex-row items-center cursor-pointer"
           >
