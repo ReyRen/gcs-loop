@@ -3,10 +3,10 @@
 import { useState } from 'react';
 
 import { I18n } from '@cozeloop/i18n-adapter';
-import { Input, Button, Typography } from '@coze-arch/coze-design';
+import { Input, Button } from '@coze-arch/coze-design'; //Typography
 
 import loopBanner from '@/assets/loop-banner.png';
-import { ReactComponent as IconGithub } from '@/assets/github.svg';
+// import { ReactComponent as IconGithub } from '@/assets/github.svg';
 
 import { SwitchLang } from '../switch-lng';
 
@@ -18,7 +18,7 @@ interface Props {
   onRegister?: (email: string, password: string) => void;
 }
 
-const { Text } = Typography;
+// const { Text } = Typography;
 
 export function LoginPanel({ loading, onLogin, onRegister }: Props) {
   const [email, setEmail] = useState('');
@@ -99,7 +99,7 @@ export function LoginPanel({ loading, onLogin, onRegister }: Props) {
           </Checkbox>
         </div> */}
       </div>
-      <div className={s.copyright}>
+      {/* <div className={s.copyright}>
         <Text component="div" type="secondary">
           ©2025 Coze Loop
         </Text>
@@ -127,7 +127,7 @@ export function LoginPanel({ loading, onLogin, onRegister }: Props) {
             coze-dev/coze-loop
           </Text>
         </Text>
-      </div>
+      </div> */}
     </div>
   );
 }

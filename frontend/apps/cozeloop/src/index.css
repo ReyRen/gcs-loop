@@ -23,19 +23,20 @@
 }
 
 html,
-body,
-#cozeloop-root {
+body {
   width: 100%;
-  /* min-width: 1220px; */
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  position: relative;
   font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial,
     sans-serif;
 }
 
 #cozeloop-root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -44,6 +45,19 @@ body,
   .semi-button-content-right {
     margin-left: 4px;
   }
+
+  /** Semi UI Primary Color **/
+  --semi-color-primary: rgba(var(--coze-up-brand-9), 1);
+  --semi-color-primary-hover: rgba(var(--coze-up-brand-8), 1);
+  --semi-color-primary-active: rgba(var(--coze-up-brand-10), 1);
+  --semi-color-primary-disabled: rgba(var(--coze-up-brand-5), 0.4);
+  --semi-color-primary-light-default: rgba(var(--coze-up-brand-9), 0.1);
+  --semi-color-primary-light-hover: rgba(var(--coze-up-brand-9), 0.15);
+  --semi-color-primary-light-active: rgba(var(--coze-up-brand-9), 0.2);
+  --semi-color-link: rgba(var(--coze-up-brand-9), 1);
+  --semi-color-link-hover: rgba(var(--coze-up-brand-8), 1);
+  --semi-color-link-active: rgba(var(--coze-up-brand-10), 1);
+  --semi-color-link-visited: rgba(var(--coze-up-brand-9), 1);
 
   /** Button **/
   .coz-btn-large {

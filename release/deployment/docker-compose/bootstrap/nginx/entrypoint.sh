@@ -63,6 +63,12 @@ http {
             add_header Cache-Control "no-cache, must-revalidate";
         }
 
+        # wujie 子应用：/prompt/ 资源路径重写到根路径
+        # 独立运行时 HTML 引用 /prompt/static/js/xxx.js，重写为 /static/js/xxx.js
+        location /prompt/static/ {
+            rewrite ^/prompt/(.*)\$ /\$1 last;
+        }
+
         location / {
             try_files \$uri \$uri/ /index.html;
         }
@@ -70,6 +76,28 @@ http {
         # app proxy
         location /api/ {
             proxy_pass         http://coze-loop-app:8888;
+            proxy_http_version 1.1;
+
+            proxy_set_header   Host \$host;
+            proxy_set_header   X-Real-IP \$remote_addr;
+            proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto \$scheme;
+
+            add_header         Access-Control-Allow-Origin *;
+            add_header         Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+            add_header         Access-Control-Allow-Headers "*";
+
+            if (\$request_method = OPTIONS ) {
+                add_header Access-Control-Max-Age 1728000;
+                add_header Content-Type "text/plain charset=UTF-8";
+                add_header Content-Length 0;
+                return 204;
+            }
+        }
+
+         # promptApi proxy（前端 API_SCHEMA_BASE_URL=/promptApi 时的入口）
+        location /promptApi/ {
+            proxy_pass         http://coze-loop-app:8888/;
             proxy_http_version 1.1;
 
             proxy_set_header   Host \$host;
