@@ -117,7 +117,7 @@ const PromptEvalTargetSelect = ({
         onCancel={() => setSubmitModalUrl('')}
         title={I18n.t('prompt_detail')}
         width="90vw"
-        height="90vh"
+        height="fill"
         footer={null}
         hasScroll={false}
       >

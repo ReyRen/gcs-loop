@@ -95,7 +95,7 @@ const PromptEvalTargetVersionSelect = ({
         onCancel={() => setSubmitModalUrl('')}
         title={I18n.t('draft_version')}
         width="90vw"
-        height="90vh"
+        height="fill"
         footer={null}
         hasScroll={false}
       >

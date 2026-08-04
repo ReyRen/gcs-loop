@@ -228,7 +228,7 @@ export const EvaluateSetForm = (props: EvaluateSetFormProps) => {
         onCancel={() => setSubmitModalUrl('')}
         title={I18n.t('view_detail')}
         width="90vw"
-        height="90vh"
+        height="fill"
         footer={null}
         hasScroll={false}
       >
