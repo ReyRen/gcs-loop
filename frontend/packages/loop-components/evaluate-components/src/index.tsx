@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 export { DatasetListPage } from './pages/dataset-list-page';
 export { CreateDatasetPage } from './pages/create-dataset-page';
+export { DatasetCreateModal } from './components/dataset-create-modal';
 
 export {
   evalTargetRunStatusInfoList,

@@ -7,10 +7,11 @@ import { Tag } from '@coze-arch/coze-design';
 interface NoVersionJumperProps {
   targetUrl: string;
   isShowTag?: boolean;
+  onGoSubmit?: () => void;
 }
 
 const NoVersionJumper = (props: NoVersionJumperProps) => {
-  const { targetUrl, isShowTag = true } = props;
+  const { targetUrl, isShowTag = true, onGoSubmit } = props;
   return (
     <div className="w-full flex flex-row items-center justify-between gap-1 pr-2">
       <div className="flex flex-row items-center gap-3">
@@ -23,7 +24,15 @@ const NoVersionJumper = (props: NoVersionJumperProps) => {
       </div>
       <div
         onClick={() => {
-          window.open(targetUrl);
+          if (onGoSubmit) {
+            // 触发 mousedown 事件关闭下拉框
+            document.dispatchEvent(
+              new MouseEvent('mousedown', { bubbles: true }),
+            );
+            onGoSubmit();
+          } else {
+            window.open(targetUrl);
+          }
         }}
         className="flex-shrink-0 h-8 flex flex-row items-center cursor-pointer"
       >

@@ -5,7 +5,7 @@
 /* eslint-disable max-len */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type RefObject } from 'react';
+import { type RefObject, useState, useCallback } from 'react';
 
 import { useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
@@ -21,7 +21,7 @@ import {
   type FieldSchema,
 } from '@cozeloop/api-schema/evaluation';
 import { IconCozLoading } from '@coze-arch/coze-design/icons';
-import { Form, useFormState, withField } from '@coze-arch/coze-design';
+import { Form, useFormState, withField, Modal } from '@coze-arch/coze-design';
 
 import { type CreateExperimentValues } from '@/types/experiment/experiment-create';
 import { getEvaluationSetVersion } from '@/request/evaluation-set';
@@ -51,6 +51,11 @@ export const EvaluateSetForm = (props: EvaluateSetFormProps) => {
   const { spaceID } = useSpace();
   const { getURL } = useOpenWindow();
   const formState = useFormState();
+  const [submitModalUrl, setSubmitModalUrl] = useState<string>('');
+
+  const handleOpenDetail = useCallback((url: string) => {
+    setSubmitModalUrl(url);
+  }, []);
 
   const { values: formValues } = formState;
 
@@ -184,6 +189,13 @@ export const EvaluateSetForm = (props: EvaluateSetFormProps) => {
                         url={getURL(
                           `evaluation/datasets/${formState.values.evaluationSet}?version=${formState.values.evaluationSetVersion}`,
                         )}
+                        onClick={() =>
+                          handleOpenDetail(
+                            getURL(
+                              `evaluation/datasets/${formState.values.evaluationSet}?version=${formState.values.evaluationSetVersion}`,
+                            ),
+                          )
+                        }
                       />
                     ) : null}
                   </>
@@ -211,6 +223,23 @@ export const EvaluateSetForm = (props: EvaluateSetFormProps) => {
           {versionDetail?.item_count ?? '-'}
         </div>
       </Form.Slot>
+      <Modal
+        visible={!!submitModalUrl}
+        onCancel={() => setSubmitModalUrl('')}
+        title={I18n.t('view_detail')}
+        width="90vw"
+        height="fill"
+        footer={null}
+        hasScroll={false}
+      >
+        {submitModalUrl ? (
+          <iframe
+            src={submitModalUrl}
+            className="w-full h-full border-0"
+            title="view-detail"
+          />
+        ) : null}
+      </Modal>
     </>
   );
 };

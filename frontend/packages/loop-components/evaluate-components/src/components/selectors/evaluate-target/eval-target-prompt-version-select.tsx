@@ -1,6 +1,8 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useCallback } from 'react';
+
 import { useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { BaseSearchSelect } from '@cozeloop/components';
@@ -14,7 +16,7 @@ import {
   type EvalTargetVersion,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import { type FormSelect } from '@coze-arch/coze-design';
+import { type FormSelect, Modal } from '@coze-arch/coze-design';
 
 import { NoVersionJumper } from '../../common';
 import { getPromptEvalTargetVersionOption } from './utils';
@@ -26,6 +28,11 @@ const PromptEvalTargetVersionSelect = ({
   const { spaceID } = useSpace();
   const { getPromptDetailURL } = useResourcePageJump();
   const { getURL } = useOpenWindow();
+  const [submitModalUrl, setSubmitModalUrl] = useState<string>('');
+
+  const handleGoSubmit = useCallback((url: string) => {
+    setSubmitModalUrl(url);
+  }, []);
 
   const service = useRequest(
     async () => {
@@ -45,9 +52,15 @@ const PromptEvalTargetVersionSelect = ({
       // 如果是 prompt 类型, 如果没有版本, 也需要提示去提交
       if (!res?.versions?.length) {
         const promptUrl = getPromptDetailURL(promptId);
+        const fullUrl = getURL(promptUrl);
         result?.unshift({
           value: '__UNCOMMITTED__',
-          label: <NoVersionJumper targetUrl={getURL(promptUrl)} />,
+          label: (
+            <NoVersionJumper
+              targetUrl={fullUrl}
+              onGoSubmit={() => handleGoSubmit(fullUrl)}
+            />
+          ),
 
           disabled: true,
         });
@@ -66,16 +79,35 @@ const PromptEvalTargetVersionSelect = ({
   };
 
   return (
-    <BaseSearchSelect
-      loading={service.loading}
-      emptyContent={I18n.t('no_data')}
-      placeholder={I18n.t('select_version')}
-      showRefreshBtn={true}
-      onClickRefresh={() => service.run()}
-      optionList={service.data}
-      renderSelectedItem={renderSelectedItem}
-      {...props}
-    />
+    <>
+      <BaseSearchSelect
+        loading={service.loading}
+        emptyContent={I18n.t('no_data')}
+        placeholder={I18n.t('select_version')}
+        showRefreshBtn={true}
+        onClickRefresh={() => service.run()}
+        optionList={service.data}
+        renderSelectedItem={renderSelectedItem}
+        {...props}
+      />
+      <Modal
+        visible={!!submitModalUrl}
+        onCancel={() => setSubmitModalUrl('')}
+        title={I18n.t('draft_version')}
+        width="90vw"
+        height="fill"
+        footer={null}
+        hasScroll={false}
+      >
+        {submitModalUrl ? (
+          <iframe
+            src={submitModalUrl}
+            className="w-full h-full border-0"
+            title="submit-version"
+          />
+        ) : null}
+      </Modal>
+    </>
   );
 };
 
