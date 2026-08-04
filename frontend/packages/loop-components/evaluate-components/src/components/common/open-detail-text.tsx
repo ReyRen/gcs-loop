@@ -9,11 +9,13 @@ export function OpenDetailText({
   text,
   url,
   style,
+  onClick,
 }: {
   url: string;
   className?: string;
   text?: string;
   style?: React.CSSProperties;
+  onClick?: () => void;
 }) {
   return (
     <Tooltip theme="dark" content={I18n.t('view_detail')}>
@@ -24,7 +26,11 @@ export function OpenDetailText({
         )}
         onClick={e => {
           e.stopPropagation();
-          window.open(url);
+          if (onClick) {
+            onClick();
+          } else {
+            window.open(url);
+          }
         }}
         style={style}
       >

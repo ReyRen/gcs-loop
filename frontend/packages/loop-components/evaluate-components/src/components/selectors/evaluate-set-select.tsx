@@ -1,12 +1,12 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
-import { useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { isArray } from 'lodash-es';
 import { useDebounceFn, useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { BaseSearchSelect } from '@cozeloop/components';
-import { useSpace, useNavigateModule } from '@cozeloop/biz-hooks-adapter';
+import { useSpace } from '@cozeloop/biz-hooks-adapter';
 import { type EvaluationSet } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
 import { IconCozPlus } from '@coze-arch/coze-design/icons';
@@ -15,6 +15,8 @@ import {
   type SelectProps,
   Typography,
 } from '@coze-arch/coze-design';
+
+import { DatasetCreateModal } from '../dataset-create-modal';
 
 const EvaluationSetLabel = ({
   name,
@@ -63,8 +65,10 @@ export function EvaluateSetSelect(
   },
 ) {
   const { spaceID } = useSpace();
-  const navigate = useNavigateModule();
   const { multiple, showSetCount } = props;
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- semi Select instance type not exported
+  const selectRef = useRef<any>(null);
 
   const service = useRequest(async (text?: string) => {
     const res = await StoneEvaluationApi.ListEvaluationSets({
@@ -117,37 +121,62 @@ export function EvaluateSetSelect(
         ) || []
       );
     },
-    [spaceID],
+    [spaceID, showSetCount],
   );
 
   return (
-    <BaseSearchSelect
-      placeholder={I18n.t('select_evaluation_set')}
-      renderSelectedItem={renderSelectedItem as RenderSelectedItemFn}
-      filter
-      remote
-      loading={service.loading}
-      onSearch={handleSearch.run}
-      showRefreshBtn={true}
-      onClickRefresh={() => service.run()}
-      outerBottomSlot={
-        !props.disableAddEvalSet ? (
-          <div
-            onClick={() => {
-              navigate('evaluation/datasets/create');
-            }}
-            className="h-8 px-2 flex flex-row items-center cursor-pointer"
-          >
-            <IconCozPlus className="h-4 w-4 text-brand-9 mr-2" />
-            <div className="text-sm font-medium text-brand-9">
-              {I18n.t('new_evaluation_set')}
+    <>
+      <BaseSearchSelect
+        ref={selectRef}
+        placeholder={I18n.t('select_evaluation_set')}
+        renderSelectedItem={renderSelectedItem as RenderSelectedItemFn}
+        filter
+        remote
+        loading={service.loading}
+        onSearch={handleSearch.run}
+        showRefreshBtn={true}
+        onClickRefresh={() => service.run()}
+        outerBottomSlot={
+          !props.disableAddEvalSet ? (
+            <div
+              onClick={() => {
+                selectRef.current?.close();
+                setCreateModalVisible(true);
+              }}
+              className="h-8 px-2 flex flex-row items-center cursor-pointer"
+            >
+              <IconCozPlus className="h-4 w-4 text-brand-9 mr-2" />
+              <div className="text-sm font-medium text-brand-9">
+                {I18n.t('new_evaluation_set')}
+              </div>
             </div>
-          </div>
-        ) : null
-      }
-      optionList={service.data}
-      loadOptionByIds={fetchOptionsByIds}
-      {...props}
-    />
+          ) : null
+        }
+        optionList={service.data}
+        loadOptionByIds={fetchOptionsByIds}
+        {...props}
+      />
+      {!props.disableAddEvalSet ? (
+        <DatasetCreateModal
+          visible={createModalVisible}
+          onCancel={() => setCreateModalVisible(false)}
+          onCreateSuccess={async evaluationSetId => {
+            setCreateModalVisible(false);
+            await service.run();
+            if (multiple) {
+              const prevValue: string[] = isArray(props.value)
+                ? (props.value as string[])
+                : [];
+              props.onChange?.([
+                ...prevValue,
+                evaluationSetId,
+              ] as unknown as never);
+            } else {
+              props.onChange?.(evaluationSetId as never);
+            }
+          }}
+        />
+      ) : null}
+    </>
   );
 }

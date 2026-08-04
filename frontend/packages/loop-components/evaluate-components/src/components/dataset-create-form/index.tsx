@@ -41,11 +41,18 @@ import { CreateDatasetTemplate } from './create-template';
 import styles from './index.module.less';
 export interface DatasetCreateFormProps {
   header?: React.ReactNode;
+  /**
+   * 创建成功回调，传入则不再跳转评测集详情页，由调用方自行处理（如弹窗场景）
+   */
+  onCreateSuccess?: (evaluationSetId: string) => void;
 }
 
 // const FormColumnConfig = withField()
 
-export const DatasetCreateForm = ({ header }: DatasetCreateFormProps) => {
+export const DatasetCreateForm = ({
+  header,
+  onCreateSuccess,
+}: DatasetCreateFormProps) => {
   const formRef = useRef<SentinelFormApi<IDatasetCreateForm>>();
   const { spaceID } = useSpace();
   const navigate = useNavigateModule();
@@ -69,7 +76,11 @@ export const DatasetCreateForm = ({ header }: DatasetCreateFormProps) => {
       });
       Toast.success(I18n.t('create_success'));
       formRef.current?.submitLog?.();
-      navigate(`evaluation/datasets/${res.evaluation_set_id}`);
+      if (onCreateSuccess) {
+        onCreateSuccess(res.evaluation_set_id as string);
+      } else {
+        navigate(`evaluation/datasets/${res.evaluation_set_id}`);
+      }
     } catch (e) {
       console.log(e);
       formRef.current?.submitLog?.(true, e);

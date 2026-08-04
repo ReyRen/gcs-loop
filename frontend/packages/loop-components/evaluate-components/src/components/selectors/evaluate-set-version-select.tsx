@@ -1,11 +1,13 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
+import { useState, useCallback } from 'react';
+
 import { useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { BaseSearchFormSelect } from '@cozeloop/components';
 import { useOpenWindow, useSpace } from '@cozeloop/biz-hooks-adapter';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import { type FormSelect, Typography } from '@coze-arch/coze-design';
+import { type FormSelect, Typography, Modal } from '@coze-arch/coze-design';
 
 import NoVersionJumper from '../common/no-version-jumper';
 
@@ -15,6 +17,11 @@ export function EvaluateSetVersionSelect({
 }: React.ComponentProps<typeof FormSelect> & { evaluationSetId?: string }) {
   const { spaceID } = useSpace();
   const { getURL } = useOpenWindow();
+  const [submitModalUrl, setSubmitModalUrl] = useState<string>('');
+
+  const handleGoSubmit = useCallback((url: string) => {
+    setSubmitModalUrl(url);
+  }, []);
 
   const service = useRequest(
     async () => {
@@ -53,12 +60,14 @@ export function EvaluateSetVersionSelect({
         })) || [];
       // 没有历史版本
       if (!res1?.versions) {
+        const detailUrl = getURL(`evaluation/datasets/${evaluationSetId}`);
         list?.unshift({
           value: '__UNCOMMITTED__',
           label: (
             <NoVersionJumper
-              targetUrl={getURL(`evaluation/datasets/${evaluationSetId}`)}
+              targetUrl={detailUrl}
               isShowTag={res2?.evaluation_set?.change_uncommitted}
+              onGoSubmit={() => handleGoSubmit(detailUrl)}
             />
           ),
 
@@ -73,14 +82,33 @@ export function EvaluateSetVersionSelect({
   );
 
   return (
-    <BaseSearchFormSelect
-      placeholder={I18n.t('please_select_evaluation_set_version')}
-      remote
-      loading={service.loading}
-      showRefreshBtn={true}
-      onClickRefresh={() => service.run()}
-      optionList={service.data}
-      {...props}
-    />
+    <>
+      <BaseSearchFormSelect
+        placeholder={I18n.t('please_select_evaluation_set_version')}
+        remote
+        loading={service.loading}
+        showRefreshBtn={true}
+        onClickRefresh={() => service.run()}
+        optionList={service.data}
+        {...props}
+      />
+      <Modal
+        visible={!!submitModalUrl}
+        onCancel={() => setSubmitModalUrl('')}
+        title={I18n.t('draft_version')}
+        width="90vw"
+        height="90vh"
+        footer={null}
+        hasScroll={false}
+      >
+        {submitModalUrl ? (
+          <iframe
+            src={submitModalUrl}
+            className="w-full h-full border-0"
+            title="submit-version"
+          />
+        ) : null}
+      </Modal>
+    </>
   );
 }

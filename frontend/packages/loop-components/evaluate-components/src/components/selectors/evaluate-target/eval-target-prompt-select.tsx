@@ -1,6 +1,6 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import classNames from 'classnames';
 import { useDebounceFn, useRequest } from 'ahooks';
@@ -14,7 +14,7 @@ import {
 import { EvalTargetType } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
 import { IconCozPlus } from '@coze-arch/coze-design/icons';
-import { type SelectProps } from '@coze-arch/coze-design';
+import { type SelectProps, Modal } from '@coze-arch/coze-design';
 
 import { useGlobalEvalConfig } from '@/stores/eval-global-config';
 
@@ -34,9 +34,12 @@ const PromptEvalTargetSelect = ({
   }) => {
   const { spaceID } = useSpace();
   const [createPromptVisible, setCreatePromptVisible] = useState(false);
+  const [submitModalUrl, setSubmitModalUrl] = useState<string>('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectRef = useRef<any>(null);
   const { PromptCreate } = useGlobalEvalConfig();
   const { getPromptDetailURL } = useResourcePageJump();
-  const { openBlank } = useOpenWindow();
+  const { getURL } = useOpenWindow();
   const service = useRequest(async (text?: string) => {
     const res = await StoneEvaluationApi.ListSourceEvalTargets({
       target_type: EvalTargetType.CozeLoopPrompt,
@@ -70,6 +73,7 @@ const PromptEvalTargetSelect = ({
   return (
     <>
       <BaseSearchSelect
+        ref={selectRef}
         className={classNames(props.className)}
         emptyContent={I18n.t('no_data')}
         loading={service.loading}
@@ -81,6 +85,7 @@ const PromptEvalTargetSelect = ({
           showCreateBtn ? (
             <div
               onClick={() => {
+                selectRef.current?.close();
                 setCreatePromptVisible(true);
               }}
               className="h-8 px-2 flex flex-row items-center cursor-pointer"
@@ -101,12 +106,29 @@ const PromptEvalTargetSelect = ({
           visible={createPromptVisible}
           onCancel={() => setCreatePromptVisible(false)}
           onOk={res => {
-            openBlank(getPromptDetailURL(`${res.id}`));
             setCreatePromptVisible(false);
+            setSubmitModalUrl(getURL(getPromptDetailURL(`${res.id}`)));
             service.run();
           }}
         />
       ) : null}
+      <Modal
+        visible={!!submitModalUrl}
+        onCancel={() => setSubmitModalUrl('')}
+        title={I18n.t('prompt_detail')}
+        width="90vw"
+        height="90vh"
+        footer={null}
+        hasScroll={false}
+      >
+        {submitModalUrl ? (
+          <iframe
+            src={submitModalUrl}
+            className="w-full h-full border-0"
+            title="prompt-detail"
+          />
+        ) : null}
+      </Modal>
     </>
   );
 };

@@ -1,7 +1,14 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { isNull, isUndefined } from 'lodash-es';
 import classNames from 'classnames';
@@ -29,7 +36,7 @@ import styles from './index.module.less';
  * 2. 搜索后选中值不在结果中导致只显示ID
  */
 // eslint-disable-next-line @coze-arch/max-line-per-function
-const BaseSearchSelect = (props: BaseSelectProps) => {
+const BaseSearchSelect = forwardRef<any, BaseSelectProps>((props, ref) => {
   const I18n = useI18n();
   const {
     optionList: _optionList,
@@ -165,6 +172,7 @@ const BaseSearchSelect = (props: BaseSelectProps) => {
 
   return (
     <Select
+      ref={ref}
       suffix={
         showRefreshBtn && dropdownVisible ? (
           <Tooltip theme="dark" content={I18n.t('refresh')}>
@@ -201,6 +209,8 @@ const BaseSearchSelect = (props: BaseSelectProps) => {
       }}
     />
   );
-};
+});
+
+BaseSearchSelect.displayName = 'BaseSearchSelect';
 
 export default BaseSearchSelect;
