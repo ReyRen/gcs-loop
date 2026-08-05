@@ -114,6 +114,7 @@ struct ListEvaluationSetsOApiRequest {
     5: optional list<string> tag_names (api.query = "tag_names", vt.max_size = "50", vt.elem.min_size = "1", vt.elem.max_size = "128")
     6: optional eval_set.TagFilterRelation tag_filter_relation (api.query = "tag_filter_relation")
     7: optional list<string> dataset_keys (api.query = "dataset_keys", vt.max_size = "255")  // 按 dataset_key 精确匹配
+    8: optional string shared_option (api.query = "shared_option")     // 跨空间共享读选项
 
     100: optional string page_token (api.query = "page_token")
     101: optional i32 page_size (api.query = "page_size", vt.gt = "0", vt.le = "200")
@@ -165,6 +166,7 @@ struct ListEvaluationSetVersionsOApiRequest {
     1: optional i64 workspace_id (api.query = "workspace_id", api.js_conv = "true", go.tag = 'json:"workspace_id"'),
     2: optional i64 evaluation_set_id (api.path = "evaluation_set_id", api.js_conv = "true", go.tag = 'json:"evaluation_set_id"'),
     3: optional string version_like (api.query = "version_like") // 根据版本号模糊匹配
+    4: optional string shared_option (api.query = "shared_option") // 跨空间共享读选项
 
     100: optional i32 page_size (api.query = "page_size", vt.gt = "0", vt.le = "200"),    // 分页大小 (0, 200]，默认为 20
     101: optional string page_token (api.query = "page_token")
@@ -313,6 +315,7 @@ struct ListEvaluationSetVersionItemsOApiRequest {
     3: optional i64 version_id (api.query = "version_id", api.js_conv = "true", go.tag = 'json:"version_id"')
     4: optional list<string> tag_names (api.query = "tag_names", vt.max_size = "50", vt.elem.min_size = "1", vt.elem.max_size = "128")
     5: optional eval_set.TagFilterRelation tag_filter_relation (api.query = "tag_filter_relation")
+    6: optional string shared_option (api.query = "shared_option") // 跨空间共享读选项
 
     100: optional string page_token (api.query = "page_token")
     101: optional i32 page_size (api.query = "page_size", vt.gt = "0", vt.le = "200")
@@ -390,12 +393,44 @@ struct ReportEvalTargetInvokeResultRequest {
     11: optional coze.loop.evaluation.spi.InvokeEvalTargetUsage usage
     // set error_message if status=FAILED
     20: optional string error_message
+    // set error_code if status=FAILED，用于错误分类看板（0/未设置回退到平台默认错误码）
+    21: optional i32 error_code
 
     254: optional extra.Extra extra (agw.source = "not_body_struct")
     255: optional base.Base Base
 }
 
 struct ReportEvalTargetInvokeResultResponse {
+    255: base.BaseResp BaseResp
+}
+
+// 沙箱 agent 内部 step 打点事件类型
+// 沙箱在编排每个 step 的开始/结束时刻分别调用一次上报接口
+enum EvalTargetStepEventType {
+    UNKNOWN = 0
+    STARTED = 1
+    FINISHED = 2
+}
+
+// ReportEvalTargetStepMetricRequest 沙箱内部 step 打点上报请求
+// 沙箱只需要传 invoke_id, 服务端通过 asyncCtx 反查 experiment_id / item_id /
+// dataset_id / dataset_version_id / target_id / item_key / dataset_key 等 tag
+struct ReportEvalTargetStepMetricRequest {
+    1: optional i64 workspace_id (api.js_conv = "true", go.tag = 'json:"workspace_id"')
+    2: optional i64 invoke_id (api.js_conv = "true", go.tag = 'json:"invoke_id"')
+    3: optional EvalTargetStepEventType event_type
+    4: optional string step_name
+    // 仅 FINISHED 事件携带
+    20: optional i64 duration_ms
+    21: optional bool success
+    22: optional i32 error_code
+    23: optional string error_message
+
+    254: optional extra.Extra extra (agw.source = "not_body_struct")
+    255: optional base.Base Base
+}
+
+struct ReportEvalTargetStepMetricResponse {
     255: base.BaseResp BaseResp
 }
 
@@ -470,6 +505,35 @@ struct GetEvalTargetRecordOApiResponse {
 
 struct GetEvalTargetRecordOpenAPIData {
     1: optional eval_target.EvalTargetRecord eval_target_record (go.tag = 'json:"eval_target_record"')
+}
+
+// 查询可用的来源评测对象
+struct ListEvalTargetsOApiRequest {
+    1: optional i64 workspace_id (api.body = "workspace_id", api.js_conv = "true", go.tag = 'json:"workspace_id"')
+    2: optional eval_target.EvalTargetType eval_target_type (api.body = "eval_target_type")
+    3: optional string search_name (api.body = "search_name", vt.min_size = "1")
+    4: optional common.SharedResourceOption shared_option (api.body = "shared_option")
+
+    100: optional string page_token (api.body = "page_token")
+    101: optional i32 page_size (api.body = "page_size", vt.gt = "0", vt.le = "200")
+
+    254: optional extra.Extra extra (agw.source = "not_body_struct")
+    255: optional base.Base Base
+}
+
+struct ListEvalTargetsOApiResponse {
+    1: optional i32 code
+    2: optional string msg
+    3: optional ListEvalTargetsOpenAPIData data
+
+    255: base.BaseResp BaseResp
+}
+
+struct ListEvalTargetsOpenAPIData {
+    1: optional list<eval_target.EvalTarget> eval_targets (api.body = "eval_targets")
+
+    100: optional bool has_more (api.body = "has_more")
+    101: optional string next_page_token (api.body = "next_page_token")
 }
 
 struct ImportEvaluationSetOpenAPIData {
@@ -563,6 +627,7 @@ struct SubmitExperimentOApiRequest {
 struct SubmitExperimentEvalSetParam {
     1: optional i64 eval_set_id (api.js_conv = "true", go.tag = 'json:"eval_set_id"')
     2: optional string version
+    3: optional common.SharedResourceOption shared_option (go.tag = 'json:"shared_option"') // 跨空间共享评测集来源
 }
 
 struct SubmitExperimentEvaluatorParam {
@@ -583,6 +648,7 @@ struct SubmitExperimentEvalTargetParam {
     9: optional string cluster // type=10时需填写，自定义智能体所属集群
     10: optional eval_target.AgentConnection agent_connection // type=10时需填写，自定义智能体连接信息
     11: optional eval_target.SandboxAgent sandbox_agent // type=17(sandbox_agent)时需填写，SandboxAgent 评测对象配置
+    12: optional common.SharedResourceOption shared_option (go.tag = 'json:"shared_option"') // 跨空间共享评测对象来源
 }
 
 
@@ -1393,12 +1459,16 @@ service EvaluationOpenAPIService {
 
     // 评测目标调用结果上报接口
     ReportEvalTargetInvokeResultResponse ReportEvalTargetInvokeResult(1: ReportEvalTargetInvokeResultRequest req) (api.category = "openapi", api.post = "/v1/loop/eval_targets/result")
+    // 沙箱内部 step 打点上报接口：沙箱侧在 step 开始/结束时调用，服务端转成 evaluation_target_sandbox_agent.step_* 指标
+    ReportEvalTargetStepMetricResponse ReportEvalTargetStepMetric(1: ReportEvalTargetStepMetricRequest req) (api.category = "openapi", api.post = "/v1/loop/eval_targets/step_metric")
     // 按需查询评测对象输出中大对象的完整内容
     GetEvalTargetOutputFieldContentOApiResponse GetEvalTargetOutputFieldContentOApi(1: GetEvalTargetOutputFieldContentOApiRequest req) (api.category = "openapi", api.post = "/v1/loop/evaluation/eval_target_records/output_fields")
     // 异步调试评测对象
     AsyncDebugEvalTargetOApiResponse AsyncDebugEvalTargetOApi(1: AsyncDebugEvalTargetOApiRequest req) (api.category = "openapi", api.post = "/v1/loop/eval_targets/async_debug")
     // 获取评测对象记录
     GetEvalTargetRecordOApiResponse GetEvalTargetRecordOApi(1: GetEvalTargetRecordOApiRequest req) (api.category = "openapi", api.get = "/v1/loop/evaluation/eval_target_records/:eval_target_record_id")
+    // 查询可用的来源评测对象
+    ListEvalTargetsOApiResponse ListEvalTargetsOApi(1: ListEvalTargetsOApiRequest req) (api.category = "openapi", api.post = "/v1/loop/eval_targets/list")
 
     // 评测实验接口
     // 创建评测实验

@@ -140,6 +140,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"ReportEvalTargetStepMetric": kitex.NewMethodInfo(
+		reportEvalTargetStepMetricHandler,
+		newEvaluationOpenAPIServiceReportEvalTargetStepMetricArgs,
+		newEvaluationOpenAPIServiceReportEvalTargetStepMetricResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"GetEvalTargetOutputFieldContentOApi": kitex.NewMethodInfo(
 		getEvalTargetOutputFieldContentOApiHandler,
 		newEvaluationOpenAPIServiceGetEvalTargetOutputFieldContentOApiArgs,
@@ -158,6 +165,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		getEvalTargetRecordOApiHandler,
 		newEvaluationOpenAPIServiceGetEvalTargetRecordOApiArgs,
 		newEvaluationOpenAPIServiceGetEvalTargetRecordOApiResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
+	"ListEvalTargetsOApi": kitex.NewMethodInfo(
+		listEvalTargetsOApiHandler,
+		newEvaluationOpenAPIServiceListEvalTargetsOApiArgs,
+		newEvaluationOpenAPIServiceListEvalTargetsOApiResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
@@ -760,6 +774,25 @@ func newEvaluationOpenAPIServiceReportEvalTargetInvokeResultResult() interface{}
 	return openapi.NewEvaluationOpenAPIServiceReportEvalTargetInvokeResultResult()
 }
 
+func reportEvalTargetStepMetricHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*openapi.EvaluationOpenAPIServiceReportEvalTargetStepMetricArgs)
+	realResult := result.(*openapi.EvaluationOpenAPIServiceReportEvalTargetStepMetricResult)
+	success, err := handler.(openapi.EvaluationOpenAPIService).ReportEvalTargetStepMetric(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newEvaluationOpenAPIServiceReportEvalTargetStepMetricArgs() interface{} {
+	return openapi.NewEvaluationOpenAPIServiceReportEvalTargetStepMetricArgs()
+}
+
+func newEvaluationOpenAPIServiceReportEvalTargetStepMetricResult() interface{} {
+	return openapi.NewEvaluationOpenAPIServiceReportEvalTargetStepMetricResult()
+}
+
 func getEvalTargetOutputFieldContentOApiHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*openapi.EvaluationOpenAPIServiceGetEvalTargetOutputFieldContentOApiArgs)
 	realResult := result.(*openapi.EvaluationOpenAPIServiceGetEvalTargetOutputFieldContentOApiResult)
@@ -815,6 +848,25 @@ func newEvaluationOpenAPIServiceGetEvalTargetRecordOApiArgs() interface{} {
 
 func newEvaluationOpenAPIServiceGetEvalTargetRecordOApiResult() interface{} {
 	return openapi.NewEvaluationOpenAPIServiceGetEvalTargetRecordOApiResult()
+}
+
+func listEvalTargetsOApiHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*openapi.EvaluationOpenAPIServiceListEvalTargetsOApiArgs)
+	realResult := result.(*openapi.EvaluationOpenAPIServiceListEvalTargetsOApiResult)
+	success, err := handler.(openapi.EvaluationOpenAPIService).ListEvalTargetsOApi(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newEvaluationOpenAPIServiceListEvalTargetsOApiArgs() interface{} {
+	return openapi.NewEvaluationOpenAPIServiceListEvalTargetsOApiArgs()
+}
+
+func newEvaluationOpenAPIServiceListEvalTargetsOApiResult() interface{} {
+	return openapi.NewEvaluationOpenAPIServiceListEvalTargetsOApiResult()
 }
 
 func submitExperimentOApiHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -1617,6 +1669,16 @@ func (p *kClient) ReportEvalTargetInvokeResult_(ctx context.Context, req *openap
 	return _result.GetSuccess(), nil
 }
 
+func (p *kClient) ReportEvalTargetStepMetric(ctx context.Context, req *openapi.ReportEvalTargetStepMetricRequest) (r *openapi.ReportEvalTargetStepMetricResponse, err error) {
+	var _args openapi.EvaluationOpenAPIServiceReportEvalTargetStepMetricArgs
+	_args.Req = req
+	var _result openapi.EvaluationOpenAPIServiceReportEvalTargetStepMetricResult
+	if err = p.c.Call(ctx, "ReportEvalTargetStepMetric", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
 func (p *kClient) GetEvalTargetOutputFieldContentOApi(ctx context.Context, req *openapi.GetEvalTargetOutputFieldContentOApiRequest) (r *openapi.GetEvalTargetOutputFieldContentOApiResponse, err error) {
 	var _args openapi.EvaluationOpenAPIServiceGetEvalTargetOutputFieldContentOApiArgs
 	_args.Req = req
@@ -1642,6 +1704,16 @@ func (p *kClient) GetEvalTargetRecordOApi(ctx context.Context, req *openapi.GetE
 	_args.Req = req
 	var _result openapi.EvaluationOpenAPIServiceGetEvalTargetRecordOApiResult
 	if err = p.c.Call(ctx, "GetEvalTargetRecordOApi", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) ListEvalTargetsOApi(ctx context.Context, req *openapi.ListEvalTargetsOApiRequest) (r *openapi.ListEvalTargetsOApiResponse, err error) {
+	var _args openapi.EvaluationOpenAPIServiceListEvalTargetsOApiArgs
+	_args.Req = req
+	var _result openapi.EvaluationOpenAPIServiceListEvalTargetsOApiResult
+	if err = p.c.Call(ctx, "ListEvalTargetsOApi", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
