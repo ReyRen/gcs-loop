@@ -74,7 +74,11 @@ image%:
 compose%:
 	@case "$*" in \
 	  -up-dev) \
-	    docker volume rm ${COZE_LOOP_NGINX_DATA_VOLUME_NAME} 2>/dev/null || true; \
+	    docker stop coze-loop-nginx coze-loop-app >/dev/null 2>&1 || true; \
+	    docker rm coze-loop-nginx coze-loop-app >/dev/null 2>&1 || true; \
+	    if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
+	      docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) || exit $$?; \
+	    fi; \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
