@@ -106,6 +106,8 @@ services:
     restart: always
     networks:
       - coze-loop-network
+    ports:
+      - "0.0.0.0:${COZE_LOOP_MYSQL_HOST_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql # 挂载宿主机以持久化
       - ./bootstrap/mysql:/coze-loop-mysql/bootstrap

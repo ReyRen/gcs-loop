@@ -73,7 +73,11 @@ image%:
 
 compose%:
 	@case "$*" in \
-	  -up-dev) \
+	  -up-dev|-up-dev-d) \
+	    detach=""; \
+	    if [ "$*" = "-up-dev-d" ]; then \
+	      detach="--detach"; \
+	    fi; \
 	    docker stop coze-loop-nginx coze-loop-app >/dev/null 2>&1 || true; \
 	    docker rm coze-loop-nginx coze-loop-app >/dev/null 2>&1 || true; \
 	    if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
@@ -84,7 +88,7 @@ compose%:
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
 	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
 	      --profile "*" \
-	      up --build  ;; \
+	      up --build $$detach ;; \
 	  -restart-dev-*) \
 		svc="$*"; \
 		svc="$${svc#-restart-dev-}"; \
@@ -93,13 +97,23 @@ compose%:
           -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
 		  --env-file $(DOCKER_COMPOSE_DIR)/.env \
 		  restart "$$svc" ;; \
+	  -logs-dev) \
+	    docker compose \
+	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
+	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
+	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      --profile "*" \
+	      logs --follow --tail=200 ;; \
 	  -down-dev) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
 	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
 	      --profile "*" \
-	      down ;; \
+	      down || exit $$?; \
+	    if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
+	      docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) || exit $$?; \
+	    fi ;; \
 	  -down-v-dev) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
@@ -171,10 +185,12 @@ compose%:
       	echo "  make compose-down                 # Stop base services"; \
       	echo "  make compose-down-v               # Stop base services and remove volumes"; \
       	echo; \
-      	echo "  # Dev profile"; \
-      	echo "  make compose-up-dev               # Start base + dev services (build)"; \
-      	echo "  make compose-restart-dev-<svc>    # Restart specific dev service"; \
-      	echo "  make compose-down-dev             # Stop base + dev services"; \
+	      echo "  # Dev profile"; \
+	      echo "  make compose-up-dev               # Rebuild dev app with a fresh frontend volume"; \
+	      echo "  make compose-up-dev-d             # Rebuild and start dev services in the background"; \
+	      echo "  make compose-restart-dev-<svc>    # Restart specific dev service"; \
+	      echo "  make compose-logs-dev             # Follow logs from all dev services (last 200 lines)"; \
+	      echo "  make compose-down-dev             # Stop dev services and remove only the frontend volume"; \
       	echo "  make compose-down-v-dev           # Stop base + dev services and remove volumes"; \
       	echo; \
       	echo "  # Debug profile"; \
