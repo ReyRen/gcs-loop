@@ -17,6 +17,8 @@ type Client interface {
 	GetPrompt(ctx context.Context, request *manage.GetPromptRequest, callOptions ...callopt.Option) (r *manage.GetPromptResponse, err error)
 	BatchGetPrompt(ctx context.Context, request *manage.BatchGetPromptRequest, callOptions ...callopt.Option) (r *manage.BatchGetPromptResponse, err error)
 	ListPrompt(ctx context.Context, request *manage.ListPromptRequest, callOptions ...callopt.Option) (r *manage.ListPromptResponse, err error)
+	ListPromptTemplates(ctx context.Context, request *manage.ListPromptTemplatesRequest, callOptions ...callopt.Option) (r *manage.ListPromptTemplatesResponse, err error)
+	GetPromptTemplate(ctx context.Context, request *manage.GetPromptTemplateRequest, callOptions ...callopt.Option) (r *manage.GetPromptTemplateResponse, err error)
 	ListParentPrompt(ctx context.Context, request *manage.ListParentPromptRequest, callOptions ...callopt.Option) (r *manage.ListParentPromptResponse, err error)
 	BatchGetPromptBasic(ctx context.Context, request *manage.BatchGetPromptBasicRequest, callOptions ...callopt.Option) (r *manage.BatchGetPromptBasicResponse, err error)
 	UpdatePrompt(ctx context.Context, request *manage.UpdatePromptRequest, callOptions ...callopt.Option) (r *manage.UpdatePromptResponse, err error)
@@ -87,6 +89,16 @@ func (p *kPromptManageServiceClient) BatchGetPrompt(ctx context.Context, request
 func (p *kPromptManageServiceClient) ListPrompt(ctx context.Context, request *manage.ListPromptRequest, callOptions ...callopt.Option) (r *manage.ListPromptResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.ListPrompt(ctx, request)
+}
+
+func (p *kPromptManageServiceClient) ListPromptTemplates(ctx context.Context, request *manage.ListPromptTemplatesRequest, callOptions ...callopt.Option) (r *manage.ListPromptTemplatesResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ListPromptTemplates(ctx, request)
+}
+
+func (p *kPromptManageServiceClient) GetPromptTemplate(ctx context.Context, request *manage.GetPromptTemplateRequest, callOptions ...callopt.Option) (r *manage.GetPromptTemplateResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetPromptTemplate(ctx, request)
 }
 
 func (p *kPromptManageServiceClient) ListParentPrompt(ctx context.Context, request *manage.ListParentPromptRequest, callOptions ...callopt.Option) (r *manage.ListParentPromptResponse, err error) {

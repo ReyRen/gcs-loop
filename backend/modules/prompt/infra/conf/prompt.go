@@ -10,6 +10,7 @@ import (
 
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
 	promptconf "github.com/coze-dev/coze-loop/backend/modules/prompt/domain/component/conf"
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/pkg/conf"
 )
 
@@ -78,6 +79,15 @@ func (c *PromptConfigProvider) GetPTaaSMaxQPSByPromptKey(ctx context.Context, sp
 
 func (c *PromptConfigProvider) GetPromptDefaultConfig(ctx context.Context) (config *prompt.PromptDetail, err error) {
 	return nil, nil
+}
+
+func (c *PromptConfigProvider) GetPromptTemplatePresetCatalog(ctx context.Context) (catalog *entity.PromptTemplatePresetCatalog, err error) {
+	const PromptTemplatePresetsConfigKey = "prompt_template_presets"
+	catalog = &entity.PromptTemplatePresetCatalog{}
+	if err = c.ConfigLoader.UnmarshalKey(ctx, PromptTemplatePresetsConfigKey, catalog, conf.WithTagName("json")); err != nil {
+		return nil, err
+	}
+	return catalog, nil
 }
 
 // ListPresetLabels returns a list of preset labels from configuration

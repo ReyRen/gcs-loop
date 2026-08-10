@@ -242,6 +242,138 @@ func TestPromptManageApplicationImpl_ClonePrompt(t *testing.T) {
 	}
 }
 
+func TestPromptManageApplicationImpl_ListPromptTemplates(t *testing.T) {
+	t.Run("user not found", func(t *testing.T) {
+		app := &PromptManageApplicationImpl{}
+		resp, err := app.ListPromptTemplates(context.Background(), &manage.ListPromptTemplatesRequest{
+			WorkspaceID: ptr.Of(int64(100)),
+		})
+		assert.Equal(t, manage.NewListPromptTemplatesResponse(), resp)
+		unittest.AssertErrorEqual(t, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found")), err)
+	})
+
+	t.Run("filter templates by category and keyword", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		configProvider := confmocks.NewMockIConfigProvider(ctrl)
+		authProvider := mocks.NewMockIAuthProvider(ctrl)
+
+		authProvider.EXPECT().CheckSpacePermission(gomock.Any(), int64(100), consts.ActionWorkspaceCreateLoopPrompt).Return(nil)
+		configProvider.EXPECT().GetPromptTemplatePresetCatalog(gomock.Any()).Return(&entity.PromptTemplatePresetCatalog{
+			Categories: []*entity.PromptTemplatePresetCategoryInfo{
+				{Category: entity.PromptTemplatePresetCategoryTextGeneration, DisplayName: "文本创作"},
+				{Category: entity.PromptTemplatePresetCategoryJSONOutput, DisplayName: "Json输出"},
+			},
+			Templates: []*entity.PromptTemplatePreset{
+				{
+					TemplateKey: "marketing_copy",
+					DisplayName: "营销文案",
+					Description: "生成营销内容",
+					Category:    entity.PromptTemplatePresetCategoryTextGeneration,
+				},
+				{
+					TemplateKey: "meeting_actions_json",
+					DisplayName: "会议结论结构化",
+					Description: "提取会议行动项",
+					Category:    entity.PromptTemplatePresetCategoryJSONOutput,
+					IconKey:     "json",
+					PromptDetail: &entity.PromptDetail{
+						PromptTemplate: &entity.PromptTemplate{
+							TemplateType: entity.TemplateTypeNormal,
+							Messages:     []*entity.Message{{Role: entity.RoleUser, Content: ptr.Of("{{meeting_notes}}")}},
+						},
+					},
+				},
+			},
+		}, nil)
+
+		app := &PromptManageApplicationImpl{
+			authRPCProvider: authProvider,
+			configProvider:  configProvider,
+		}
+		resp, err := app.ListPromptTemplates(
+			session.WithCtxUser(context.Background(), &session.User{ID: "user"}),
+			&manage.ListPromptTemplatesRequest{
+				WorkspaceID: ptr.Of(int64(100)),
+				KeyWord:     ptr.Of("会议"),
+				Categories: []manage.PromptTemplatePresetCategory{
+					manage.PromptTemplatePresetCategory("json_output"),
+				},
+			},
+		)
+
+		assert.NoError(t, err)
+		assert.Len(t, resp.GetCategories(), 2)
+		assert.Len(t, resp.GetPromptTemplates(), 1)
+		assert.Equal(t, "meeting_actions_json", resp.GetPromptTemplates()[0].GetTemplateKey())
+		assert.Equal(t, "{{meeting_notes}}", resp.GetPromptTemplates()[0].GetDraftDetail().GetPromptTemplate().GetMessages()[0].GetContent())
+	})
+}
+
+func TestPromptManageApplicationImpl_GetPromptTemplate(t *testing.T) {
+	t.Run("get template for playground preview", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		configProvider := confmocks.NewMockIConfigProvider(ctrl)
+		authProvider := mocks.NewMockIAuthProvider(ctrl)
+
+		authProvider.EXPECT().CheckSpacePermission(gomock.Any(), int64(100), consts.ActionWorkspaceCreateLoopPrompt).Return(nil)
+		configProvider.EXPECT().GetPromptTemplatePresetCatalog(gomock.Any()).Return(&entity.PromptTemplatePresetCatalog{
+			Templates: []*entity.PromptTemplatePreset{
+				{
+					TemplateKey: "product_search",
+					DisplayName: "商品搜索助手",
+					Category:    entity.PromptTemplatePresetCategoryFunctionCalling,
+					PromptDetail: &entity.PromptDetail{
+						PromptTemplate: &entity.PromptTemplate{
+							TemplateType: entity.TemplateTypeNormal,
+							Messages:     []*entity.Message{{Role: entity.RoleSystem, Content: ptr.Of("search products")}},
+						},
+					},
+				},
+			},
+		}, nil)
+
+		app := &PromptManageApplicationImpl{
+			authRPCProvider: authProvider,
+			configProvider:  configProvider,
+		}
+		resp, err := app.GetPromptTemplate(
+			session.WithCtxUser(context.Background(), &session.User{ID: "user"}),
+			&manage.GetPromptTemplateRequest{
+				WorkspaceID: ptr.Of(int64(100)),
+				TemplateKey: ptr.Of("product_search"),
+			},
+		)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "product_search", resp.GetPromptTemplate().GetTemplateKey())
+		assert.Equal(t, "search products", resp.GetPromptTemplate().GetDraftDetail().GetPromptTemplate().GetMessages()[0].GetContent())
+	})
+
+	t.Run("template not found", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		configProvider := confmocks.NewMockIConfigProvider(ctrl)
+		authProvider := mocks.NewMockIAuthProvider(ctrl)
+
+		authProvider.EXPECT().CheckSpacePermission(gomock.Any(), int64(100), consts.ActionWorkspaceCreateLoopPrompt).Return(nil)
+		configProvider.EXPECT().GetPromptTemplatePresetCatalog(gomock.Any()).Return(&entity.PromptTemplatePresetCatalog{}, nil)
+
+		app := &PromptManageApplicationImpl{
+			authRPCProvider: authProvider,
+			configProvider:  configProvider,
+		}
+		resp, err := app.GetPromptTemplate(
+			session.WithCtxUser(context.Background(), &session.User{ID: "user"}),
+			&manage.GetPromptTemplateRequest{
+				WorkspaceID: ptr.Of(int64(100)),
+				TemplateKey: ptr.Of("missing"),
+			},
+		)
+
+		assert.Equal(t, manage.NewGetPromptTemplateResponse(), resp)
+		unittest.AssertErrorEqual(t, errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg("Prompt template not found")), err)
+	})
+}
+
 func TestPromptManageApplicationImpl_DeletePrompt(t *testing.T) {
 	type fields struct {
 		manageRepo      repo.IManageRepo

@@ -340,8 +340,8 @@ func (p *UserRegisterRequest) Field255DeepEqual(src *base.Base) bool {
 
 type UserRegisterResponse struct {
 	UserInfo   *user.UserInfoDetail `thrift:"user_info,1,optional" frugal:"1,optional,user.UserInfoDetail" form:"user_info" json:"user_info,omitempty" query:"user_info"`
-	Token      *string              `thrift:"token,2,optional" frugal:"2,optional,string" cookie:"sessionid,Value" json:"token,omitempty"`
-	ExpireTime *int64               `thrift:"expire_time,3,optional" frugal:"3,optional,i64" cookie:"sessionid,Expires" json:"expire_time,omitempty"`
+	Token      *string              `thrift:"token,2,optional" frugal:"2,optional,string" cookie:"session_key,Value" json:"token,omitempty"`
+	ExpireTime *int64               `thrift:"expire_time,3,optional" frugal:"3,optional,i64" cookie:"session_key,Expires" json:"expire_time,omitempty"`
 	BaseResp   *base.BaseResp       `thrift:"BaseResp,255,optional" frugal:"255,optional,base.BaseResp" form:"BaseResp" json:"BaseResp,omitempty" query:"BaseResp"`
 }
 
@@ -1063,8 +1063,8 @@ func (p *LoginByPasswordRequest) Field255DeepEqual(src *base.Base) bool {
 
 type LoginByPasswordResponse struct {
 	UserInfo   *user.UserInfoDetail `thrift:"user_info,1,optional" frugal:"1,optional,user.UserInfoDetail" form:"user_info" json:"user_info,omitempty" query:"user_info"`
-	Token      *string              `thrift:"token,2,optional" frugal:"2,optional,string" cookie:"sessionid,Value" json:"token,omitempty"`
-	ExpireTime *int64               `thrift:"expire_time,3,optional" frugal:"3,optional,i64" cookie:"sessionid,Expires" json:"expire_time,omitempty"`
+	Token      *string              `thrift:"token,2,optional" frugal:"2,optional,string" cookie:"session_key,Value" json:"token,omitempty"`
+	ExpireTime *int64               `thrift:"expire_time,3,optional" frugal:"3,optional,i64" cookie:"session_key,Expires" json:"expire_time,omitempty"`
 	BaseResp   *base.BaseResp       `thrift:"BaseResp,255,optional" frugal:"255,optional,base.BaseResp" form:"BaseResp" json:"BaseResp,omitempty" query:"BaseResp"`
 }
 
@@ -1458,7 +1458,8 @@ func (p *LoginByPasswordResponse) Field255DeepEqual(src *base.BaseResp) bool {
 }
 
 type LogoutRequest struct {
-	Token *string    `thrift:"token,1,optional" frugal:"1,optional,string" cookie:"sessionid" json:"token,omitempty"`
+	// legacy field; session_key is read by SessionMW
+	Token *string    `thrift:"token,1,optional" frugal:"1,optional,string" form:"-" json:"-" query:"-"`
 	Base  *base.Base `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 
@@ -1881,10 +1882,13 @@ func (p *LogoutResponse) Field255DeepEqual(src *base.BaseResp) bool {
 }
 
 type ResetPasswordRequest struct {
-	Email    *string    `thrift:"email,1,optional" frugal:"1,optional,string" form:"email" json:"email,omitempty" query:"email"`
-	Password *string    `thrift:"password,2,optional" frugal:"2,optional,string" form:"password" json:"password,omitempty" query:"password"`
-	Code     *string    `thrift:"code,3,optional" frugal:"3,optional,string" form:"code" json:"code,omitempty" query:"code"`
-	Base     *base.Base `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
+	// must match the authenticated session user's email
+	Email *string `thrift:"email,1,optional" frugal:"1,optional,string" form:"email" json:"email,omitempty" query:"email"`
+	// new password
+	Password *string `thrift:"password,2,optional" frugal:"2,optional,string" form:"password" json:"password,omitempty" query:"password"`
+	// reserved for a future account-recovery flow; currently ignored
+	Code *string    `thrift:"code,3,optional" frugal:"3,optional,string" form:"code" json:"code,omitempty" query:"code"`
+	Base *base.Base `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 
 func NewResetPasswordRequest() *ResetPasswordRequest {
@@ -2458,7 +2462,8 @@ func (p *ResetPasswordResponse) Field255DeepEqual(src *base.BaseResp) bool {
 }
 
 type GetUserInfoByTokenRequest struct {
-	Token *string    `thrift:"token,1,optional" frugal:"1,optional,string" cookie:"sessionid" json:"token,omitempty"`
+	// legacy field; session_key is read by SessionMW
+	Token *string    `thrift:"token,1,optional" frugal:"1,optional,string" form:"-" json:"-" query:"-"`
 	Base  *base.Base `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 

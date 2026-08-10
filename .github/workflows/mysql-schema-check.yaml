@@ -5,14 +5,12 @@ on:
     branches: ["main", "release/**"]
     paths:
       - 'release/deployment/docker-compose/bootstrap/mysql-init/**'
-      - 'release/deployment/helm-chart/charts/app/bootstrap/init/mysql/**'
       - '.github/scripts/check-mysql-schema.sh'
       - '.github/workflows/mysql-schema-check.yaml'
   pull_request:
     branches: ["main", "release/**"]
     paths:
       - 'release/deployment/docker-compose/bootstrap/mysql-init/**'
-      - 'release/deployment/helm-chart/charts/app/bootstrap/init/mysql/**'
       - '.github/scripts/check-mysql-schema.sh'
       - '.github/workflows/mysql-schema-check.yaml'
   workflow_dispatch:
@@ -23,7 +21,7 @@ permissions:
 
 jobs:
   mysql-schema-check:
-    name: MySQL Schema Consistency Check
+    name: MySQL Schema Migration Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

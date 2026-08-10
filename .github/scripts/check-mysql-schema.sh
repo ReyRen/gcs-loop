@@ -4,7 +4,6 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DOCKER_INIT_SQL="release/deployment/docker-compose/bootstrap/mysql-init/init-sql"
 DOCKER_PATCH_SQL="release/deployment/docker-compose/bootstrap/mysql-init/patch-sql"
-HELM_INIT_SQL="release/deployment/helm-chart/charts/app/bootstrap/init/mysql/init-sql"
 
 SCHEMADIFF="${SCHEMADIFF_BIN:-schemadiff}"
 
@@ -23,14 +22,8 @@ log_info() {
     echo "ℹ️  $1"
 }
 
-extract_create_table() {
-    local file="$1"
-    local out="$2"
-    sed -n '/^CREATE TABLE/,/;$/p' "$file" > "$out"
-}
-
 echo "========================================"
-echo "  MySQL Schema Consistency Check"
+echo "  MySQL Schema Migration Check"
 echo "========================================"
 echo ""
 
@@ -40,82 +33,12 @@ if ! command -v "$SCHEMADIFF" &>/dev/null; then
     SCHEMADIFF="$(go env GOPATH)/bin/schemadiff"
 fi
 
-echo "--- Check 1: CREATE TABLE schema consistency (docker-compose vs helm-chart) ---"
+echo "--- Check 1: ALTER SQL completeness for modified tables ---"
 echo ""
 
-check1_start_errors=$errors
+check_start_errors=$errors
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
-
-for file in "$REPO_ROOT/$DOCKER_INIT_SQL"/*.sql; do
-    filename=$(basename "$file")
-    helm_file="$REPO_ROOT/$HELM_INIT_SQL/$filename"
-
-    if [ ! -f "$helm_file" ]; then
-        log_error "File '$filename' exists in docker-compose init-sql but missing in helm-chart init-sql"
-        continue
-    fi
-
-    docker_create="$TMP_DIR/docker_$filename"
-    helm_create="$TMP_DIR/helm_$filename"
-    extract_create_table "$file" "$docker_create"
-    extract_create_table "$helm_file" "$helm_create"
-
-    if [ ! -s "$docker_create" ]; then
-        continue
-    fi
-
-    diff_output=$("$SCHEMADIFF" diff-table --source "$docker_create" --target "$helm_create" 2>&1) || true
-    if [ -n "$diff_output" ]; then
-        log_error "Table schema differs for '$filename' between docker-compose and helm-chart:"
-        echo "  $diff_output"
-    fi
-done
-
-for file in "$REPO_ROOT/$HELM_INIT_SQL"/*.sql; do
-    filename=$(basename "$file")
-    if echo "$filename" | grep -qE '_alter\.sql|_proc\.sql'; then
-        docker_file="$REPO_ROOT/$DOCKER_PATCH_SQL/$filename"
-        if [ ! -f "$docker_file" ]; then
-            log_error "Alter/proc file '$filename' exists in helm-chart but missing in docker-compose patch-sql"
-        fi
-    else
-        docker_file="$REPO_ROOT/$DOCKER_INIT_SQL/$filename"
-        if [ ! -f "$docker_file" ]; then
-            log_error "File '$filename' exists in helm-chart init-sql but missing in docker-compose init-sql"
-        fi
-    fi
-done
-
-if [ $errors -eq $check1_start_errors ]; then
-    log_ok "All CREATE TABLE schemas are consistent between docker-compose and helm-chart"
-fi
-echo ""
-
-echo "--- Check 2: Patch/Alter SQL files consistency ---"
-echo ""
-
-check2_start_errors=$errors
-for file in "$REPO_ROOT/$DOCKER_PATCH_SQL"/*.sql; do
-    filename=$(basename "$file")
-    helm_file="$REPO_ROOT/$HELM_INIT_SQL/$filename"
-    if [ ! -f "$helm_file" ]; then
-        log_error "Patch file '$filename' exists in docker-compose but missing in helm-chart"
-    elif ! diff -q "$file" "$helm_file" > /dev/null 2>&1; then
-        log_error "Patch file '$filename' differs between docker-compose and helm-chart"
-        diff "$file" "$helm_file" || true
-    fi
-done
-
-if [ $errors -eq $check2_start_errors ]; then
-    log_ok "All patch/alter SQL files are consistent between docker-compose and helm-chart"
-fi
-echo ""
-
-echo "--- Check 3: ALTER SQL completeness for modified tables ---"
-echo ""
-
-check3_start_errors=$errors
 
 if [ -n "${GITHUB_BASE_REF:-}" ]; then
     log_info "Running in PR mode, checking changed files against base branch"
@@ -190,7 +113,7 @@ else
     log_info "To test locally, set GITHUB_BASE_REF=main"
 fi
 
-if [ $errors -eq $check3_start_errors ]; then
+if [ $errors -eq $check_start_errors ]; then
     log_ok "All schema changes have corresponding ALTER statements"
 fi
 echo ""

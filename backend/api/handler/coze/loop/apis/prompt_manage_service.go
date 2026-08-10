@@ -109,3 +109,15 @@ func ListParentPrompt(ctx context.Context, c *app.RequestContext) {
 func BatchGetPromptBasic(ctx context.Context, c *app.RequestContext) {
 	invokeAndRender(ctx, c, promptManageSvc.BatchGetPromptBasic)
 }
+
+// ListPromptTemplates .
+// @router /api/prompt/v1/prompt_templates/list [POST]
+func ListPromptTemplates(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, promptManageSvc.ListPromptTemplates)
+}
+
+// GetPromptTemplate .
+// @router /api/prompt/v1/prompt_templates/:template_key [GET]
+func GetPromptTemplate(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, promptManageSvc.GetPromptTemplate)
+}

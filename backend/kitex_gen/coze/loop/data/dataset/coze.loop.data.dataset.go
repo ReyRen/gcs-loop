@@ -3804,7 +3804,7 @@ func (p *BatchGetDatasetsResponse) Field255DeepEqual(src *base.BaseResp) bool {
 }
 
 type ListDatasetsRequest struct {
-	WorkspaceID int64                    `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" path:"workspace_id,required" `
+	WorkspaceID int64                    `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
 	DatasetIds  []int64                  `thrift:"dataset_ids,2,optional" frugal:"2,optional,list<i64>" json:"dataset_ids" form:"dataset_ids" query:"dataset_ids"`
 	Category    *dataset.DatasetCategory `thrift:"category,3,optional" frugal:"3,optional,DatasetCategory" form:"category" json:"category,omitempty" query:"category"`
 	// 支持模糊搜索
@@ -10401,7 +10401,7 @@ func (p *VersionedDataset) Field2DeepEqual(src *dataset.Dataset) bool {
 }
 
 type BatchGetDatasetVersionsRequest struct {
-	WorkspaceID *int64  `thrift:"workspace_id,1,optional" frugal:"1,optional,i64" json:"workspace_id" path:"workspace_id" `
+	WorkspaceID *int64  `thrift:"workspace_id,1,optional" frugal:"1,optional,i64" json:"workspace_id" form:"workspace_id" `
 	VersionIds  []int64 `thrift:"version_ids,2,required" frugal:"2,required,list<i64>" json:"version_ids" form:"version_ids,required" query:"version_ids,required"`
 	// 是否返回已删除的数据，默认不返回
 	WithDeleted *bool      `thrift:"with_deleted,10,optional" frugal:"10,optional,bool" form:"with_deleted" json:"with_deleted,omitempty" query:"with_deleted"`
@@ -13065,7 +13065,7 @@ type ValidateDatasetItemsReq struct {
 	WorkspaceID *int64                 `thrift:"workspace_id,1,optional" frugal:"1,optional,i64" json:"workspace_id" form:"workspace_id" query:"workspace_id"`
 	Items       []*dataset.DatasetItem `thrift:"items,2,optional" frugal:"2,optional,list<dataset.DatasetItem>" form:"items" json:"items,omitempty" query:"items"`
 	// 添加到已有数据集时提供
-	DatasetID *int64 `thrift:"dataset_id,3,optional" frugal:"3,optional,i64" json:"dataset_id" path:"dataset_id" `
+	DatasetID *int64 `thrift:"dataset_id,3,optional" frugal:"3,optional,i64" json:"dataset_id" form:"dataset_id" `
 	// 新建数据集并添加数据时提供
 	DatasetCategory *dataset.DatasetCategory `thrift:"dataset_category,4,optional" frugal:"4,optional,DatasetCategory" form:"dataset_category" json:"dataset_category,omitempty" query:"dataset_category"`
 	// 新建数据集并添加数据时，必须提供；添加到已有数据集时，如非空，则覆盖已有 schema 用于校验

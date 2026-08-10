@@ -338,3 +338,9 @@ func ListEvalTargetsOApi(ctx context.Context, c *app.RequestContext) {
 func AsyncRunEvaluatorOApi(ctx context.Context, c *app.RequestContext) {
 	invokeAndRender(ctx, c, localEvalOpenAPIClient.AsyncRunEvaluatorOApi)
 }
+
+// ReportEvalTargetStepMetric .
+// @router /v1/loop/eval_targets/step_metric [POST]
+func ReportEvalTargetStepMetric(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localEvalOpenAPIClient.ReportEvalTargetStepMetric)
+}

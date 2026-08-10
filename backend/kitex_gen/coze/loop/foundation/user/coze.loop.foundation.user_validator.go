@@ -80,6 +80,18 @@ func (p *LogoutResponse) IsValid() error {
 	return nil
 }
 func (p *ResetPasswordRequest) IsValid() error {
+	if p.Email == nil {
+		return fmt.Errorf("field Email not_nil rule failed")
+	}
+	if len(*p.Email) < int(1) {
+		return fmt.Errorf("field Email min_len rule failed, current value: %d", len(*p.Email))
+	}
+	if p.Password == nil {
+		return fmt.Errorf("field Password not_nil rule failed")
+	}
+	if len(*p.Password) < int(1) {
+		return fmt.Errorf("field Password min_len rule failed, current value: %d", len(*p.Password))
+	}
 	if p.Base != nil {
 		if err := p.Base.IsValid(); err != nil {
 			return fmt.Errorf("field Base not valid, %w", err)

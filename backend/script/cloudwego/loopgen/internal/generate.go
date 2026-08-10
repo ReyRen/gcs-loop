@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"go/format"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -81,7 +82,7 @@ func (g *Generator) Generate() error {
 
 		svcName := identifyThriftName(service.Name)
 		kxClientPkg := strings.ToLower(svcName)
-		kxClientImportPath := filepath.Join(g.tf.GoMod, g.tf.KitexPrefix, g.ns, kxClientPkg)
+		kxClientImportPath := path.Join(g.tf.GoMod, g.tf.KitexPrefix, g.ns, kxClientPkg)
 		s := &Schema{
 			Package:            pkg,
 			ServicePkg:         svcPkg,
@@ -89,7 +90,7 @@ func (g *Generator) Generate() error {
 			ClientType:         fmt.Sprintf("Local%s", svcName),
 			HasServerStreaming: len(ssFuncs) > 0,
 		}
-		s.ImportPath = filepath.Join(g.tf.GoMod, pkg)
+		s.ImportPath = path.Join(g.tf.GoMod, pkg)
 
 		if s.HasServerStreaming {
 			resolver.AddImport(g.tf.LocalStreamImportPath)

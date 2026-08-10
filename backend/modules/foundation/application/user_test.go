@@ -1093,6 +1093,36 @@ func TestUserApplicationImpl_ResetPassword(t *testing.T) {
 			wantErr: errorx.NewByCode(errno.CommonInvalidParamCode),
 		},
 		{
+			name: "missing user session",
+			fields: fields{
+				userService: nil,
+			},
+			args: args{
+				ctx: context.Background(),
+				req: &user.ResetPasswordRequest{
+					Email:    ptr.Of("test@example.com"),
+					Password: ptr.Of("new123"),
+				},
+			},
+			want:    nil,
+			wantErr: errorx.NewByCode(errno.CommonNoPermissionCode),
+		},
+		{
+			name: "cannot reset another user password",
+			fields: fields{
+				userService: nil,
+			},
+			args: args{
+				ctx: session.WithCtxUser(context.Background(), &session.User{Email: "owner@example.com"}),
+				req: &user.ResetPasswordRequest{
+					Email:    ptr.Of("other@example.com"),
+					Password: ptr.Of("new123"),
+				},
+			},
+			want:    nil,
+			wantErr: errorx.NewByCode(errno.CommonNoPermissionCode),
+		},
+		{
 			name: "reset password error",
 			fields: fields{
 				userService: func() service.IUserService {
@@ -1104,7 +1134,7 @@ func TestUserApplicationImpl_ResetPassword(t *testing.T) {
 				}(),
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: session.WithCtxUser(context.Background(), &session.User{Email: "test@example.com"}),
 				req: &user.ResetPasswordRequest{
 					Email:    ptr.Of("test@example.com"),
 					Password: ptr.Of("new123"),
@@ -1126,7 +1156,7 @@ func TestUserApplicationImpl_ResetPassword(t *testing.T) {
 				}(),
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: session.WithCtxUser(context.Background(), &session.User{Email: "test@example.com"}),
 				req: &user.ResetPasswordRequest{
 					Email:    ptr.Of("test@example.com"),
 					Password: ptr.Of("new123"),

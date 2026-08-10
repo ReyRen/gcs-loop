@@ -8,12 +8,14 @@ package api
 import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 
+	"github.com/coze-dev/coze-loop/backend/api/apidocs"
 	handler "github.com/coze-dev/coze-loop/backend/api/handler"
 )
 
 // customizeRegister registers customize routers.
 func customizedRegister(r *server.Hertz) {
 	r.GET("/ping", handler.Ping)
+	apidocs.Register(r)
 
 	// your code ...
 }

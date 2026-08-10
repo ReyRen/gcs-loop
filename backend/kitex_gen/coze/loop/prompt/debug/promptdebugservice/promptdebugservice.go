@@ -21,6 +21,20 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingServer),
 	),
+	"GeneratePrompt": kitex.NewMethodInfo(
+		generatePromptHandler,
+		newPromptDebugServiceGeneratePromptArgs,
+		newPromptDebugServiceGeneratePromptResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingServer),
+	),
+	"UpdateGenerateRecord": kitex.NewMethodInfo(
+		updateGenerateRecordHandler,
+		newPromptDebugServiceUpdateGenerateRecordArgs,
+		newPromptDebugServiceUpdateGenerateRecordResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"SaveDebugContext": kitex.NewMethodInfo(
 		saveDebugContextHandler,
 		newPromptDebugServiceSaveDebugContextArgs,
@@ -94,6 +108,46 @@ func newPromptDebugServiceDebugStreamingArgs() interface{} {
 
 func newPromptDebugServiceDebugStreamingResult() interface{} {
 	return debug.NewPromptDebugServiceDebugStreamingResult()
+}
+
+func generatePromptHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	st, err := streaming.GetServerStreamFromArg(arg)
+	if err != nil {
+		return err
+	}
+	stream := streaming.NewServerStreamingServer[debug.GeneratePromptResponse](st)
+	req := new(debug.GeneratePromptRequest)
+	if err := stream.RecvMsg(ctx, req); err != nil {
+		return err
+	}
+	return handler.(debug.PromptDebugService).GeneratePrompt(ctx, req, stream)
+}
+
+func newPromptDebugServiceGeneratePromptArgs() interface{} {
+	return debug.NewPromptDebugServiceGeneratePromptArgs()
+}
+
+func newPromptDebugServiceGeneratePromptResult() interface{} {
+	return debug.NewPromptDebugServiceGeneratePromptResult()
+}
+
+func updateGenerateRecordHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*debug.PromptDebugServiceUpdateGenerateRecordArgs)
+	realResult := result.(*debug.PromptDebugServiceUpdateGenerateRecordResult)
+	success, err := handler.(debug.PromptDebugService).UpdateGenerateRecord(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newPromptDebugServiceUpdateGenerateRecordArgs() interface{} {
+	return debug.NewPromptDebugServiceUpdateGenerateRecordArgs()
+}
+
+func newPromptDebugServiceUpdateGenerateRecordResult() interface{} {
+	return debug.NewPromptDebugServiceUpdateGenerateRecordResult()
 }
 
 func saveDebugContextHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -178,6 +232,31 @@ func (p *kClient) DebugStreaming(ctx context.Context, req *debug.DebugStreamingR
 		return nil, err
 	}
 	return stream, nil
+}
+
+func (p *kClient) GeneratePrompt(ctx context.Context, req *debug.GeneratePromptRequest) (PromptDebugService_GeneratePromptClient, error) {
+	st, err := p.sc.StreamX(ctx, "GeneratePrompt")
+	if err != nil {
+		return nil, err
+	}
+	stream := streaming.NewServerStreamingClient[debug.GeneratePromptResponse](st)
+	if err := stream.SendMsg(ctx, req); err != nil {
+		return nil, err
+	}
+	if err := stream.CloseSend(ctx); err != nil {
+		return nil, err
+	}
+	return stream, nil
+}
+
+func (p *kClient) UpdateGenerateRecord(ctx context.Context, req *debug.UpdateGenerateRecordRequest) (r *debug.UpdateGenerateRecordResponse, err error) {
+	var _args debug.PromptDebugServiceUpdateGenerateRecordArgs
+	_args.Req = req
+	var _result debug.PromptDebugServiceUpdateGenerateRecordResult
+	if err = p.c.Call(ctx, "UpdateGenerateRecord", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
 }
 
 func (p *kClient) SaveDebugContext(ctx context.Context, req *debug.SaveDebugContextRequest) (r *debug.SaveDebugContextResponse, err error) {

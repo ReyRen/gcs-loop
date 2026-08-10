@@ -2255,7 +2255,7 @@ func TestOpenAPIApplication_OtelIngestTraces(t *testing.T) {
 		req := &openapi.OtelIngestTracesRequest{
 			WorkspaceID:     "1",
 			ContentType:     "application/json",
-			ContentEncoding: "",
+			ContentEncoding: ptr.Of(""),
 			Body: []byte(`{
 				"resourceSpans":[
 					{
@@ -2357,7 +2357,7 @@ func TestOpenAPIApplication_OtelIngestTraces(t *testing.T) {
 		req := &openapi.OtelIngestTracesRequest{
 			WorkspaceID:     "1",
 			ContentType:     "application/json",
-			ContentEncoding: "",
+			ContentEncoding: ptr.Of(""),
 			Body: []byte(`{
 				"resourceSpans":[
 					{
@@ -2435,7 +2435,7 @@ func TestOpenAPIApplication_OtelIngestTraces(t *testing.T) {
 		req := &openapi.OtelIngestTracesRequest{
 			WorkspaceID:     "1",
 			ContentType:     "application/json",
-			ContentEncoding: "",
+			ContentEncoding: ptr.Of(""),
 			Body: []byte(`{
 				"resourceSpans":[
 					{

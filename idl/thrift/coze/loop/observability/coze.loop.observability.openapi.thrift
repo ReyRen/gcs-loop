@@ -24,9 +24,10 @@ struct IngestTracesResponse {
 }
 
 struct OtelIngestTracesRequest {
-    1: required binary body (api.body="body", agw.source="raw_body"),
+    1: required binary body (api.raw_body="", agw.source="raw_body"),
     2: required string content_type (api.header="Content-Type", agw.source="header"),
-    3: required string content_encoding (api.header="Content-Encoding", agw.source="header"),
+    // Optional. Set to gzip only when the request body is compressed.
+    3: optional string content_encoding (api.header="Content-Encoding", agw.source="header"),
     4: required string workspace_id (api.header="cozeloop-workspace-id", agw.source="header"),
 
     255: optional base.Base Base

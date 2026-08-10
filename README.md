@@ -43,7 +43,7 @@ Coze Loop helps developers develop and operate AI Agent more efficiently by prov
 >
 > Refer to [Quick Start](https://github.com/coze-dev/coze-loop/wiki/2.-Quickstart) to learn in detail how to install and deploy the latest version of Coze Loop.
 
-### Deployment method 1: Docker deployment (Docker Compose)
+### Docker deployment (Docker Compose)
 >
 > Please install and start Docker Engine before you start.
 
@@ -76,44 +76,6 @@ Procedure:
    ```
 
 4. Access the Coze Loop open-source version through your browser `http://localhost:8082`.
-
-### Deployment method 2: Kubernetes deployment using Helm Chart
-
-> * The Kubernetes cluster has been prepared, the Nginx Ingress add-ons have been enabled, and the Kubectl and Helm tools have been installed.
-> * To quickly try it out locally, you can deploy a Kubernetes cluster using Minikube. For detailed steps, refer to [Quick Start](https://github.com/coze-dev/coze-loop/wiki/2.-Quickstart).
-
-Procedure:
-
-1. Run the following command to obtain the Helm Chart package.
-
-   ```Bash
-   helm pull oci://docker.io/cozedev/coze-loop --version 1.0.0-helm
-   tar -zxvf coze-loop-1.0.0-helm.tgz && cd coze-loop && rm -f ../coze-loop-1.0.0-helm.tgz
-   ```
-
-2. Configure a model.
-   Go to the `coze-loop` directory and edit the `release/deployment/helm-chart/umbrella/conf/model_config.yaml` file. Configure the following fields, using Volcengine Ark as an example:
-   * api_key: Volcengine Ark API Key. Users in mainland China can refer to the [Volcengine Ark documentation](https://www.volcengine.com/docs/82379/1541594), while users outside mainland China can refer to the [BytePlus ModelArk documentation](https://docs.byteplus.com/en/docs/ModelArk/1361424?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source).
-   * model: The Endpoint ID of the Volcengine Ark model access point. Users in China can refer to the [Volcengine Ark documentation](https://www.volcengine.com/docs/82379/1099522), while users outside China can refer to the [BytePlus ModelArk documentation](https://docs.byteplus.com/en/docs/ModelArk/1099522?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source).
-3. Configure Ingress rules.
-   Ingress is used to expose services to external networks. You need to configure the `templates/ingress.yaml` file in the project directory according to the actual cluster situation, manually modify parameters such as ingressClassName, and configure elements such as class, instance, host, and IP allocation.
-4. Deploy and start the service.
-   Execute the following commands to quickly deploy the open-source version of Coze Loop using Helm.
-
-   ```Bash
-   # Run in the coze-loop/ directory
-   make helm-up
-   # After the service deployment is complete, check the status of the cluster pods
-   make helm-pod
-   # Check the service startup logs. If both the app and nginx are running normally, the deployment is successful
-   make helm-logf-app
-   make helm-logf-nginx
-   ```
-
-5. Access the Coze Loop open source edition via a browser.
-   The access domain name and URL depend on the domain name and URL assigned to your cluster.
-6. Start customizing your Coze Loop project.
-   Refer to the examples in the `examples/` directory. Modify `values.yaml` to override the default settings. After making changes, rerun `make helm-up` for the changes to take effect.
 
 > [!WARNING]
 > If you want to deploy Coze Loop in a public network environment, it is recommended to assess security risks before you begin, and take corresponding protection measures. Possible security risks include account registration functions, Coze Server listening address configurations, SSRF (Server - Side Request Forgery), and some horizontal privilege escalations in APIs.  For more details, refer to [Quickstart](https://github.com/coze-dev/coze-loop/wiki/2.-Quickstart#security-risks-in-public-networks).

@@ -16,9 +16,23 @@ const (
 	ListPromptOrderByCommitedAt = "committed_at"
 
 	ListPromptOrderByCreatedAt = "created_at"
+
+	PromptTemplatePresetCategoryTextGeneration = "text_generation"
+
+	PromptTemplatePresetCategoryImageAnalysis = "image_analysis"
+
+	PromptTemplatePresetCategoryVideoUnderstanding = "video_understanding"
+
+	PromptTemplatePresetCategoryDeepReasoning = "deep_reasoning"
+
+	PromptTemplatePresetCategoryJSONOutput = "json_output"
+
+	PromptTemplatePresetCategoryFunctionCalling = "function_calling"
 )
 
 type ListPromptOrderBy = string
+
+type PromptTemplatePresetCategory = string
 
 // --------------- Prompt管理 --------------- //
 type CreatePromptRequest struct {
@@ -5775,6 +5789,2185 @@ func (p *ListPromptResponse) Field127DeepEqual(src *int32) bool {
 	return true
 }
 func (p *ListPromptResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type PromptTemplatePresetCategoryInfo struct {
+	Category    *PromptTemplatePresetCategory `thrift:"category,1,optional" frugal:"1,optional,string" form:"category" json:"category,omitempty" query:"category"`
+	DisplayName *string                       `thrift:"display_name,2,optional" frugal:"2,optional,string" form:"display_name" json:"display_name,omitempty" query:"display_name"`
+}
+
+func NewPromptTemplatePresetCategoryInfo() *PromptTemplatePresetCategoryInfo {
+	return &PromptTemplatePresetCategoryInfo{}
+}
+
+func (p *PromptTemplatePresetCategoryInfo) InitDefault() {
+}
+
+var PromptTemplatePresetCategoryInfo_Category_DEFAULT PromptTemplatePresetCategory
+
+func (p *PromptTemplatePresetCategoryInfo) GetCategory() (v PromptTemplatePresetCategory) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCategory() {
+		return PromptTemplatePresetCategoryInfo_Category_DEFAULT
+	}
+	return *p.Category
+}
+
+var PromptTemplatePresetCategoryInfo_DisplayName_DEFAULT string
+
+func (p *PromptTemplatePresetCategoryInfo) GetDisplayName() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDisplayName() {
+		return PromptTemplatePresetCategoryInfo_DisplayName_DEFAULT
+	}
+	return *p.DisplayName
+}
+func (p *PromptTemplatePresetCategoryInfo) SetCategory(val *PromptTemplatePresetCategory) {
+	p.Category = val
+}
+func (p *PromptTemplatePresetCategoryInfo) SetDisplayName(val *string) {
+	p.DisplayName = val
+}
+
+var fieldIDToName_PromptTemplatePresetCategoryInfo = map[int16]string{
+	1: "category",
+	2: "display_name",
+}
+
+func (p *PromptTemplatePresetCategoryInfo) IsSetCategory() bool {
+	return p.Category != nil
+}
+
+func (p *PromptTemplatePresetCategoryInfo) IsSetDisplayName() bool {
+	return p.DisplayName != nil
+}
+
+func (p *PromptTemplatePresetCategoryInfo) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptTemplatePresetCategoryInfo[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptTemplatePresetCategoryInfo) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *PromptTemplatePresetCategory
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Category = _field
+	return nil
+}
+func (p *PromptTemplatePresetCategoryInfo) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.DisplayName = _field
+	return nil
+}
+
+func (p *PromptTemplatePresetCategoryInfo) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptTemplatePresetCategoryInfo"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptTemplatePresetCategoryInfo) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCategory() {
+		if err = oprot.WriteFieldBegin("category", thrift.STRING, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Category); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptTemplatePresetCategoryInfo) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDisplayName() {
+		if err = oprot.WriteFieldBegin("display_name", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.DisplayName); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *PromptTemplatePresetCategoryInfo) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptTemplatePresetCategoryInfo(%+v)", *p)
+
+}
+
+func (p *PromptTemplatePresetCategoryInfo) DeepEqual(ano *PromptTemplatePresetCategoryInfo) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Category) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.DisplayName) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptTemplatePresetCategoryInfo) Field1DeepEqual(src *PromptTemplatePresetCategory) bool {
+
+	if p.Category == src {
+		return true
+	} else if p.Category == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Category, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptTemplatePresetCategoryInfo) Field2DeepEqual(src *string) bool {
+
+	if p.DisplayName == src {
+		return true
+	} else if p.DisplayName == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.DisplayName, *src) != 0 {
+		return false
+	}
+	return true
+}
+
+type PromptTemplatePreset struct {
+	TemplateKey *string                       `thrift:"template_key,1,optional" frugal:"1,optional,string" form:"template_key" json:"template_key,omitempty" query:"template_key"`
+	DisplayName *string                       `thrift:"display_name,2,optional" frugal:"2,optional,string" form:"display_name" json:"display_name,omitempty" query:"display_name"`
+	Description *string                       `thrift:"description,3,optional" frugal:"3,optional,string" form:"description" json:"description,omitempty" query:"description"`
+	Category    *PromptTemplatePresetCategory `thrift:"category,4,optional" frugal:"4,optional,string" form:"category" json:"category,omitempty" query:"category"`
+	IconKey     *string                       `thrift:"icon_key,5,optional" frugal:"5,optional,string" form:"icon_key" json:"icon_key,omitempty" query:"icon_key"`
+	DraftDetail *prompt.PromptDetail          `thrift:"draft_detail,11,optional" frugal:"11,optional,prompt.PromptDetail" form:"draft_detail" json:"draft_detail,omitempty" query:"draft_detail"`
+}
+
+func NewPromptTemplatePreset() *PromptTemplatePreset {
+	return &PromptTemplatePreset{}
+}
+
+func (p *PromptTemplatePreset) InitDefault() {
+}
+
+var PromptTemplatePreset_TemplateKey_DEFAULT string
+
+func (p *PromptTemplatePreset) GetTemplateKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTemplateKey() {
+		return PromptTemplatePreset_TemplateKey_DEFAULT
+	}
+	return *p.TemplateKey
+}
+
+var PromptTemplatePreset_DisplayName_DEFAULT string
+
+func (p *PromptTemplatePreset) GetDisplayName() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDisplayName() {
+		return PromptTemplatePreset_DisplayName_DEFAULT
+	}
+	return *p.DisplayName
+}
+
+var PromptTemplatePreset_Description_DEFAULT string
+
+func (p *PromptTemplatePreset) GetDescription() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDescription() {
+		return PromptTemplatePreset_Description_DEFAULT
+	}
+	return *p.Description
+}
+
+var PromptTemplatePreset_Category_DEFAULT PromptTemplatePresetCategory
+
+func (p *PromptTemplatePreset) GetCategory() (v PromptTemplatePresetCategory) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCategory() {
+		return PromptTemplatePreset_Category_DEFAULT
+	}
+	return *p.Category
+}
+
+var PromptTemplatePreset_IconKey_DEFAULT string
+
+func (p *PromptTemplatePreset) GetIconKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetIconKey() {
+		return PromptTemplatePreset_IconKey_DEFAULT
+	}
+	return *p.IconKey
+}
+
+var PromptTemplatePreset_DraftDetail_DEFAULT *prompt.PromptDetail
+
+func (p *PromptTemplatePreset) GetDraftDetail() (v *prompt.PromptDetail) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDraftDetail() {
+		return PromptTemplatePreset_DraftDetail_DEFAULT
+	}
+	return p.DraftDetail
+}
+func (p *PromptTemplatePreset) SetTemplateKey(val *string) {
+	p.TemplateKey = val
+}
+func (p *PromptTemplatePreset) SetDisplayName(val *string) {
+	p.DisplayName = val
+}
+func (p *PromptTemplatePreset) SetDescription(val *string) {
+	p.Description = val
+}
+func (p *PromptTemplatePreset) SetCategory(val *PromptTemplatePresetCategory) {
+	p.Category = val
+}
+func (p *PromptTemplatePreset) SetIconKey(val *string) {
+	p.IconKey = val
+}
+func (p *PromptTemplatePreset) SetDraftDetail(val *prompt.PromptDetail) {
+	p.DraftDetail = val
+}
+
+var fieldIDToName_PromptTemplatePreset = map[int16]string{
+	1:  "template_key",
+	2:  "display_name",
+	3:  "description",
+	4:  "category",
+	5:  "icon_key",
+	11: "draft_detail",
+}
+
+func (p *PromptTemplatePreset) IsSetTemplateKey() bool {
+	return p.TemplateKey != nil
+}
+
+func (p *PromptTemplatePreset) IsSetDisplayName() bool {
+	return p.DisplayName != nil
+}
+
+func (p *PromptTemplatePreset) IsSetDescription() bool {
+	return p.Description != nil
+}
+
+func (p *PromptTemplatePreset) IsSetCategory() bool {
+	return p.Category != nil
+}
+
+func (p *PromptTemplatePreset) IsSetIconKey() bool {
+	return p.IconKey != nil
+}
+
+func (p *PromptTemplatePreset) IsSetDraftDetail() bool {
+	return p.DraftDetail != nil
+}
+
+func (p *PromptTemplatePreset) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 11:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptTemplatePreset[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptTemplatePreset) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.TemplateKey = _field
+	return nil
+}
+func (p *PromptTemplatePreset) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.DisplayName = _field
+	return nil
+}
+func (p *PromptTemplatePreset) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Description = _field
+	return nil
+}
+func (p *PromptTemplatePreset) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *PromptTemplatePresetCategory
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Category = _field
+	return nil
+}
+func (p *PromptTemplatePreset) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.IconKey = _field
+	return nil
+}
+func (p *PromptTemplatePreset) ReadField11(iprot thrift.TProtocol) error {
+	_field := prompt.NewPromptDetail()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.DraftDetail = _field
+	return nil
+}
+
+func (p *PromptTemplatePreset) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptTemplatePreset"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptTemplatePreset) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTemplateKey() {
+		if err = oprot.WriteFieldBegin("template_key", thrift.STRING, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.TemplateKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptTemplatePreset) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDisplayName() {
+		if err = oprot.WriteFieldBegin("display_name", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.DisplayName); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PromptTemplatePreset) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDescription() {
+		if err = oprot.WriteFieldBegin("description", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Description); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PromptTemplatePreset) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCategory() {
+		if err = oprot.WriteFieldBegin("category", thrift.STRING, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Category); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *PromptTemplatePreset) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetIconKey() {
+		if err = oprot.WriteFieldBegin("icon_key", thrift.STRING, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.IconKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+func (p *PromptTemplatePreset) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDraftDetail() {
+		if err = oprot.WriteFieldBegin("draft_detail", thrift.STRUCT, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.DraftDetail.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+
+func (p *PromptTemplatePreset) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptTemplatePreset(%+v)", *p)
+
+}
+
+func (p *PromptTemplatePreset) DeepEqual(ano *PromptTemplatePreset) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.TemplateKey) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.DisplayName) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Description) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Category) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.IconKey) {
+		return false
+	}
+	if !p.Field11DeepEqual(ano.DraftDetail) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptTemplatePreset) Field1DeepEqual(src *string) bool {
+
+	if p.TemplateKey == src {
+		return true
+	} else if p.TemplateKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.TemplateKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptTemplatePreset) Field2DeepEqual(src *string) bool {
+
+	if p.DisplayName == src {
+		return true
+	} else if p.DisplayName == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.DisplayName, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptTemplatePreset) Field3DeepEqual(src *string) bool {
+
+	if p.Description == src {
+		return true
+	} else if p.Description == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Description, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptTemplatePreset) Field4DeepEqual(src *PromptTemplatePresetCategory) bool {
+
+	if p.Category == src {
+		return true
+	} else if p.Category == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Category, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptTemplatePreset) Field5DeepEqual(src *string) bool {
+
+	if p.IconKey == src {
+		return true
+	} else if p.IconKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.IconKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptTemplatePreset) Field11DeepEqual(src *prompt.PromptDetail) bool {
+
+	if !p.DraftDetail.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ListPromptTemplatesRequest struct {
+	WorkspaceID *int64                         `thrift:"workspace_id,1,optional" frugal:"1,optional,i64" json:"workspace_id" form:"workspace_id" query:"workspace_id"`
+	KeyWord     *string                        `thrift:"key_word,11,optional" frugal:"11,optional,string" form:"key_word" json:"key_word,omitempty" query:"key_word"`
+	Categories  []PromptTemplatePresetCategory `thrift:"categories,12,optional" frugal:"12,optional,list<string>" form:"categories" json:"categories,omitempty" query:"categories"`
+	Base        *base.Base                     `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
+}
+
+func NewListPromptTemplatesRequest() *ListPromptTemplatesRequest {
+	return &ListPromptTemplatesRequest{}
+}
+
+func (p *ListPromptTemplatesRequest) InitDefault() {
+}
+
+var ListPromptTemplatesRequest_WorkspaceID_DEFAULT int64
+
+func (p *ListPromptTemplatesRequest) GetWorkspaceID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetWorkspaceID() {
+		return ListPromptTemplatesRequest_WorkspaceID_DEFAULT
+	}
+	return *p.WorkspaceID
+}
+
+var ListPromptTemplatesRequest_KeyWord_DEFAULT string
+
+func (p *ListPromptTemplatesRequest) GetKeyWord() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetKeyWord() {
+		return ListPromptTemplatesRequest_KeyWord_DEFAULT
+	}
+	return *p.KeyWord
+}
+
+var ListPromptTemplatesRequest_Categories_DEFAULT []PromptTemplatePresetCategory
+
+func (p *ListPromptTemplatesRequest) GetCategories() (v []PromptTemplatePresetCategory) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCategories() {
+		return ListPromptTemplatesRequest_Categories_DEFAULT
+	}
+	return p.Categories
+}
+
+var ListPromptTemplatesRequest_Base_DEFAULT *base.Base
+
+func (p *ListPromptTemplatesRequest) GetBase() (v *base.Base) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBase() {
+		return ListPromptTemplatesRequest_Base_DEFAULT
+	}
+	return p.Base
+}
+func (p *ListPromptTemplatesRequest) SetWorkspaceID(val *int64) {
+	p.WorkspaceID = val
+}
+func (p *ListPromptTemplatesRequest) SetKeyWord(val *string) {
+	p.KeyWord = val
+}
+func (p *ListPromptTemplatesRequest) SetCategories(val []PromptTemplatePresetCategory) {
+	p.Categories = val
+}
+func (p *ListPromptTemplatesRequest) SetBase(val *base.Base) {
+	p.Base = val
+}
+
+var fieldIDToName_ListPromptTemplatesRequest = map[int16]string{
+	1:   "workspace_id",
+	11:  "key_word",
+	12:  "categories",
+	255: "Base",
+}
+
+func (p *ListPromptTemplatesRequest) IsSetWorkspaceID() bool {
+	return p.WorkspaceID != nil
+}
+
+func (p *ListPromptTemplatesRequest) IsSetKeyWord() bool {
+	return p.KeyWord != nil
+}
+
+func (p *ListPromptTemplatesRequest) IsSetCategories() bool {
+	return p.Categories != nil
+}
+
+func (p *ListPromptTemplatesRequest) IsSetBase() bool {
+	return p.Base != nil
+}
+
+func (p *ListPromptTemplatesRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 11:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 12:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField12(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptTemplatesRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ListPromptTemplatesRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *ListPromptTemplatesRequest) ReadField11(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.KeyWord = _field
+	return nil
+}
+func (p *ListPromptTemplatesRequest) ReadField12(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]PromptTemplatePresetCategory, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem PromptTemplatePresetCategory
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Categories = _field
+	return nil
+}
+func (p *ListPromptTemplatesRequest) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBase()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Base = _field
+	return nil
+}
+
+func (p *ListPromptTemplatesRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptTemplatesRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+		if err = p.writeField12(oprot); err != nil {
+			fieldId = 12
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ListPromptTemplatesRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetWorkspaceID() {
+		if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.WorkspaceID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *ListPromptTemplatesRequest) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetKeyWord() {
+		if err = oprot.WriteFieldBegin("key_word", thrift.STRING, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.KeyWord); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+func (p *ListPromptTemplatesRequest) writeField12(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCategories() {
+		if err = oprot.WriteFieldBegin("categories", thrift.LIST, 12); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.Categories)); err != nil {
+			return err
+		}
+		for _, v := range p.Categories {
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 end error: ", p), err)
+}
+func (p *ListPromptTemplatesRequest) writeField255(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBase() {
+		if err = oprot.WriteFieldBegin("Base", thrift.STRUCT, 255); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Base.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *ListPromptTemplatesRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListPromptTemplatesRequest(%+v)", *p)
+
+}
+
+func (p *ListPromptTemplatesRequest) DeepEqual(ano *ListPromptTemplatesRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field11DeepEqual(ano.KeyWord) {
+		return false
+	}
+	if !p.Field12DeepEqual(ano.Categories) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.Base) {
+		return false
+	}
+	return true
+}
+
+func (p *ListPromptTemplatesRequest) Field1DeepEqual(src *int64) bool {
+
+	if p.WorkspaceID == src {
+		return true
+	} else if p.WorkspaceID == nil || src == nil {
+		return false
+	}
+	if *p.WorkspaceID != *src {
+		return false
+	}
+	return true
+}
+func (p *ListPromptTemplatesRequest) Field11DeepEqual(src *string) bool {
+
+	if p.KeyWord == src {
+		return true
+	} else if p.KeyWord == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.KeyWord, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ListPromptTemplatesRequest) Field12DeepEqual(src []PromptTemplatePresetCategory) bool {
+
+	if len(p.Categories) != len(src) {
+		return false
+	}
+	for i, v := range p.Categories {
+		_src := src[i]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *ListPromptTemplatesRequest) Field255DeepEqual(src *base.Base) bool {
+
+	if !p.Base.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ListPromptTemplatesResponse struct {
+	Categories      []*PromptTemplatePresetCategoryInfo `thrift:"categories,1,optional" frugal:"1,optional,list<PromptTemplatePresetCategoryInfo>" form:"categories" json:"categories,omitempty" query:"categories"`
+	PromptTemplates []*PromptTemplatePreset             `thrift:"prompt_templates,2,optional" frugal:"2,optional,list<PromptTemplatePreset>" form:"prompt_templates" json:"prompt_templates,omitempty" query:"prompt_templates"`
+	BaseResp        *base.BaseResp                      `thrift:"BaseResp,255,optional" frugal:"255,optional,base.BaseResp" form:"BaseResp" json:"BaseResp,omitempty" query:"BaseResp"`
+}
+
+func NewListPromptTemplatesResponse() *ListPromptTemplatesResponse {
+	return &ListPromptTemplatesResponse{}
+}
+
+func (p *ListPromptTemplatesResponse) InitDefault() {
+}
+
+var ListPromptTemplatesResponse_Categories_DEFAULT []*PromptTemplatePresetCategoryInfo
+
+func (p *ListPromptTemplatesResponse) GetCategories() (v []*PromptTemplatePresetCategoryInfo) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCategories() {
+		return ListPromptTemplatesResponse_Categories_DEFAULT
+	}
+	return p.Categories
+}
+
+var ListPromptTemplatesResponse_PromptTemplates_DEFAULT []*PromptTemplatePreset
+
+func (p *ListPromptTemplatesResponse) GetPromptTemplates() (v []*PromptTemplatePreset) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptTemplates() {
+		return ListPromptTemplatesResponse_PromptTemplates_DEFAULT
+	}
+	return p.PromptTemplates
+}
+
+var ListPromptTemplatesResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *ListPromptTemplatesResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return ListPromptTemplatesResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *ListPromptTemplatesResponse) SetCategories(val []*PromptTemplatePresetCategoryInfo) {
+	p.Categories = val
+}
+func (p *ListPromptTemplatesResponse) SetPromptTemplates(val []*PromptTemplatePreset) {
+	p.PromptTemplates = val
+}
+func (p *ListPromptTemplatesResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_ListPromptTemplatesResponse = map[int16]string{
+	1:   "categories",
+	2:   "prompt_templates",
+	255: "BaseResp",
+}
+
+func (p *ListPromptTemplatesResponse) IsSetCategories() bool {
+	return p.Categories != nil
+}
+
+func (p *ListPromptTemplatesResponse) IsSetPromptTemplates() bool {
+	return p.PromptTemplates != nil
+}
+
+func (p *ListPromptTemplatesResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *ListPromptTemplatesResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptTemplatesResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ListPromptTemplatesResponse) ReadField1(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptTemplatePresetCategoryInfo, 0, size)
+	values := make([]PromptTemplatePresetCategoryInfo, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Categories = _field
+	return nil
+}
+func (p *ListPromptTemplatesResponse) ReadField2(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptTemplatePreset, 0, size)
+	values := make([]PromptTemplatePreset, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.PromptTemplates = _field
+	return nil
+}
+func (p *ListPromptTemplatesResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *ListPromptTemplatesResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptTemplatesResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ListPromptTemplatesResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCategories() {
+		if err = oprot.WriteFieldBegin("categories", thrift.LIST, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Categories)); err != nil {
+			return err
+		}
+		for _, v := range p.Categories {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *ListPromptTemplatesResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptTemplates() {
+		if err = oprot.WriteFieldBegin("prompt_templates", thrift.LIST, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.PromptTemplates)); err != nil {
+			return err
+		}
+		for _, v := range p.PromptTemplates {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *ListPromptTemplatesResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBaseResp() {
+		if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.BaseResp.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *ListPromptTemplatesResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListPromptTemplatesResponse(%+v)", *p)
+
+}
+
+func (p *ListPromptTemplatesResponse) DeepEqual(ano *ListPromptTemplatesResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Categories) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.PromptTemplates) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *ListPromptTemplatesResponse) Field1DeepEqual(src []*PromptTemplatePresetCategoryInfo) bool {
+
+	if len(p.Categories) != len(src) {
+		return false
+	}
+	for i, v := range p.Categories {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *ListPromptTemplatesResponse) Field2DeepEqual(src []*PromptTemplatePreset) bool {
+
+	if len(p.PromptTemplates) != len(src) {
+		return false
+	}
+	for i, v := range p.PromptTemplates {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *ListPromptTemplatesResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type GetPromptTemplateRequest struct {
+	TemplateKey *string    `thrift:"template_key,1,optional" frugal:"1,optional,string" json:"template_key,omitempty" path:"template_key"`
+	WorkspaceID *int64     `thrift:"workspace_id,2,optional" frugal:"2,optional,i64" json:"workspace_id" query:"workspace_id" `
+	Base        *base.Base `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
+}
+
+func NewGetPromptTemplateRequest() *GetPromptTemplateRequest {
+	return &GetPromptTemplateRequest{}
+}
+
+func (p *GetPromptTemplateRequest) InitDefault() {
+}
+
+var GetPromptTemplateRequest_TemplateKey_DEFAULT string
+
+func (p *GetPromptTemplateRequest) GetTemplateKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTemplateKey() {
+		return GetPromptTemplateRequest_TemplateKey_DEFAULT
+	}
+	return *p.TemplateKey
+}
+
+var GetPromptTemplateRequest_WorkspaceID_DEFAULT int64
+
+func (p *GetPromptTemplateRequest) GetWorkspaceID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetWorkspaceID() {
+		return GetPromptTemplateRequest_WorkspaceID_DEFAULT
+	}
+	return *p.WorkspaceID
+}
+
+var GetPromptTemplateRequest_Base_DEFAULT *base.Base
+
+func (p *GetPromptTemplateRequest) GetBase() (v *base.Base) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBase() {
+		return GetPromptTemplateRequest_Base_DEFAULT
+	}
+	return p.Base
+}
+func (p *GetPromptTemplateRequest) SetTemplateKey(val *string) {
+	p.TemplateKey = val
+}
+func (p *GetPromptTemplateRequest) SetWorkspaceID(val *int64) {
+	p.WorkspaceID = val
+}
+func (p *GetPromptTemplateRequest) SetBase(val *base.Base) {
+	p.Base = val
+}
+
+var fieldIDToName_GetPromptTemplateRequest = map[int16]string{
+	1:   "template_key",
+	2:   "workspace_id",
+	255: "Base",
+}
+
+func (p *GetPromptTemplateRequest) IsSetTemplateKey() bool {
+	return p.TemplateKey != nil
+}
+
+func (p *GetPromptTemplateRequest) IsSetWorkspaceID() bool {
+	return p.WorkspaceID != nil
+}
+
+func (p *GetPromptTemplateRequest) IsSetBase() bool {
+	return p.Base != nil
+}
+
+func (p *GetPromptTemplateRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptTemplateRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *GetPromptTemplateRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.TemplateKey = _field
+	return nil
+}
+func (p *GetPromptTemplateRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *GetPromptTemplateRequest) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBase()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Base = _field
+	return nil
+}
+
+func (p *GetPromptTemplateRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptTemplateRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetPromptTemplateRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTemplateKey() {
+		if err = oprot.WriteFieldBegin("template_key", thrift.STRING, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.TemplateKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *GetPromptTemplateRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetWorkspaceID() {
+		if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.WorkspaceID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *GetPromptTemplateRequest) writeField255(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBase() {
+		if err = oprot.WriteFieldBegin("Base", thrift.STRUCT, 255); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Base.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *GetPromptTemplateRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPromptTemplateRequest(%+v)", *p)
+
+}
+
+func (p *GetPromptTemplateRequest) DeepEqual(ano *GetPromptTemplateRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.TemplateKey) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.Base) {
+		return false
+	}
+	return true
+}
+
+func (p *GetPromptTemplateRequest) Field1DeepEqual(src *string) bool {
+
+	if p.TemplateKey == src {
+		return true
+	} else if p.TemplateKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.TemplateKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *GetPromptTemplateRequest) Field2DeepEqual(src *int64) bool {
+
+	if p.WorkspaceID == src {
+		return true
+	} else if p.WorkspaceID == nil || src == nil {
+		return false
+	}
+	if *p.WorkspaceID != *src {
+		return false
+	}
+	return true
+}
+func (p *GetPromptTemplateRequest) Field255DeepEqual(src *base.Base) bool {
+
+	if !p.Base.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type GetPromptTemplateResponse struct {
+	PromptTemplate *PromptTemplatePreset `thrift:"prompt_template,1,optional" frugal:"1,optional,PromptTemplatePreset" form:"prompt_template" json:"prompt_template,omitempty" query:"prompt_template"`
+	BaseResp       *base.BaseResp        `thrift:"BaseResp,255,optional" frugal:"255,optional,base.BaseResp" form:"BaseResp" json:"BaseResp,omitempty" query:"BaseResp"`
+}
+
+func NewGetPromptTemplateResponse() *GetPromptTemplateResponse {
+	return &GetPromptTemplateResponse{}
+}
+
+func (p *GetPromptTemplateResponse) InitDefault() {
+}
+
+var GetPromptTemplateResponse_PromptTemplate_DEFAULT *PromptTemplatePreset
+
+func (p *GetPromptTemplateResponse) GetPromptTemplate() (v *PromptTemplatePreset) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptTemplate() {
+		return GetPromptTemplateResponse_PromptTemplate_DEFAULT
+	}
+	return p.PromptTemplate
+}
+
+var GetPromptTemplateResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *GetPromptTemplateResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return GetPromptTemplateResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *GetPromptTemplateResponse) SetPromptTemplate(val *PromptTemplatePreset) {
+	p.PromptTemplate = val
+}
+func (p *GetPromptTemplateResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_GetPromptTemplateResponse = map[int16]string{
+	1:   "prompt_template",
+	255: "BaseResp",
+}
+
+func (p *GetPromptTemplateResponse) IsSetPromptTemplate() bool {
+	return p.PromptTemplate != nil
+}
+
+func (p *GetPromptTemplateResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *GetPromptTemplateResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptTemplateResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *GetPromptTemplateResponse) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewPromptTemplatePreset()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.PromptTemplate = _field
+	return nil
+}
+func (p *GetPromptTemplateResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *GetPromptTemplateResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptTemplateResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetPromptTemplateResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptTemplate() {
+		if err = oprot.WriteFieldBegin("prompt_template", thrift.STRUCT, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.PromptTemplate.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *GetPromptTemplateResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBaseResp() {
+		if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.BaseResp.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *GetPromptTemplateResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPromptTemplateResponse(%+v)", *p)
+
+}
+
+func (p *GetPromptTemplateResponse) DeepEqual(ano *GetPromptTemplateResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.PromptTemplate) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *GetPromptTemplateResponse) Field1DeepEqual(src *PromptTemplatePreset) bool {
+
+	if !p.PromptTemplate.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *GetPromptTemplateResponse) Field255DeepEqual(src *base.BaseResp) bool {
 
 	if !p.BaseResp.DeepEqual(src) {
 		return false
@@ -14002,6 +16195,10 @@ type PromptManageService interface {
 	BatchGetPrompt(ctx context.Context, request *BatchGetPromptRequest) (r *BatchGetPromptResponse, err error)
 
 	ListPrompt(ctx context.Context, request *ListPromptRequest) (r *ListPromptResponse, err error)
+
+	ListPromptTemplates(ctx context.Context, request *ListPromptTemplatesRequest) (r *ListPromptTemplatesResponse, err error)
+
+	GetPromptTemplate(ctx context.Context, request *GetPromptTemplateRequest) (r *GetPromptTemplateResponse, err error)
 	// 查询片段的引用记录
 	ListParentPrompt(ctx context.Context, request *ListParentPromptRequest) (r *ListParentPromptResponse, err error)
 
@@ -14103,6 +16300,24 @@ func (p *PromptManageServiceClient) ListPrompt(ctx context.Context, request *Lis
 	_args.Request = request
 	var _result PromptManageServiceListPromptResult
 	if err = p.Client_().Call(ctx, "ListPrompt", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *PromptManageServiceClient) ListPromptTemplates(ctx context.Context, request *ListPromptTemplatesRequest) (r *ListPromptTemplatesResponse, err error) {
+	var _args PromptManageServiceListPromptTemplatesArgs
+	_args.Request = request
+	var _result PromptManageServiceListPromptTemplatesResult
+	if err = p.Client_().Call(ctx, "ListPromptTemplates", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *PromptManageServiceClient) GetPromptTemplate(ctx context.Context, request *GetPromptTemplateRequest) (r *GetPromptTemplateResponse, err error) {
+	var _args PromptManageServiceGetPromptTemplateArgs
+	_args.Request = request
+	var _result PromptManageServiceGetPromptTemplateResult
+	if err = p.Client_().Call(ctx, "GetPromptTemplate", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
@@ -14233,6 +16448,8 @@ func NewPromptManageServiceProcessor(handler PromptManageService) *PromptManageS
 	self.AddToProcessorMap("GetPrompt", &promptManageServiceProcessorGetPrompt{handler: handler})
 	self.AddToProcessorMap("BatchGetPrompt", &promptManageServiceProcessorBatchGetPrompt{handler: handler})
 	self.AddToProcessorMap("ListPrompt", &promptManageServiceProcessorListPrompt{handler: handler})
+	self.AddToProcessorMap("ListPromptTemplates", &promptManageServiceProcessorListPromptTemplates{handler: handler})
+	self.AddToProcessorMap("GetPromptTemplate", &promptManageServiceProcessorGetPromptTemplate{handler: handler})
 	self.AddToProcessorMap("ListParentPrompt", &promptManageServiceProcessorListParentPrompt{handler: handler})
 	self.AddToProcessorMap("BatchGetPromptBasic", &promptManageServiceProcessorBatchGetPromptBasic{handler: handler})
 	self.AddToProcessorMap("UpdatePrompt", &promptManageServiceProcessorUpdatePrompt{handler: handler})
@@ -14535,6 +16752,102 @@ func (p *promptManageServiceProcessorListPrompt) Process(ctx context.Context, se
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("ListPrompt", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type promptManageServiceProcessorListPromptTemplates struct {
+	handler PromptManageService
+}
+
+func (p *promptManageServiceProcessorListPromptTemplates) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := PromptManageServiceListPromptTemplatesArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("ListPromptTemplates", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := PromptManageServiceListPromptTemplatesResult{}
+	var retval *ListPromptTemplatesResponse
+	if retval, err2 = p.handler.ListPromptTemplates(ctx, args.Request); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ListPromptTemplates: "+err2.Error())
+		oprot.WriteMessageBegin("ListPromptTemplates", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("ListPromptTemplates", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type promptManageServiceProcessorGetPromptTemplate struct {
+	handler PromptManageService
+}
+
+func (p *promptManageServiceProcessorGetPromptTemplate) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := PromptManageServiceGetPromptTemplateArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("GetPromptTemplate", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := PromptManageServiceGetPromptTemplateResult{}
+	var retval *GetPromptTemplateResponse
+	if retval, err2 = p.handler.GetPromptTemplate(ctx, args.Request); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetPromptTemplate: "+err2.Error())
+		oprot.WriteMessageBegin("GetPromptTemplate", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("GetPromptTemplate", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -17137,6 +19450,694 @@ func (p *PromptManageServiceListPromptResult) DeepEqual(ano *PromptManageService
 }
 
 func (p *PromptManageServiceListPromptResult) Field0DeepEqual(src *ListPromptResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type PromptManageServiceListPromptTemplatesArgs struct {
+	Request *ListPromptTemplatesRequest `thrift:"request,1" frugal:"1,default,ListPromptTemplatesRequest"`
+}
+
+func NewPromptManageServiceListPromptTemplatesArgs() *PromptManageServiceListPromptTemplatesArgs {
+	return &PromptManageServiceListPromptTemplatesArgs{}
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) InitDefault() {
+}
+
+var PromptManageServiceListPromptTemplatesArgs_Request_DEFAULT *ListPromptTemplatesRequest
+
+func (p *PromptManageServiceListPromptTemplatesArgs) GetRequest() (v *ListPromptTemplatesRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetRequest() {
+		return PromptManageServiceListPromptTemplatesArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *PromptManageServiceListPromptTemplatesArgs) SetRequest(val *ListPromptTemplatesRequest) {
+	p.Request = val
+}
+
+var fieldIDToName_PromptManageServiceListPromptTemplatesArgs = map[int16]string{
+	1: "request",
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptManageServiceListPromptTemplatesArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewListPromptTemplatesRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Request = _field
+	return nil
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptTemplates_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptManageServiceListPromptTemplatesArgs(%+v)", *p)
+
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) DeepEqual(ano *PromptManageServiceListPromptTemplatesArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Request) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptManageServiceListPromptTemplatesArgs) Field1DeepEqual(src *ListPromptTemplatesRequest) bool {
+
+	if !p.Request.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type PromptManageServiceListPromptTemplatesResult struct {
+	Success *ListPromptTemplatesResponse `thrift:"success,0,optional" frugal:"0,optional,ListPromptTemplatesResponse"`
+}
+
+func NewPromptManageServiceListPromptTemplatesResult() *PromptManageServiceListPromptTemplatesResult {
+	return &PromptManageServiceListPromptTemplatesResult{}
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) InitDefault() {
+}
+
+var PromptManageServiceListPromptTemplatesResult_Success_DEFAULT *ListPromptTemplatesResponse
+
+func (p *PromptManageServiceListPromptTemplatesResult) GetSuccess() (v *ListPromptTemplatesResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return PromptManageServiceListPromptTemplatesResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *PromptManageServiceListPromptTemplatesResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ListPromptTemplatesResponse)
+}
+
+var fieldIDToName_PromptManageServiceListPromptTemplatesResult = map[int16]string{
+	0: "success",
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptManageServiceListPromptTemplatesResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewListPromptTemplatesResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptTemplates_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptManageServiceListPromptTemplatesResult(%+v)", *p)
+
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) DeepEqual(ano *PromptManageServiceListPromptTemplatesResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptManageServiceListPromptTemplatesResult) Field0DeepEqual(src *ListPromptTemplatesResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type PromptManageServiceGetPromptTemplateArgs struct {
+	Request *GetPromptTemplateRequest `thrift:"request,1" frugal:"1,default,GetPromptTemplateRequest"`
+}
+
+func NewPromptManageServiceGetPromptTemplateArgs() *PromptManageServiceGetPromptTemplateArgs {
+	return &PromptManageServiceGetPromptTemplateArgs{}
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) InitDefault() {
+}
+
+var PromptManageServiceGetPromptTemplateArgs_Request_DEFAULT *GetPromptTemplateRequest
+
+func (p *PromptManageServiceGetPromptTemplateArgs) GetRequest() (v *GetPromptTemplateRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetRequest() {
+		return PromptManageServiceGetPromptTemplateArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *PromptManageServiceGetPromptTemplateArgs) SetRequest(val *GetPromptTemplateRequest) {
+	p.Request = val
+}
+
+var fieldIDToName_PromptManageServiceGetPromptTemplateArgs = map[int16]string{
+	1: "request",
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptManageServiceGetPromptTemplateArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewGetPromptTemplateRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Request = _field
+	return nil
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptTemplate_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptManageServiceGetPromptTemplateArgs(%+v)", *p)
+
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) DeepEqual(ano *PromptManageServiceGetPromptTemplateArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Request) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptManageServiceGetPromptTemplateArgs) Field1DeepEqual(src *GetPromptTemplateRequest) bool {
+
+	if !p.Request.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type PromptManageServiceGetPromptTemplateResult struct {
+	Success *GetPromptTemplateResponse `thrift:"success,0,optional" frugal:"0,optional,GetPromptTemplateResponse"`
+}
+
+func NewPromptManageServiceGetPromptTemplateResult() *PromptManageServiceGetPromptTemplateResult {
+	return &PromptManageServiceGetPromptTemplateResult{}
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) InitDefault() {
+}
+
+var PromptManageServiceGetPromptTemplateResult_Success_DEFAULT *GetPromptTemplateResponse
+
+func (p *PromptManageServiceGetPromptTemplateResult) GetSuccess() (v *GetPromptTemplateResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return PromptManageServiceGetPromptTemplateResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *PromptManageServiceGetPromptTemplateResult) SetSuccess(x interface{}) {
+	p.Success = x.(*GetPromptTemplateResponse)
+}
+
+var fieldIDToName_PromptManageServiceGetPromptTemplateResult = map[int16]string{
+	0: "success",
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptManageServiceGetPromptTemplateResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewGetPromptTemplateResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptTemplate_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptManageServiceGetPromptTemplateResult(%+v)", *p)
+
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) DeepEqual(ano *PromptManageServiceGetPromptTemplateResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptManageServiceGetPromptTemplateResult) Field0DeepEqual(src *GetPromptTemplateResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

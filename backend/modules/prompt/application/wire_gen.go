@@ -22,7 +22,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/execute"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/manage"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/openapi"
-	manage2 "github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/tool_manage"
+	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/tool_manage"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/service"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/collector"
 	conf2 "github.com/coze-dev/coze-loop/backend/modules/prompt/infra/conf"
@@ -78,6 +78,7 @@ func InitPromptDebugApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redi
 	iDebugLogRepo := repo.NewDebugLogRepo(idgen2, iDebugLogDAO)
 	iDebugContextDAO := mysql.NewDebugContextDAO(db2)
 	iDebugContextRepo := repo.NewDebugContextRepo(idgen2, iDebugContextDAO)
+	iGenerateRecordRepo := mysql.NewGenerateRecordRepo(db2, idgen2)
 	iPromptFormatter := service.NewPromptFormatter()
 	iToolConfigProvider := service.NewToolConfigProvider()
 	iToolResultsCollector := service.NewToolResultsCollector()
@@ -103,7 +104,7 @@ func InitPromptDebugApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redi
 	snippetParser := service.NewCozeLoopSnippetParser()
 	iPromptService := service.NewPromptService(iPromptFormatter, iToolConfigProvider, iToolResultsCollector, idgen2, iDebugLogRepo, iDebugContextRepo, iManageRepo, iLabelRepo, iConfigProvider, illmProvider, iFileProvider, snippetParser)
 	iAuthProvider := rpc.NewAuthRPCProvider(authClient)
-	promptDebugService := NewPromptDebugApplication(iDebugLogRepo, iDebugContextRepo, iPromptService, benefitSvc, iAuthProvider, iFileProvider)
+	promptDebugService := NewPromptDebugApplication(iDebugLogRepo, iDebugContextRepo, iGenerateRecordRepo, iPromptService, benefitSvc, iAuthProvider, iFileProvider)
 	return promptDebugService, nil
 }
 
@@ -179,7 +180,7 @@ func InitPromptOpenAPIApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, re
 	return promptOpenAPIService, nil
 }
 
-func InitToolManageApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, authClient authservice.Client, userClient userservice.Client) (manage2.ToolManageService, error) {
+func InitToolManageApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redisCli redis.Cmdable, authClient authservice.Client, userClient userservice.Client) (tool_manage.ToolManageService, error) {
 	iToolBasicDAO := mysql.NewToolBasicDAO(db2, redisCli)
 	iToolCommitDAO := mysql.NewToolCommitDAO(db2, redisCli)
 	iToolRepo := repo.NewToolRepo(db2, idgen2, iToolBasicDAO, iToolCommitDAO)
@@ -192,7 +193,7 @@ func InitToolManageApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, redis
 // wire.go:
 
 var (
-	promptDomainSet = wire.NewSet(service.NewPromptFormatter, service.NewToolConfigProvider, service.NewToolResultsCollector, service.NewPromptService, repo.NewManageRepo, repo.NewLabelRepo, repo.NewDebugLogRepo, repo.NewDebugContextRepo, hooks.NewEmptyPromptCommitHook, hooks.NewEmptyPromptUserDraftHook, mysql.NewPromptBasicDAO, mysql.NewPromptCommitDAO, mysql.NewPromptUserDraftDAO, mysql.NewPromptRelationDAO, mysql.NewLabelDAO, mysql.NewCommitLabelMappingDAO, mysql.NewDebugLogDAO, mysql.NewDebugContextDAO, redis2.NewPromptBasicDAO, redis2.NewPromptDAO, redis2.NewPromptLabelVersionDAO, conf2.NewPromptConfigProvider, rpc.NewLLMRPCProvider, rpc.NewAuthRPCProvider, rpc.NewFileRPCProvider, rpc.NewUserRPCProvider, rpc.NewAuditRPCProvider, collector.NewEventCollectorProvider, service.NewCozeLoopSnippetParser)
+	promptDomainSet = wire.NewSet(service.NewPromptFormatter, service.NewToolConfigProvider, service.NewToolResultsCollector, service.NewPromptService, repo.NewManageRepo, repo.NewLabelRepo, repo.NewDebugLogRepo, repo.NewDebugContextRepo, hooks.NewEmptyPromptCommitHook, hooks.NewEmptyPromptUserDraftHook, mysql.NewPromptBasicDAO, mysql.NewPromptCommitDAO, mysql.NewPromptUserDraftDAO, mysql.NewPromptRelationDAO, mysql.NewLabelDAO, mysql.NewCommitLabelMappingDAO, mysql.NewDebugLogDAO, mysql.NewDebugContextDAO, mysql.NewGenerateRecordRepo, redis2.NewPromptBasicDAO, redis2.NewPromptDAO, redis2.NewPromptLabelVersionDAO, conf2.NewPromptConfigProvider, rpc.NewLLMRPCProvider, rpc.NewAuthRPCProvider, rpc.NewFileRPCProvider, rpc.NewUserRPCProvider, rpc.NewAuditRPCProvider, collector.NewEventCollectorProvider, service.NewCozeLoopSnippetParser)
 	manageSet       = wire.NewSet(
 		NewPromptManageApplication,
 		promptDomainSet,

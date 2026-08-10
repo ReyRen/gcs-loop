@@ -426,7 +426,7 @@ ${request.code}
 
 
   /**
-   * 预加载 Pyodide（与 K8s 行为保持一致）
+   * 预加载 Pyodide 运行时
    */
   private async preloadPyodide(processId: string): Promise<void> {
     console.log(`⏳ [${processId}] 预加载Pyodide...`);

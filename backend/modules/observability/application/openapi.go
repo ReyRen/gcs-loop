@@ -264,7 +264,7 @@ func (o *OpenAPIApplication) OtelIngestTraces(ctx context.Context, req *openapi.
 	if err := o.validateOtelIngestTracesReq(ctx, req); err != nil {
 		return nil, err
 	}
-	spanSrc, err := ungzip(req.ContentEncoding, req.Body)
+	spanSrc, err := ungzip(req.GetContentEncoding(), req.Body)
 	if err != nil {
 		return nil, errorx.NewByCode(obErrorx.CommercialCommonBadRequestCodeCode, errorx.WithExtraMsg("ungzip span failed"))
 	}

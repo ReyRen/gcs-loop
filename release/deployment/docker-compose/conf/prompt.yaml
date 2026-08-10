@@ -25,3 +25,162 @@ preset_labels:
 prompt_label_version_cache:
   enable: true
   ttl_seconds: 60
+
+
+# Built-in Prompt template catalog. The frontend can filter this catalog and pass
+# the selected draft_detail to CreatePrompt.
+prompt_template_presets:
+  categories:
+    - category: text_generation
+      display_name: 文本创作
+    - category: image_analysis
+      display_name: 图片分析
+    - category: video_understanding
+      display_name: 视频理解
+    - category: deep_reasoning
+      display_name: 深度思考
+    - category: json_output
+      display_name: Json输出
+    - category: function_calling
+      display_name: 函数调用
+  templates:
+    - template_key: marketing_copy
+      display_name: 营销文案生成器
+      description: 根据产品信息、目标人群和核心卖点，生成结构清晰且符合指定语气的营销文案。
+      category: text_generation
+      icon_key: copywriting
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: >-
+                你是一名资深品牌文案策划。请确保内容准确、简洁、有说服力，不虚构用户没有提供的事实。
+            - role: user
+              content: >-
+                请为产品“{{product_name}}”撰写营销文案。目标人群：{{target_audience}}；核心卖点：{{key_benefits}}；表达语气：{{tone}}。
+          variable_defs:
+            - key: product_name
+              desc: 产品名称
+              type: string
+            - key: target_audience
+              desc: 目标人群
+              type: string
+            - key: key_benefits
+              desc: 核心卖点
+              type: string
+            - key: tone
+              desc: 表达语气
+              type: string
+
+    - template_key: image_review
+      display_name: 图片内容分析
+      description: 围绕指定目标识别图片中的主体、场景、文字和关键细节，并给出有依据的分析。
+      category: image_analysis
+      icon_key: image
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: >-
+                你是一名严谨的视觉内容分析师。只描述能够从图片中观察到的信息，并明确标注不确定判断。
+            - role: user
+              content: >-
+                请围绕“{{analysis_goal}}”分析用户提供的图片，按主体、场景、可见文字、关键细节和结论组织结果。
+          variable_defs:
+            - key: analysis_goal
+              desc: 图片分析目标
+              type: string
+
+    - template_key: video_digest
+      display_name: 视频要点提取
+      description: 从视频内容中提取主题、关键事件、重要观点和后续行动，形成简明摘要。
+      category: video_understanding
+      icon_key: video
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: >-
+                你是一名视频内容研究助理。请按时间顺序理解内容，区分事实、观点和推断。
+            - role: user
+              content: >-
+                请分析用户提供的视频，并针对“{{focus}}”输出主题概述、关键时间点、重要观点和行动建议。
+          variable_defs:
+            - key: focus
+              desc: 关注重点
+              type: string
+
+    - template_key: solution_risk_review
+      display_name: 方案评审与风险分析
+      description: 从可行性、成本、安全性和可扩展性等维度审查方案，并给出改进优先级。
+      category: deep_reasoning
+      icon_key: reasoning
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: >-
+                你是一名解决方案架构评审专家。请先识别约束和假设，再给出有证据链的结论与风险分级。
+            - role: user
+              content: >-
+                请评审以下方案：{{solution}}。已知约束：{{constraints}}。输出可行性、成本、安全性、可扩展性、主要风险以及按优先级排序的改进建议。
+          variable_defs:
+            - key: solution
+              desc: 待评审方案
+              type: string
+            - key: constraints
+              desc: 已知约束
+              type: string
+
+    - template_key: meeting_actions_json
+      display_name: 会议结论结构化
+      description: 从会议纪要中提取结论、行动项、负责人、截止时间和风险，输出严格 JSON。
+      category: json_output
+      icon_key: json
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: >-
+                你是一名项目管理助理。只使用会议纪要中明确出现的信息；缺失字段使用 null，不得补造。
+            - role: user
+              content: >-
+                请将以下会议纪要整理为 JSON：{{meeting_notes}}。根对象包含 summary、decisions、action_items 和 risks；action_items 每项包含 task、owner、due_date。
+          variable_defs:
+            - key: meeting_notes
+              desc: 会议纪要
+              type: string
+        model_config:
+          json_mode: true
+
+    - template_key: product_search
+      display_name: 商品搜索助手
+      description: 理解用户的商品查询意图，并调用商品搜索函数返回匹配结果。
+      category: function_calling
+      icon_key: function
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: >-
+                你是一名商品导购助手。先澄清必要条件，再调用工具搜索；不要编造工具没有返回的商品信息。
+            - role: user
+              content: "{{search_requirements}}"
+          variable_defs:
+            - key: search_requirements
+              desc: 商品搜索需求
+              type: string
+        tools:
+          - type: function
+            function:
+              name: search_products
+              description: 根据关键词、价格区间和商品分类搜索商品。
+              parameters: '{"type":"object","properties":{"keyword":{"type":"string"},"category":{"type":"string"},"min_price":{"type":"number"},"max_price":{"type":"number"}},"required":["keyword"]}'
+        tool_call_config:
+          tool_choice: auto

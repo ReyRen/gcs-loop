@@ -7,12 +7,13 @@ package apis
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/protocol/consts"
 
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/apis/observabilityopenapiservice"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/observability/openapi"
+	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
 
 var observabilityOpenAPIClient observabilityopenapiservice.Client
@@ -44,7 +45,7 @@ func OtelIngestTraces(ctx context.Context, c *app.RequestContext) {
 	resp, err := observabilityOpenAPIClient.OtelIngestTraces(ctx, &openapi.OtelIngestTracesRequest{
 		Body:            c.Request.Body(),
 		ContentType:     c.Request.Header.Get("Content-Type"),
-		ContentEncoding: c.Request.Header.Get("Content-Encoding"),
+		ContentEncoding: ptr.Of(c.Request.Header.Get("Content-Encoding")),
 		WorkspaceID:     c.Request.Header.Get("cozeloop-workspace-id"),
 	})
 	if err != nil {
@@ -52,7 +53,19 @@ func OtelIngestTraces(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	c.JSON(consts.StatusOK, resp)
+	renderOtelIngestTracesResponse(c, resp)
+}
+
+func renderOtelIngestTracesResponse(c *app.RequestContext, resp *openapi.OtelIngestTracesResponse) {
+	contentType := "application/octet-stream"
+	var body []byte
+	if resp != nil {
+		body = resp.GetBody()
+		if resp.GetContentType() != "" {
+			contentType = resp.GetContentType()
+		}
+	}
+	c.Data(http.StatusOK, contentType, body)
 }
 
 // ListTracesOApi .

@@ -20,6 +20,8 @@ service PromptManageService {
     GetPromptResponse GetPrompt(1: GetPromptRequest request) (api.get = '/api/prompt/v1/prompts/:prompt_id')
     BatchGetPromptResponse BatchGetPrompt(1: BatchGetPromptRequest request)
     ListPromptResponse ListPrompt(1: ListPromptRequest request) (api.post = '/api/prompt/v1/prompts/list')
+    ListPromptTemplatesResponse ListPromptTemplates(1: ListPromptTemplatesRequest request) (api.post = '/api/prompt/v1/prompt_templates/list')
+    GetPromptTemplateResponse GetPromptTemplate(1: GetPromptTemplateRequest request) (api.get = '/api/prompt/v1/prompt_templates/:template_key')
     // 查询片段的引用记录
     ListParentPromptResponse ListParentPrompt (1: ListParentPromptRequest request) (api.post = '/api/prompt/v1/prompts/list_parent')
     BatchGetPromptBasicResponse BatchGetPromptBasic (1: BatchGetPromptBasicRequest request) (api.post = '/api/prompt/v1/prompts/batch_get_prompt_basic')
@@ -164,6 +166,58 @@ struct ListPromptResponse {
 typedef string ListPromptOrderBy (ts.enum="true")
 const ListPromptOrderBy ListPromptOrderBy_CommitedAt = "committed_at"
 const ListPromptOrderBy ListPromptOrderBy_CreatedAt = "created_at"
+
+typedef string PromptTemplatePresetCategory (ts.enum="true")
+const PromptTemplatePresetCategory PromptTemplatePresetCategory_TextGeneration = "text_generation"
+const PromptTemplatePresetCategory PromptTemplatePresetCategory_ImageAnalysis = "image_analysis"
+const PromptTemplatePresetCategory PromptTemplatePresetCategory_VideoUnderstanding = "video_understanding"
+const PromptTemplatePresetCategory PromptTemplatePresetCategory_DeepReasoning = "deep_reasoning"
+const PromptTemplatePresetCategory PromptTemplatePresetCategory_JSONOutput = "json_output"
+const PromptTemplatePresetCategory PromptTemplatePresetCategory_FunctionCalling = "function_calling"
+
+struct PromptTemplatePresetCategoryInfo {
+    1: optional PromptTemplatePresetCategory category
+    2: optional string display_name
+}
+
+struct PromptTemplatePreset {
+    1: optional string template_key
+    2: optional string display_name
+    3: optional string description
+    4: optional PromptTemplatePresetCategory category
+    5: optional string icon_key
+
+    11: optional prompt.PromptDetail draft_detail
+}
+
+struct ListPromptTemplatesRequest {
+    1: optional i64 workspace_id (api.js_conv='true', vt.not_nil='true', vt.gt='0', go.tag='json:"workspace_id"')
+
+    11: optional string key_word
+    12: optional list<PromptTemplatePresetCategory> categories
+
+    255: optional base.Base Base
+}
+
+struct ListPromptTemplatesResponse {
+    1: optional list<PromptTemplatePresetCategoryInfo> categories
+    2: optional list<PromptTemplatePreset> prompt_templates
+
+    255: optional base.BaseResp BaseResp
+}
+
+struct GetPromptTemplateRequest {
+    1: optional string template_key (api.path='template_key', vt.not_nil='true', vt.min_size='1')
+    2: optional i64 workspace_id (api.query='workspace_id', api.js_conv='true', vt.not_nil='true', vt.gt='0', go.tag='json:"workspace_id"')
+
+    255: optional base.Base Base
+}
+
+struct GetPromptTemplateResponse {
+    1: optional PromptTemplatePreset prompt_template
+
+    255: optional base.BaseResp BaseResp
+}
 
 struct UpdatePromptRequest {
     1: optional i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"')

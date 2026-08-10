@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/samber/lo"
@@ -186,6 +187,94 @@ func (app *PromptManageApplicationImpl) CreatePrompt(ctx context.Context, reques
 	}
 	r.PromptID = ptr.Of(promptID)
 	return r, nil
+}
+
+func (app *PromptManageApplicationImpl) ListPromptTemplates(ctx context.Context, request *manage.ListPromptTemplatesRequest) (r *manage.ListPromptTemplatesResponse, err error) {
+	r = manage.NewListPromptTemplatesResponse()
+
+	userID, ok := session.UserIDInCtx(ctx)
+	if !ok || lo.IsEmpty(userID) {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found"))
+	}
+
+	if err = app.authRPCProvider.CheckSpacePermission(ctx, request.GetWorkspaceID(), consts.ActionWorkspaceCreateLoopPrompt); err != nil {
+		return r, err
+	}
+
+	catalog, err := app.configProvider.GetPromptTemplatePresetCatalog(ctx)
+	if err != nil {
+		return r, err
+	}
+	if catalog == nil {
+		return r, nil
+	}
+
+	r.Categories = make([]*manage.PromptTemplatePresetCategoryInfo, 0, len(catalog.Categories))
+	for _, category := range catalog.Categories {
+		if categoryDTO := convertor.PromptTemplatePresetCategoryInfoDO2DTO(category); categoryDTO != nil {
+			r.Categories = append(r.Categories, categoryDTO)
+		}
+	}
+
+	categoryFilter := make(map[entity.PromptTemplatePresetCategory]struct{}, len(request.GetCategories()))
+	for _, category := range request.GetCategories() {
+		categoryFilter[entity.PromptTemplatePresetCategory(category)] = struct{}{}
+	}
+	keyword := strings.ToLower(strings.TrimSpace(request.GetKeyWord()))
+
+	r.PromptTemplates = make([]*manage.PromptTemplatePreset, 0, len(catalog.Templates))
+	for _, preset := range catalog.Templates {
+		if preset == nil {
+			continue
+		}
+		if len(categoryFilter) > 0 {
+			if _, ok := categoryFilter[preset.Category]; !ok {
+				continue
+			}
+		}
+		if keyword != "" && !promptTemplatePresetMatchesKeyword(preset, keyword) {
+			continue
+		}
+		if presetDTO := convertor.PromptTemplatePresetDO2DTO(preset); presetDTO != nil {
+			r.PromptTemplates = append(r.PromptTemplates, presetDTO)
+		}
+	}
+	return r, nil
+}
+
+func promptTemplatePresetMatchesKeyword(preset *entity.PromptTemplatePreset, keyword string) bool {
+	return strings.Contains(strings.ToLower(preset.TemplateKey), keyword) ||
+		strings.Contains(strings.ToLower(preset.DisplayName), keyword) ||
+		strings.Contains(strings.ToLower(preset.Description), keyword)
+}
+
+func (app *PromptManageApplicationImpl) GetPromptTemplate(ctx context.Context, request *manage.GetPromptTemplateRequest) (r *manage.GetPromptTemplateResponse, err error) {
+	r = manage.NewGetPromptTemplateResponse()
+
+	userID, ok := session.UserIDInCtx(ctx)
+	if !ok || lo.IsEmpty(userID) {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found"))
+	}
+
+	if err = app.authRPCProvider.CheckSpacePermission(ctx, request.GetWorkspaceID(), consts.ActionWorkspaceCreateLoopPrompt); err != nil {
+		return r, err
+	}
+
+	catalog, err := app.configProvider.GetPromptTemplatePresetCatalog(ctx)
+	if err != nil {
+		return r, err
+	}
+	if catalog == nil {
+		return r, errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg("Prompt template not found"))
+	}
+
+	for _, preset := range catalog.Templates {
+		if preset != nil && preset.TemplateKey == request.GetTemplateKey() {
+			r.PromptTemplate = convertor.PromptTemplatePresetDO2DTO(preset)
+			return r, nil
+		}
+	}
+	return r, errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg("Prompt template not found"))
 }
 
 func (app *PromptManageApplicationImpl) ClonePrompt(ctx context.Context, request *manage.ClonePromptRequest) (r *manage.ClonePromptResponse, err error) {

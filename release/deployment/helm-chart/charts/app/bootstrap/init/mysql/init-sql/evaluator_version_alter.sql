@@ -1,1 +1,0 @@
-ALTER TABLE evaluator_version ADD COLUMN `output_schema` blob COMMENT '评估器输出schema, json';

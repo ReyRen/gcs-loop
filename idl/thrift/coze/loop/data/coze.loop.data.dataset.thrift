@@ -73,7 +73,7 @@ struct BatchGetDatasetsResponse {
 }
 
 struct ListDatasetsRequest {
-    1: required i64 workspace_id (api.js_conv="true", go.tag='json:"workspace_id"', api.path = "workspace_id", vt.gt = "0")
+    1: required i64 workspace_id (api.js_conv="true", go.tag='json:"workspace_id"', api.body = "workspace_id", vt.gt = "0")
     2: optional list<i64> dataset_ids (api.js_conv="true", go.tag='json:"dataset_ids"')
     3: optional dataset.DatasetCategory category
     4: optional string name (vt.max_size = "255")                                    // 支持模糊搜索
@@ -205,7 +205,7 @@ struct VersionedDataset {
 }
 
 struct BatchGetDatasetVersionsRequest {
-    1: optional i64 workspace_id (api.js_conv="true", go.tag='json:"workspace_id"', api.path = "workspace_id", vt.gt = "0")
+    1: optional i64 workspace_id (api.js_conv="true", go.tag='json:"workspace_id"', api.body = "workspace_id", vt.gt = "0")
     2: required list<i64> version_ids (api.js_conv="true", go.tag='json:"version_ids"', vt.max_size = "100")
     10: optional bool with_deleted                                                    // 是否返回已删除的数据，默认不返回
 
@@ -264,7 +264,7 @@ struct GetDatasetSchemaResponse {
 struct ValidateDatasetItemsReq {
     1: optional i64 workspace_id (api.js_conv="true", go.tag='json:"workspace_id"', vt.not_nil = "true", vt.gt = "0")
     2: optional list<dataset.DatasetItem> items (vt.min_size = "1", vt.max_size = "500", vt.elem.skip = "false")
-    3: optional i64 dataset_id (api.js_conv="true", go.tag='json:"dataset_id"', api.path = "dataset_id", vt.gt = "0") // 添加到已有数据集时提供
+    3: optional i64 dataset_id (api.js_conv="true", go.tag='json:"dataset_id"', api.body = "dataset_id", vt.gt = "0") // 添加到已有数据集时提供
     4: optional dataset.DatasetCategory dataset_category (vt.defined_only = "true")                               // 新建数据集并添加数据时提供
     5: optional list<dataset.FieldSchema> dataset_fields (vt.elem.skip = "false")                                 // 新建数据集并添加数据时，必须提供；添加到已有数据集时，如非空，则覆盖已有 schema 用于校验
     10: optional bool ignore_current_item_count                                                                     // 添加到已有数据集时，现有数据条数，做容量校验时不做考虑，仅考虑提供 items 数量是否超限

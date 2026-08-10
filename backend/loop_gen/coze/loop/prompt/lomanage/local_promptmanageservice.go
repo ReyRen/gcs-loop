@@ -155,6 +155,48 @@ func (l *LocalPromptManageService) ListPrompt(ctx context.Context, request *mana
 	return result.GetSuccess(), nil
 }
 
+func (l *LocalPromptManageService) ListPromptTemplates(ctx context.Context, request *manage.ListPromptTemplatesRequest, callOptions ...callopt.Option) (*manage.ListPromptTemplatesResponse, error) {
+	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
+		arg := in.(*manage.PromptManageServiceListPromptTemplatesArgs)
+		result := out.(*manage.PromptManageServiceListPromptTemplatesResult)
+		resp, err := l.impl.ListPromptTemplates(ctx, arg.Request)
+		if err != nil {
+			return err
+		}
+		result.SetSuccess(resp)
+		return nil
+	})
+
+	arg := &manage.PromptManageServiceListPromptTemplatesArgs{Request: request}
+	result := &manage.PromptManageServiceListPromptTemplatesResult{}
+	ctx = l.injectRPCInfo(ctx, "ListPromptTemplates")
+	if err := chain(ctx, arg, result); err != nil {
+		return nil, err
+	}
+	return result.GetSuccess(), nil
+}
+
+func (l *LocalPromptManageService) GetPromptTemplate(ctx context.Context, request *manage.GetPromptTemplateRequest, callOptions ...callopt.Option) (*manage.GetPromptTemplateResponse, error) {
+	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
+		arg := in.(*manage.PromptManageServiceGetPromptTemplateArgs)
+		result := out.(*manage.PromptManageServiceGetPromptTemplateResult)
+		resp, err := l.impl.GetPromptTemplate(ctx, arg.Request)
+		if err != nil {
+			return err
+		}
+		result.SetSuccess(resp)
+		return nil
+	})
+
+	arg := &manage.PromptManageServiceGetPromptTemplateArgs{Request: request}
+	result := &manage.PromptManageServiceGetPromptTemplateResult{}
+	ctx = l.injectRPCInfo(ctx, "GetPromptTemplate")
+	if err := chain(ctx, arg, result); err != nil {
+		return nil, err
+	}
+	return result.GetSuccess(), nil
+}
+
 // ListParentPrompt
 // 查询片段的引用记录
 func (l *LocalPromptManageService) ListParentPrompt(ctx context.Context, request *manage.ListParentPromptRequest, callOptions ...callopt.Option) (*manage.ListParentPromptResponse, error) {

@@ -120,15 +120,21 @@ func (u *UserApplicationImpl) validateRegisterReq(ctx context.Context, request *
 func (u *UserApplicationImpl) ResetPassword(ctx context.Context, request *user.ResetPasswordRequest) (r *user.ResetPasswordResponse, err error) {
 	r = user.NewResetPasswordResponse()
 
-	if request.Email == nil || request.Password == nil {
+	if request == nil || request.Email == nil || request.Password == nil {
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode)
 	}
 
-	// TODO: 校验验证码
-	// TODO: 邮箱验证码怎么发送？
+	currentUser, ok := session.UserInCtx(ctx)
+	if !ok || currentUser.Email == "" {
+		return nil, errorx.NewByCode(errno.CommonNoPermissionCode)
+	}
+	if !strings.EqualFold(strings.TrimSpace(currentUser.Email), strings.TrimSpace(request.GetEmail())) {
+		return nil, errorx.NewByCode(errno.CommonNoPermissionCode)
+	}
 
-	// 重置密码
-	err = u.userService.ResetPassword(ctx, request.GetEmail(), request.GetPassword())
+	// This endpoint changes the password of the authenticated user. The optional
+	// verification code is reserved for a future unauthenticated recovery flow.
+	err = u.userService.ResetPassword(ctx, currentUser.Email, request.GetPassword())
 	if err != nil {
 		return nil, err
 	}

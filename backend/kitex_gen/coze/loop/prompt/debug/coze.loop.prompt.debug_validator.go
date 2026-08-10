@@ -56,6 +56,100 @@ func (p *DebugStreamingResponse) IsValid() error {
 	}
 	return nil
 }
+func (p *GeneratePromptRequest) IsValid() error {
+	if p.GeneratePromptType == nil {
+		return fmt.Errorf("field GeneratePromptType not_nil rule failed")
+	}
+	if len(*p.GeneratePromptType) < int(1) {
+		return fmt.Errorf("field GeneratePromptType min_len rule failed, current value: %d", len(*p.GeneratePromptType))
+	}
+	if p.SpaceID == nil {
+		return fmt.Errorf("field SpaceID not_nil rule failed")
+	}
+	if *p.SpaceID <= int64(0) {
+		return fmt.Errorf("field SpaceID gt rule failed, current value: %v", *p.SpaceID)
+	}
+	if p.PromptID == nil {
+		return fmt.Errorf("field PromptID not_nil rule failed")
+	}
+	if *p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", *p.PromptID)
+	}
+	if p.OriginalPromptMessage == nil {
+		return fmt.Errorf("field OriginalPromptMessage not_nil rule failed")
+	}
+	if err := p.OriginalPromptMessage.IsValid(); err != nil {
+		return fmt.Errorf("field OriginalPromptMessage not valid, %w", err)
+	}
+	if p.UserMessage != nil {
+		if err := p.UserMessage.IsValid(); err != nil {
+			return fmt.Errorf("field UserMessage not valid, %w", err)
+		}
+	}
+	if p.AssistantMessage != nil {
+		if err := p.AssistantMessage.IsValid(); err != nil {
+			return fmt.Errorf("field AssistantMessage not valid, %w", err)
+		}
+	}
+	if p.Base != nil {
+		if err := p.Base.IsValid(); err != nil {
+			return fmt.Errorf("field Base not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *GeneratePromptResponse) IsValid() error {
+	if p.Delta != nil {
+		if err := p.Delta.IsValid(); err != nil {
+			return fmt.Errorf("field Delta not valid, %w", err)
+		}
+	}
+	if p.Usage != nil {
+		if err := p.Usage.IsValid(); err != nil {
+			return fmt.Errorf("field Usage not valid, %w", err)
+		}
+	}
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *UpdateGenerateRecordRequest) IsValid() error {
+	if p.RecordID == nil {
+		return fmt.Errorf("field RecordID not_nil rule failed")
+	}
+	if *p.RecordID <= int64(0) {
+		return fmt.Errorf("field RecordID gt rule failed, current value: %v", *p.RecordID)
+	}
+	if p.SpaceID == nil {
+		return fmt.Errorf("field SpaceID not_nil rule failed")
+	}
+	if *p.SpaceID <= int64(0) {
+		return fmt.Errorf("field SpaceID gt rule failed, current value: %v", *p.SpaceID)
+	}
+	if p.PromptID == nil {
+		return fmt.Errorf("field PromptID not_nil rule failed")
+	}
+	if *p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", *p.PromptID)
+	}
+	if p.Base != nil {
+		if err := p.Base.IsValid(); err != nil {
+			return fmt.Errorf("field Base not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *UpdateGenerateRecordResponse) IsValid() error {
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}
 func (p *SaveDebugContextRequest) IsValid() error {
 	if p.PromptID == nil {
 		return fmt.Errorf("field PromptID not_nil rule failed")

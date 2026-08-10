@@ -74,3 +74,45 @@ func GetDebugContext(ctx context.Context, c *app.RequestContext) {
 func ListDebugHistory(ctx context.Context, c *app.RequestContext) {
 	invokeAndRender(ctx, c, promptDebugSvc.ListDebugHistory)
 }
+
+// GeneratePrompt .
+// @router /api/prompt/v1/prompts/generate [POST]
+func GeneratePrompt(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req debug.GeneratePromptRequest
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.SetStatusCode(http.StatusOK)
+	s := sse.NewStream(c)
+	stream, err := promptDebugSvc.GeneratePrompt(ctx, &req)
+	if err != nil {
+		publishErrEvent(ctx, s, err)
+		return
+	}
+	if stream != nil {
+		for {
+			resp, err := stream.Recv(ctx)
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				publishErrEvent(ctx, s, err)
+				return
+			}
+			if err = publishDataEvent(ctx, s, resp); err != nil {
+				publishErrEvent(ctx, s, err)
+				return
+			}
+		}
+	}
+}
+
+// UpdateGenerateRecord .
+// @router /api/prompt/v1/prompts/generate/record/:record_id/update [POST]
+func UpdateGenerateRecord(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, promptDebugSvc.UpdateGenerateRecord)
+}

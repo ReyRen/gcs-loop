@@ -15,12 +15,16 @@ import (
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
 	DebugStreaming(ctx context.Context, req *debug.DebugStreamingRequest, callOptions ...streamcall.Option) (stream PromptDebugService_DebugStreamingClient, err error)
+	GeneratePrompt(ctx context.Context, req *debug.GeneratePromptRequest, callOptions ...streamcall.Option) (stream PromptDebugService_GeneratePromptClient, err error)
+	UpdateGenerateRecord(ctx context.Context, req *debug.UpdateGenerateRecordRequest, callOptions ...callopt.Option) (r *debug.UpdateGenerateRecordResponse, err error)
 	SaveDebugContext(ctx context.Context, req *debug.SaveDebugContextRequest, callOptions ...callopt.Option) (r *debug.SaveDebugContextResponse, err error)
 	GetDebugContext(ctx context.Context, req *debug.GetDebugContextRequest, callOptions ...callopt.Option) (r *debug.GetDebugContextResponse, err error)
 	ListDebugHistory(ctx context.Context, req *debug.ListDebugHistoryRequest, callOptions ...callopt.Option) (r *debug.ListDebugHistoryResponse, err error)
 }
 
 type PromptDebugService_DebugStreamingClient streaming.ServerStreamingClient[debug.DebugStreamingResponse]
+
+type PromptDebugService_GeneratePromptClient streaming.ServerStreamingClient[debug.GeneratePromptResponse]
 
 // NewClient creates a client for the service defined in IDL.
 func NewClient(destService string, opts ...client.Option) (Client, error) {
@@ -56,6 +60,16 @@ type kPromptDebugServiceClient struct {
 func (p *kPromptDebugServiceClient) DebugStreaming(ctx context.Context, req *debug.DebugStreamingRequest, callOptions ...streamcall.Option) (stream PromptDebugService_DebugStreamingClient, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, streamcall.GetCallOptions(callOptions))
 	return p.kClient.DebugStreaming(ctx, req)
+}
+
+func (p *kPromptDebugServiceClient) GeneratePrompt(ctx context.Context, req *debug.GeneratePromptRequest, callOptions ...streamcall.Option) (stream PromptDebugService_GeneratePromptClient, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, streamcall.GetCallOptions(callOptions))
+	return p.kClient.GeneratePrompt(ctx, req)
+}
+
+func (p *kPromptDebugServiceClient) UpdateGenerateRecord(ctx context.Context, req *debug.UpdateGenerateRecordRequest, callOptions ...callopt.Option) (r *debug.UpdateGenerateRecordResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.UpdateGenerateRecord(ctx, req)
 }
 
 func (p *kPromptDebugServiceClient) SaveDebugContext(ctx context.Context, req *debug.SaveDebugContextRequest, callOptions ...callopt.Option) (r *debug.SaveDebugContextResponse, err error) {

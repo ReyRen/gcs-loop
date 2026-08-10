@@ -480,7 +480,6 @@ func (p *OtelIngestTracesRequest) FastRead(buf []byte) (int, error) {
 	var fieldId int16
 	var issetBody bool = false
 	var issetContentType bool = false
-	var issetContentEncoding bool = false
 	var issetWorkspaceID bool = false
 	for {
 		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
@@ -529,7 +528,6 @@ func (p *OtelIngestTracesRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetContentEncoding = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -585,11 +583,6 @@ func (p *OtelIngestTracesRequest) FastRead(buf []byte) (int, error) {
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetContentEncoding {
-		fieldId = 3
-		goto RequiredFieldNotSetError
-	}
-
 	if !issetWorkspaceID {
 		fieldId = 4
 		goto RequiredFieldNotSetError
@@ -637,12 +630,12 @@ func (p *OtelIngestTracesRequest) FastReadField2(buf []byte) (int, error) {
 func (p *OtelIngestTracesRequest) FastReadField3(buf []byte) (int, error) {
 	offset := 0
 
-	var _field string
+	var _field *string
 	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
 		return offset, err
 	} else {
 		offset += l
-		_field = v
+		_field = &v
 	}
 	p.ContentEncoding = _field
 	return offset, nil
@@ -720,8 +713,10 @@ func (p *OtelIngestTracesRequest) fastWriteField2(buf []byte, w thrift.NocopyWri
 
 func (p *OtelIngestTracesRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.ContentEncoding)
+	if p.IsSetContentEncoding() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ContentEncoding)
+	}
 	return offset
 }
 
@@ -757,8 +752,10 @@ func (p *OtelIngestTracesRequest) field2Length() int {
 
 func (p *OtelIngestTracesRequest) field3Length() int {
 	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.ContentEncoding)
+	if p.IsSetContentEncoding() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.ContentEncoding)
+	}
 	return l
 }
 
@@ -794,8 +791,12 @@ func (p *OtelIngestTracesRequest) DeepCopy(s interface{}) error {
 		p.ContentType = kutils.StringDeepCopy(src.ContentType)
 	}
 
-	if src.ContentEncoding != "" {
-		p.ContentEncoding = kutils.StringDeepCopy(src.ContentEncoding)
+	if src.ContentEncoding != nil {
+		var tmp string
+		if *src.ContentEncoding != "" {
+			tmp = kutils.StringDeepCopy(*src.ContentEncoding)
+		}
+		p.ContentEncoding = &tmp
 	}
 
 	if src.WorkspaceID != "" {

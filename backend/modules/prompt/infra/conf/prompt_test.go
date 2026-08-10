@@ -10,9 +10,38 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/pkg/conf"
 	confmocks "github.com/coze-dev/coze-loop/backend/pkg/conf/mocks"
 )
+
+func TestPromptConfigProvider_GetPromptTemplatePresetCatalog(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	configLoader := confmocks.NewMockIConfigLoader(ctrl)
+	configLoader.EXPECT().
+		UnmarshalKey(gomock.Any(), "prompt_template_presets", gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, _ string, target interface{}, _ ...conf.DecodeOptionFn) error {
+			catalog := target.(*entity.PromptTemplatePresetCatalog)
+			catalog.Categories = []*entity.PromptTemplatePresetCategoryInfo{{
+				Category:    entity.PromptTemplatePresetCategoryTextGeneration,
+				DisplayName: "文本创作",
+			}}
+			catalog.Templates = []*entity.PromptTemplatePreset{{
+				TemplateKey: "marketing_copy",
+				DisplayName: "营销文案生成器",
+				Category:    entity.PromptTemplatePresetCategoryTextGeneration,
+			}}
+			return nil
+		})
+
+	provider := &PromptConfigProvider{ConfigLoader: configLoader}
+	catalog, err := provider.GetPromptTemplatePresetCatalog(context.Background())
+
+	assert.NoError(t, err)
+	assert.Len(t, catalog.Categories, 1)
+	assert.Len(t, catalog.Templates, 1)
+	assert.Equal(t, "marketing_copy", catalog.Templates[0].TemplateKey)
+}
 
 func TestPromptConfigProvider_GetPTaaSMaxQPSByPromptKey(t *testing.T) {
 	t.Parallel()

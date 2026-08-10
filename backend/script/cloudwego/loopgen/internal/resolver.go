@@ -5,7 +5,7 @@ package internal
 
 import (
 	"fmt"
-	"path/filepath"
+	"path"
 	"strings"
 
 	"github.com/cloudwego/thriftgo/parser"
@@ -58,7 +58,7 @@ func (r *resolver) ResolveType(ast *parser.Thrift, t *parser.Type) string {
 
 func (r *resolver) ResolvePackage(ast *parser.Thrift, pkg string) (nameOrAlias string) {
 	importPath := r.astImportPath(ast)
-	return r.imports.AddImport(filepath.Join(importPath, pkg))
+	return r.imports.AddImport(path.Join(importPath, pkg))
 }
 
 func (r *resolver) AllImports() []string {
@@ -125,7 +125,7 @@ func (r *resolver) astImportPath(ast *parser.Thrift) string {
 
 func (r *resolver) nsToImportPath(ns string) string {
 	pkg := strings.ReplaceAll(ns, ".", "/")
-	return filepath.Join(r.pkgPrefix, pkg)
+	return path.Join(r.pkgPrefix, pkg)
 }
 
 func (r *resolver) nsToPackage(ns string) string {
@@ -139,7 +139,7 @@ func makePackagePrefix(pkg string) string {
 	case strings.HasSuffix(pkg, "/kitex_gen"),
 		strings.HasPrefix(pkg, "/kitex_gen/"):
 	default:
-		pkg = filepath.Join(pkg, "kitex_gen")
+		pkg = path.Join(pkg, "kitex_gen")
 	}
 	return pkg
 }

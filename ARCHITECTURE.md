@@ -10,7 +10,7 @@
 │                                                                 │
 │  ┌──────────────┐   ┌───────────────┐   ┌────────────────────┐  │
 │  │   frontend/   │   │    backend/    │   │     release/       │  │
-│  │  Rush.js SPA  │──▶│  Go DDD 服务   │   │  Docker / Helm    │  │
+│  │  Rush.js SPA  │──▶│  Go DDD 服务   │   │  Docker Compose   │  │
 │  │  59 packages  │   │  6 业务模块    │   │  部署配置          │  │
 │  └──────┬───────┘   └───────┬───────┘   └────────────────────┘  │
 │         │                   │                                    │
@@ -117,9 +117,8 @@ Thrift IDL 定义，是前后端的共享契约。修改 IDL 后需分别运行:
 |------|------|
 | `release/image/` | Dockerfile（主服务, debug, python-faas） |
 | `release/deployment/docker-compose/` | Docker Compose 本地部署 |
-| `release/deployment/helm-chart/` | Helm Chart (Kubernetes 部署) |
 
-Makefile 提供 `image-*`、`compose-*`、`helm-*` 等快捷目标。
+Makefile 提供 `image-*`、`compose-*` 等快捷目标。
 
 ## 横切关注点
 

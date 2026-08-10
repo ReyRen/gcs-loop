@@ -4,10 +4,16 @@ on:
   push:
     paths:
       - 'idl/**'
+      - 'backend/api/apidocs/openapi.json'
+      - 'backend/api/router/coze/loop/apis/coze.loop.apis.go'
+      - 'backend/script/openapi/**'
       - '.github/workflows/idl.yaml'
   pull_request:
     paths:
       - 'idl/**'
+      - 'backend/api/apidocs/openapi.json'
+      - 'backend/api/router/coze/loop/apis/coze.loop.apis.go'
+      - 'backend/script/openapi/**'
       - '.github/workflows/idl.yaml'
 
 permissions:
@@ -20,6 +26,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
+      - name: Validate generated OpenAPI document
+        run: |
+          python3 backend/script/openapi/generate.py --check
+          python3 -m unittest discover -s backend/script/openapi -p 'test_*.py'
+          npx --yes @redocly/cli@2.44.2 lint backend/api/apidocs/openapi.json
 
       - name: Set up Go
         uses: actions/setup-go@v4

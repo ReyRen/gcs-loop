@@ -12,8 +12,8 @@ struct UserRegisterRequest {
 
 struct UserRegisterResponse {
     1: optional user.UserInfoDetail user_info
-    2: optional string token (api.cookie="sessionid,Value")
-    3: optional i64 expire_time (api.cookie="sessionid,Expires")
+    2: optional string token (api.cookie="session_key,Value")
+    3: optional i64 expire_time (api.cookie="session_key,Expires")
 
     255: optional base.BaseResp  BaseResp
 }
@@ -27,14 +27,14 @@ struct LoginByPasswordRequest {
 
 struct LoginByPasswordResponse {
     1: optional user.UserInfoDetail user_info
-    2: optional string token (api.cookie="sessionid,Value")
-    3: optional i64 expire_time (api.cookie="sessionid,Expires")
+    2: optional string token (api.cookie="session_key,Value")
+    3: optional i64 expire_time (api.cookie="session_key,Expires")
 
     255: optional base.BaseResp  BaseResp
 }
 
 struct LogoutRequest {
-    1: optional string token (api.cookie="sessionid")
+    1: optional string token (api.none="true") // legacy field; session_key is read by SessionMW
     255: optional base.Base Base
 }
 struct LogoutResponse {
@@ -42,9 +42,9 @@ struct LogoutResponse {
 }
 
 struct ResetPasswordRequest {
-    1: optional string email
-    2: optional string password
-    3: optional string code
+    1: optional string email (vt.not_nil="true", vt.min_size="1")      // must match the authenticated session user's email
+    2: optional string password (vt.not_nil="true", vt.min_size="1")   // new password
+    3: optional string code       // reserved for a future account-recovery flow; currently ignored
     255: optional base.Base Base
 }
 struct ResetPasswordResponse {
@@ -52,7 +52,7 @@ struct ResetPasswordResponse {
 }
 
 struct GetUserInfoByTokenRequest {
-    1: optional string token (api.cookie="sessionid")
+    1: optional string token (api.none="true") // legacy field; session_key is read by SessionMW
 
     255: optional base.Base Base
 }

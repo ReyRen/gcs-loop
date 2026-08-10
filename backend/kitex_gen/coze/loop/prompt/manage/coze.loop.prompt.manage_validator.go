@@ -232,6 +232,72 @@ func (p *ListPromptResponse) IsValid() error {
 	}
 	return nil
 }
+func (p *PromptTemplatePresetCategoryInfo) IsValid() error {
+	return nil
+}
+func (p *PromptTemplatePreset) IsValid() error {
+	if p.DraftDetail != nil {
+		if err := p.DraftDetail.IsValid(); err != nil {
+			return fmt.Errorf("field DraftDetail not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *ListPromptTemplatesRequest) IsValid() error {
+	if p.WorkspaceID == nil {
+		return fmt.Errorf("field WorkspaceID not_nil rule failed")
+	}
+	if *p.WorkspaceID <= int64(0) {
+		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", *p.WorkspaceID)
+	}
+	if p.Base != nil {
+		if err := p.Base.IsValid(); err != nil {
+			return fmt.Errorf("field Base not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *ListPromptTemplatesResponse) IsValid() error {
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *GetPromptTemplateRequest) IsValid() error {
+	if p.TemplateKey == nil {
+		return fmt.Errorf("field TemplateKey not_nil rule failed")
+	}
+	if len(*p.TemplateKey) < int(1) {
+		return fmt.Errorf("field TemplateKey min_len rule failed, current value: %d", len(*p.TemplateKey))
+	}
+	if p.WorkspaceID == nil {
+		return fmt.Errorf("field WorkspaceID not_nil rule failed")
+	}
+	if *p.WorkspaceID <= int64(0) {
+		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", *p.WorkspaceID)
+	}
+	if p.Base != nil {
+		if err := p.Base.IsValid(); err != nil {
+			return fmt.Errorf("field Base not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *GetPromptTemplateResponse) IsValid() error {
+	if p.PromptTemplate != nil {
+		if err := p.PromptTemplate.IsValid(); err != nil {
+			return fmt.Errorf("field PromptTemplate not valid, %w", err)
+		}
+	}
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}
 func (p *UpdatePromptRequest) IsValid() error {
 	if p.PromptName == nil {
 		return fmt.Errorf("field PromptName not_nil rule failed")

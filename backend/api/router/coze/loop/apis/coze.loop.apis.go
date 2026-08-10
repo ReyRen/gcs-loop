@@ -431,6 +431,15 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 				_v15.POST("/prompts", append(_promptsMw(handler), apis.CreatePrompt)...)
 				_prompts := _v15.Group("/prompts", _promptsMw(handler)...)
 				_prompts.POST("/batch_get_prompt_basic", append(_batchgetpromptbasicMw(handler), apis.BatchGetPromptBasic)...)
+				_prompts.POST("/generate", append(_generateMw(handler), apis.GeneratePrompt)...)
+				_generate := _prompts.Group("/generate", _generateMw(handler)...)
+				{
+					_record := _generate.Group("/record", _recordMw(handler)...)
+					{
+						_record_id := _record.Group("/:record_id", _record_idMw(handler)...)
+						_record_id.POST("/update", append(_updategeneraterecordMw(handler), apis.UpdateGenerateRecord)...)
+					}
+				}
 				_prompts.POST("/list", append(_listpromptMw(handler), apis.ListPrompt)...)
 				_prompts.POST("/list_parent", append(_listparentpromptMw(handler), apis.ListParentPrompt)...)
 				_prompts.DELETE("/:prompt_id", append(_prompt_idMw(handler), apis.DeletePrompt)...)
@@ -480,6 +489,11 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 					_drafts0.POST("/commit", append(_committooldraftMw(handler), apis.CommitToolDraft)...)
 					_drafts0.POST("/save", append(_savetooldetailMw(handler), apis.SaveToolDetail)...)
 				}
+				{
+					_prompt_templates := _v15.Group("/prompt_templates", _prompt_templatesMw(handler)...)
+					_prompt_templates.POST("/list", append(_listprompttemplatesMw(handler), apis.ListPromptTemplates)...)
+					_prompt_templates.GET("/:template_key", append(_getprompttemplateMw(handler), apis.GetPromptTemplate)...)
+				}
 			}
 		}
 	}
@@ -508,6 +522,7 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 				_eval_targets0.POST("/async_debug", append(_asyncdebugevaltargetoapiMw(handler), apis.AsyncDebugEvalTargetOApi)...)
 				_eval_targets0.POST("/list", append(_listevaltargetsoapiMw(handler), apis.ListEvalTargetsOApi)...)
 				_eval_targets0.POST("/result", append(_reportevaltargetinvokeresultMw(handler), apis.ReportEvalTargetInvokeResult)...)
+				_eval_targets0.POST("/step_metric", append(_reportevaltargetstepmetricMw(handler), apis.ReportEvalTargetStepMetric)...)
 			}
 			{
 				_evaluation0 := _loop.Group("/evaluation", _evaluation0Mw(handler)...)

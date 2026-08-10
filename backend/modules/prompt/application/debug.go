@@ -39,28 +39,31 @@ import (
 func NewPromptDebugApplication(
 	debugLogRepo repo.IDebugLogRepo,
 	debugContextRepo repo.IDebugContextRepo,
+	generateRecordRepo repo.IGenerateRecordRepo,
 	promptService service.IPromptService,
 	benefitService benefit.IBenefitService,
 	auth rpc.IAuthProvider,
 	file rpc.IFileProvider,
 ) debug.PromptDebugService {
 	return &PromptDebugApplicationImpl{
-		debugLogRepo:     debugLogRepo,
-		debugContextRepo: debugContextRepo,
-		promptService:    promptService,
-		benefitService:   benefitService,
-		auth:             auth,
-		file:             file,
+		debugLogRepo:       debugLogRepo,
+		debugContextRepo:   debugContextRepo,
+		generateRecordRepo: generateRecordRepo,
+		promptService:      promptService,
+		benefitService:     benefitService,
+		auth:               auth,
+		file:               file,
 	}
 }
 
 type PromptDebugApplicationImpl struct {
-	debugLogRepo     repo.IDebugLogRepo
-	debugContextRepo repo.IDebugContextRepo
-	promptService    service.IPromptService
-	benefitService   benefit.IBenefitService
-	auth             rpc.IAuthProvider
-	file             rpc.IFileProvider
+	debugLogRepo       repo.IDebugLogRepo
+	debugContextRepo   repo.IDebugContextRepo
+	generateRecordRepo repo.IGenerateRecordRepo
+	promptService      service.IPromptService
+	benefitService     benefit.IBenefitService
+	auth               rpc.IAuthProvider
+	file               rpc.IFileProvider
 }
 
 func (p *PromptDebugApplicationImpl) DebugStreaming(ctx context.Context, req *debug.DebugStreamingRequest, stream debug.PromptDebugService_DebugStreamingServer) (err error) {

@@ -55,6 +55,20 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"ListPromptTemplates": kitex.NewMethodInfo(
+		listPromptTemplatesHandler,
+		newPromptManageServiceListPromptTemplatesArgs,
+		newPromptManageServiceListPromptTemplatesResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
+	"GetPromptTemplate": kitex.NewMethodInfo(
+		getPromptTemplateHandler,
+		newPromptManageServiceGetPromptTemplateArgs,
+		newPromptManageServiceGetPromptTemplateResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"ListParentPrompt": kitex.NewMethodInfo(
 		listParentPromptHandler,
 		newPromptManageServiceListParentPromptArgs,
@@ -277,6 +291,44 @@ func newPromptManageServiceListPromptArgs() interface{} {
 
 func newPromptManageServiceListPromptResult() interface{} {
 	return manage.NewPromptManageServiceListPromptResult()
+}
+
+func listPromptTemplatesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*manage.PromptManageServiceListPromptTemplatesArgs)
+	realResult := result.(*manage.PromptManageServiceListPromptTemplatesResult)
+	success, err := handler.(manage.PromptManageService).ListPromptTemplates(ctx, realArg.Request)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newPromptManageServiceListPromptTemplatesArgs() interface{} {
+	return manage.NewPromptManageServiceListPromptTemplatesArgs()
+}
+
+func newPromptManageServiceListPromptTemplatesResult() interface{} {
+	return manage.NewPromptManageServiceListPromptTemplatesResult()
+}
+
+func getPromptTemplateHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*manage.PromptManageServiceGetPromptTemplateArgs)
+	realResult := result.(*manage.PromptManageServiceGetPromptTemplateResult)
+	success, err := handler.(manage.PromptManageService).GetPromptTemplate(ctx, realArg.Request)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newPromptManageServiceGetPromptTemplateArgs() interface{} {
+	return manage.NewPromptManageServiceGetPromptTemplateArgs()
+}
+
+func newPromptManageServiceGetPromptTemplateResult() interface{} {
+	return manage.NewPromptManageServiceGetPromptTemplateResult()
 }
 
 func listParentPromptHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -555,6 +607,26 @@ func (p *kClient) ListPrompt(ctx context.Context, request *manage.ListPromptRequ
 	_args.Request = request
 	var _result manage.PromptManageServiceListPromptResult
 	if err = p.c.Call(ctx, "ListPrompt", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) ListPromptTemplates(ctx context.Context, request *manage.ListPromptTemplatesRequest) (r *manage.ListPromptTemplatesResponse, err error) {
+	var _args manage.PromptManageServiceListPromptTemplatesArgs
+	_args.Request = request
+	var _result manage.PromptManageServiceListPromptTemplatesResult
+	if err = p.c.Call(ctx, "ListPromptTemplates", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetPromptTemplate(ctx context.Context, request *manage.GetPromptTemplateRequest) (r *manage.GetPromptTemplateResponse, err error) {
+	var _args manage.PromptManageServiceGetPromptTemplateArgs
+	_args.Request = request
+	var _result manage.PromptManageServiceGetPromptTemplateResult
+	if err = p.c.Call(ctx, "GetPromptTemplate", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

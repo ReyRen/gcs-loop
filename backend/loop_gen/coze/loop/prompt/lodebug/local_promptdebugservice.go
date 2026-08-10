@@ -48,6 +48,49 @@ func (l *LocalPromptDebugService) DebugStreaming(ctx context.Context, req *debug
 	return ls, nil
 }
 
+func (l *LocalPromptDebugService) GeneratePrompt(ctx context.Context, req *debug.GeneratePromptRequest, callOptions ...streamcall.Option) (stream promptdebugservice.PromptDebugService_GeneratePromptClient, err error) {
+	ctx = l.injectRPCInfo(ctx, "GeneratePrompt")
+	errCh := make(chan error)
+	msgCh := make(chan *debug.GeneratePromptResponse)
+	ls := localstream.NewInMemStream(ctx, msgCh, errCh)
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				errCh <- fmt.Errorf("panic recovered: %v", r)
+			}
+		}()
+		defer func() { _ = ls.CloseSend(ctx) }()
+
+		if err := l.impl.GeneratePrompt(ctx, req, ls); err != nil {
+			errCh <- err
+		}
+	}()
+
+	return ls, nil
+}
+
+func (l *LocalPromptDebugService) UpdateGenerateRecord(ctx context.Context, req *debug.UpdateGenerateRecordRequest, callOptions ...callopt.Option) (*debug.UpdateGenerateRecordResponse, error) {
+	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
+		arg := in.(*debug.PromptDebugServiceUpdateGenerateRecordArgs)
+		result := out.(*debug.PromptDebugServiceUpdateGenerateRecordResult)
+		resp, err := l.impl.UpdateGenerateRecord(ctx, arg.Req)
+		if err != nil {
+			return err
+		}
+		result.SetSuccess(resp)
+		return nil
+	})
+
+	arg := &debug.PromptDebugServiceUpdateGenerateRecordArgs{Req: req}
+	result := &debug.PromptDebugServiceUpdateGenerateRecordResult{}
+	ctx = l.injectRPCInfo(ctx, "UpdateGenerateRecord")
+	if err := chain(ctx, arg, result); err != nil {
+		return nil, err
+	}
+	return result.GetSuccess(), nil
+}
+
 func (l *LocalPromptDebugService) SaveDebugContext(ctx context.Context, req *debug.SaveDebugContextRequest, callOptions ...callopt.Option) (*debug.SaveDebugContextResponse, error) {
 	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
 		arg := in.(*debug.PromptDebugServiceSaveDebugContextArgs)

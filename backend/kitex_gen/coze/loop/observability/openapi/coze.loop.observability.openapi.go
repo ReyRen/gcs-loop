@@ -616,9 +616,10 @@ func (p *IngestTracesResponse) Field255DeepEqual(src *base.BaseResp) bool {
 }
 
 type OtelIngestTracesRequest struct {
-	Body            []byte     `thrift:"body,1,required" frugal:"1,required,binary" form:"body,required" json:"body,required"`
-	ContentType     string     `thrift:"content_type,2,required" frugal:"2,required,string" header:"Content-Type,required" json:"content_type,required"`
-	ContentEncoding string     `thrift:"content_encoding,3,required" frugal:"3,required,string" header:"Content-Encoding,required" json:"content_encoding,required"`
+	Body        []byte `thrift:"body,1,required" frugal:"1,required,binary" json:"body,required" raw_body:",required"`
+	ContentType string `thrift:"content_type,2,required" frugal:"2,required,string" header:"Content-Type,required" json:"content_type,required"`
+	// Optional. Set to gzip only when the request body is compressed.
+	ContentEncoding *string    `thrift:"content_encoding,3,optional" frugal:"3,optional,string" header:"Content-Encoding" json:"content_encoding,omitempty"`
 	WorkspaceID     string     `thrift:"workspace_id,4,required" frugal:"4,required,string" header:"cozeloop-workspace-id,required" json:"workspace_id,required"`
 	Base            *base.Base `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
@@ -644,11 +645,16 @@ func (p *OtelIngestTracesRequest) GetContentType() (v string) {
 	return
 }
 
+var OtelIngestTracesRequest_ContentEncoding_DEFAULT string
+
 func (p *OtelIngestTracesRequest) GetContentEncoding() (v string) {
-	if p != nil {
-		return p.ContentEncoding
+	if p == nil {
+		return
 	}
-	return
+	if !p.IsSetContentEncoding() {
+		return OtelIngestTracesRequest_ContentEncoding_DEFAULT
+	}
+	return *p.ContentEncoding
 }
 
 func (p *OtelIngestTracesRequest) GetWorkspaceID() (v string) {
@@ -675,7 +681,7 @@ func (p *OtelIngestTracesRequest) SetBody(val []byte) {
 func (p *OtelIngestTracesRequest) SetContentType(val string) {
 	p.ContentType = val
 }
-func (p *OtelIngestTracesRequest) SetContentEncoding(val string) {
+func (p *OtelIngestTracesRequest) SetContentEncoding(val *string) {
 	p.ContentEncoding = val
 }
 func (p *OtelIngestTracesRequest) SetWorkspaceID(val string) {
@@ -693,6 +699,10 @@ var fieldIDToName_OtelIngestTracesRequest = map[int16]string{
 	255: "Base",
 }
 
+func (p *OtelIngestTracesRequest) IsSetContentEncoding() bool {
+	return p.ContentEncoding != nil
+}
+
 func (p *OtelIngestTracesRequest) IsSetBase() bool {
 	return p.Base != nil
 }
@@ -702,7 +712,6 @@ func (p *OtelIngestTracesRequest) Read(iprot thrift.TProtocol) (err error) {
 	var fieldId int16
 	var issetBody bool = false
 	var issetContentType bool = false
-	var issetContentEncoding bool = false
 	var issetWorkspaceID bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
@@ -742,7 +751,6 @@ func (p *OtelIngestTracesRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetContentEncoding = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -783,11 +791,6 @@ func (p *OtelIngestTracesRequest) Read(iprot thrift.TProtocol) (err error) {
 
 	if !issetContentType {
 		fieldId = 2
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetContentEncoding {
-		fieldId = 3
 		goto RequiredFieldNotSetError
 	}
 
@@ -837,11 +840,11 @@ func (p *OtelIngestTracesRequest) ReadField2(iprot thrift.TProtocol) error {
 }
 func (p *OtelIngestTracesRequest) ReadField3(iprot thrift.TProtocol) error {
 
-	var _field string
+	var _field *string
 	if v, err := iprot.ReadString(); err != nil {
 		return err
 	} else {
-		_field = v
+		_field = &v
 	}
 	p.ContentEncoding = _field
 	return nil
@@ -943,14 +946,16 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 func (p *OtelIngestTracesRequest) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("content_encoding", thrift.STRING, 3); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteString(p.ContentEncoding); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
+	if p.IsSetContentEncoding() {
+		if err = oprot.WriteFieldBegin("content_encoding", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ContentEncoding); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
 	}
 	return nil
 WriteFieldBeginError:
@@ -1039,9 +1044,14 @@ func (p *OtelIngestTracesRequest) Field2DeepEqual(src string) bool {
 	}
 	return true
 }
-func (p *OtelIngestTracesRequest) Field3DeepEqual(src string) bool {
+func (p *OtelIngestTracesRequest) Field3DeepEqual(src *string) bool {
 
-	if strings.Compare(p.ContentEncoding, src) != 0 {
+	if p.ContentEncoding == src {
+		return true
+	} else if p.ContentEncoding == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ContentEncoding, *src) != 0 {
 		return false
 	}
 	return true

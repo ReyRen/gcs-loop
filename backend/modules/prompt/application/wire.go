@@ -56,6 +56,7 @@ var (
 		mysql.NewCommitLabelMappingDAO,
 		mysql.NewDebugLogDAO,
 		mysql.NewDebugContextDAO,
+		mysql.NewGenerateRecordRepo,
 		rediscache.NewPromptBasicDAO,
 		rediscache.NewPromptDAO,
 		rediscache.NewPromptLabelVersionDAO,

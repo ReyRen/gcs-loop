@@ -17,7 +17,7 @@ Coze Loop 是一个开源的 LLM 评测与可观测性平台，提供 Prompt 开
 | L1 专题 | `docs/AGENTS.md` | 中层索引，串联 reference/ 和 guidance/ |
 | L3 参考 | `docs/reference/backend-modules-api.md` | 后端 6 模块职责、分层、API 路由 |
 | L3 参考 | `docs/reference/frontend-packages.md` | 前端 59 包分层结构 |
-| L3 指南 | `docs/guidance/deployment-guide.md` | Docker Compose / Helm 部署 |
+| L3 指南 | `docs/guidance/deployment-guide.md` | Docker Compose 部署 |
 | L3 指南 | `docs/guidance/idl-codegen-guide.md` | IDL 变更后代码生成流程 |
 
 ## 导航表
@@ -28,7 +28,7 @@ Coze Loop 是一个开源的 LLM 评测与可观测性平台，提供 Prompt 开
 | 查找 docs 下的专题文档 | `docs/AGENTS.md` |
 | 了解后端 6 个 DDD 模块的职责和 API | `docs/reference/backend-modules-api.md` |
 | 了解前端 59 包的分层结构 | `docs/reference/frontend-packages.md` |
-| 部署 Coze Loop（Docker / Helm） | `docs/guidance/deployment-guide.md` |
+| 使用 Docker Compose 部署 Coze Loop | `docs/guidance/deployment-guide.md` |
 | 修改 IDL 后生成代码 | `docs/guidance/idl-codegen-guide.md` |
 | 修改数据库表结构 | 本文件「开发流程」→ Step 3-4 |
 | 添加新的 API 接口 | 本文件「开发流程」→ Step 1-2 → Step 6 |
@@ -68,8 +68,7 @@ coze-loop/
 │   ├── config/                 # eslint-config, ts-config, vitest-config 等
 │   └── infra/                  # IDL 转 TypeScript 工具等
 ├── release/deployment/
-│   ├── docker-compose/         # Docker 部署（conf/ + bootstrap/）
-│   └── helm-chart/             # Kubernetes 部署
+│   └── docker-compose/         # Docker 部署（conf/ + bootstrap/）
 └── common/                     # git-hooks（Rush 管理）
 ```
 
@@ -103,13 +102,9 @@ api/ → application/ → domain/ ← infra/
 
 已有企业用户二开部署。IDL API / Domain 核心接口 / 配置文件 / 存储 Schema 均要求向前兼容。新增字段必须 optional，数据库只允许加列。
 
-### 5. SQL 双路径同步
+### 5. SQL 迁移同步
 
-修改数据库表时，以下两个目录必须保持一致：
-- `release/deployment/docker-compose/bootstrap/mysql-init/`（Docker）
-- `release/deployment/helm-chart/charts/app/bootstrap/init/mysql/init-sql/`（Helm）
-
-修改表还需要在 `patch-sql/` 写 ALTER 语句。CI 会通过 `mysql-schema-check` 工作流校验两侧一致性。
+修改数据库表时，更新 `release/deployment/docker-compose/bootstrap/mysql-init/init-sql/` 下的建表 SQL，并在同级 `patch-sql/` 目录写对应的 ALTER 语句。CI 会通过 `mysql-schema-check` 工作流校验迁移完整性。
 
 ### 6. 前端依赖分层
 
@@ -164,8 +159,6 @@ Step 1: IDL 定义 → Step 2: 代码生成 → Step 3: MySQL Schema → Step 4:
 | 本地 debug 部署（含 Delve） | `make compose-up-debug` |
 | 停止 dev | `make compose-down-dev` |
 | 停止并清理 volumes | `make compose-down-v-dev` |
-| Helm 部署 | `make helm-up` |
-| 查看 Pod 状态 | `make helm-pod` |
 
 ### PR 标题格式
 
