@@ -2822,6 +2822,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.34.1
         version: 6.40.0
+      '@coze-arch/bot-md-box-adapter':
+        specifier: workspace:*
+        version: link:../../loop-base/bot-md-box-adapter
       '@coze-arch/coze-design':
         specifier: 0.0.7-alpha.5f0418
         version: 0.0.7-alpha.5f0418(@floating-ui/dom@1.7.6)(@tiptap/suggestion@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))(@types/react-dom@18.2.15)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)

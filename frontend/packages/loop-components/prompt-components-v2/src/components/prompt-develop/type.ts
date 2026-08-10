@@ -62,6 +62,7 @@ export interface ButtonConfigProps {
 export interface BasePromptDevelopProps {
   bizID?: 'Fornax' | 'CozeLoop';
   spaceID: string;
+  templateKey?: string;
   readonly?: boolean;
   mcpEnable?: boolean;
   activeTab?: string;

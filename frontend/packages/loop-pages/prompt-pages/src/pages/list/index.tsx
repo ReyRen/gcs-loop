@@ -117,6 +117,9 @@ export default function PromptListPage() {
           />
         }
         onCreatePromptClick={() => createModal.open()}
+        onTemplatePreview={template => {
+          openBlank(`pe/playground?template=${template.templateKey}`);
+        }}
         onTableRow={(record: Prompt) => ({
           onClick: e => onItemClick(record, e),
         })}

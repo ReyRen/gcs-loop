@@ -10,7 +10,11 @@ import { useShallow } from 'zustand/react/shallow';
 import { nanoid } from 'nanoid';
 import { debounce, isEqual } from 'lodash-es';
 import { SLEEP_TIME } from '@cozeloop/toolkit';
-import { Role, TemplateType } from '@cozeloop/api-schema/prompt';
+import {
+  Role,
+  TemplateType,
+  type PromptDetail,
+} from '@cozeloop/api-schema/prompt';
 import { StonePromptApi } from '@cozeloop/api-schema';
 
 import { getPromptStorageInfo, setPromptStorageInfo } from '@/utils/prompt';
@@ -31,10 +35,12 @@ type PlaygroundMockSetStorage = Record<string, PromptMockDataState>;
 export const usePlayground = ({
   spaceID,
   promptID,
+  templateKey,
   useMockData,
 }: {
   spaceID: string;
   promptID?: string;
+  templateKey?: string;
   useMockData?: boolean;
 }) => {
   const {
@@ -140,7 +146,46 @@ export const usePlayground = ({
       setCompareConfig(mock?.compareConfig || {});
     }
 
-    if (promptID && info?.promptInfo?.id !== promptID) {
+    if (templateKey) {
+      StonePromptApi.GetPromptTemplate({
+        template_key: templateKey,
+        workspace_id: spaceID,
+      })
+        .then(res => {
+          if (res?.prompt_template?.draft_detail) {
+            const detail: PromptDetail =
+              (res.prompt_template.draft_detail as PromptDetail) || {};
+            const promptTemplate = detail?.prompt_template || {};
+
+            setCurrentModel({});
+            setTemplateType({
+              type: promptTemplate.template_type || TemplateType.Normal,
+              value: promptTemplate.template_type || TemplateType.Normal,
+            });
+
+            const messageList = promptTemplate.messages || [];
+            setMessageList(
+              messageList.map(item => ({ ...item, key: nanoid() })),
+            );
+
+            setModelConfig(detail?.model_config);
+            setToolCallConfig(detail?.tool_call_config);
+            setTools(detail?.tools);
+
+            const variablesDefs = promptTemplate.variable_defs || [];
+            setVariables(variablesDefs);
+
+            setPromptInfo({
+              workspace_id: spaceID,
+              prompt_draft: { draft_info: {} },
+            });
+            setInitPlaygroundLoading(false);
+          }
+        })
+        .catch(() => {
+          setPlaygroundInfo(info || {});
+        });
+    } else if (promptID && info?.promptInfo?.id !== promptID) {
       StonePromptApi.GetPrompt({
         prompt_id: promptID,
         with_commit: true,
@@ -196,7 +241,7 @@ export const usePlayground = ({
         clearMockdataStore();
       }, 0);
     };
-  }, [spaceID, promptID, useMockData]);
+  }, [spaceID, promptID, templateKey, useMockData]);
 
   const saveMockSet = debounce((mockSet: PromptMockDataState, sID: string) => {
     const storagePlaygroundMockSet =

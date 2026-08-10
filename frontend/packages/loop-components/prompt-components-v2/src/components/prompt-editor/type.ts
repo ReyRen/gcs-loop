@@ -45,6 +45,11 @@ export interface PromptEditorProps extends BasicEditorProps {
   hideActionWrap?: boolean;
   isFullscreen?: boolean;
   placeholderRoleValue?: Role;
+  spaceID?: string;
+  promptID?: string;
+  promptName?: string;
+  promptKey?: string;
+  promptDesc?: string;
   onMessageChange?: (v: PromptMessage) => void;
   onMessageTypeChange?: (v: Role) => void;
   children?: ReactNode;
@@ -56,6 +61,9 @@ export interface PromptEditorProps extends BasicEditorProps {
   onIsFullscreenChange?: (v: boolean) => void;
   snippetBtnHidden?: boolean;
   insertSnippetVariables?: (variables: VariableDef[]) => void;
+  onOptimizeAccept?: (optimizedContent: string) => Promise<void>;
+  optimizeMessageList?: Array<Record<string, unknown>>;
+  optimizeVariableVals?: Array<{ key: string; value: string }>;
 }
 
 export interface PromptDiffEditorProps extends PromptEditorProps {

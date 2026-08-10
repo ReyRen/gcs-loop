@@ -409,3 +409,68 @@ export interface BatchGetPromptBasicRequest {
 export interface BatchGetPromptBasicResponse {
   prompts?: prompt.Prompt[]
 }
+
+/** Prompt 模板市场列表 */
+export const ListPromptTemplates = /*#__PURE__*/createAPI<ListPromptTemplatesRequest, ListPromptTemplatesResponse>({
+  "url": "/api/prompt/v1/prompt_templates/list",
+  "method": "POST",
+  "name": "ListPromptTemplates",
+  "reqType": "ListPromptTemplatesRequest",
+  "reqMapping": {
+    "body": ["categories", "key_word", "workspace_id"]
+  },
+  "resType": "ListPromptTemplatesResponse",
+  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
+  "service": "promptManage"
+});
+export interface ListPromptTemplatesRequest {
+  categories?: string[],
+  key_word?: string,
+  workspace_id?: string,
+}
+export interface PromptTemplateItem {
+  category?: string,
+  description?: string,
+  display_name?: string,
+  draft_detail?: Record<string, unknown>,
+  icon_key?: string,
+  template_key?: string,
+}
+export interface ListPromptTemplatesResponse {
+  categories?: { category?: string, display_name?: string }[],
+  code?: number,
+  msg?: string,
+  prompt_templates?: PromptTemplateItem[],
+}
+
+/** 获取模板详情 */
+export const GetPromptTemplate = /*#__PURE__*/createAPI<GetPromptTemplateRequest, GetPromptTemplateResponse>({
+  "url": "/api/prompt/v1/prompt_templates/:template_key",
+  "method": "GET",
+  "name": "GetPromptTemplate",
+  "reqType": "GetPromptTemplateRequest",
+  "reqMapping": {
+    "path": ["template_key"],
+    "query": ["workspace_id"]
+  },
+  "resType": "GetPromptTemplateResponse",
+  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
+  "service": "promptManage"
+});
+export interface GetPromptTemplateRequest {
+  template_key?: string,
+  workspace_id?: string,
+}
+export interface GetPromptTemplateResponse {
+  code?: number,
+  msg?: string,
+  prompt_template?: PromptTemplateDetail,
+}
+export interface PromptTemplateDetail {
+  category?: string,
+  description?: string,
+  display_name?: string,
+  draft_detail?: Record<string, unknown>,
+  icon_key?: string,
+  template_key?: string,
+}

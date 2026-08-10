@@ -10,10 +10,12 @@ export function PlaygroundContainer({
 }: {
   wrapperClassName?: string;
 }) {
-  const { spaceID, readonly, promptID } = usePromptDevProviderContext();
+  const { spaceID, readonly, promptID, templateKey } =
+    usePromptDevProviderContext();
   const { initPlaygroundLoading } = usePlayground({
     spaceID,
     promptID,
+    templateKey,
     useMockData: readonly,
   });
   return (

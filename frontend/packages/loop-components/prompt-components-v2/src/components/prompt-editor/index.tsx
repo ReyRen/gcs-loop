@@ -19,6 +19,7 @@ import {
 } from '@cozeloop/api-schema/prompt';
 import { updateRegexpDecorations } from '@coze-editor/extension-regexp-decorator';
 import {
+  IconCozAiFill,
   IconCozCopy,
   IconCozExpand,
   IconCozHandle,
@@ -52,6 +53,7 @@ import {
 import { type PromptEditorProps } from './type';
 import { MultiModalBtn } from './tools/multi-modal-btn';
 import { MessageTypeSelect } from './tools/message-type-select';
+import { PromptOptimizeDialog } from './prompt-optimize-dialog';
 
 import styles from './index.module.less';
 
@@ -88,6 +90,14 @@ export const PromptEditor = forwardRef(
       onIsFullscreenChange,
       snippetBtnHidden,
       insertSnippetVariables,
+      spaceID,
+      promptID,
+      promptName,
+      promptKey,
+      promptDesc,
+      onOptimizeAccept,
+      optimizeMessageList,
+      optimizeVariableVals,
       ...rest
     } = props;
 
@@ -96,6 +106,9 @@ export const PromptEditor = forwardRef(
     // 最终的全屏状态：优先使用外部 props，其次使用内部状态
     const isFullscreen = propsIsFullscreen ?? internalIsFullscreen;
     const [editorActive, setEditorActive] = useState(false);
+
+    // 快捷优化弹窗状态
+    const [optimizeDialogVisible, setOptimizeDialogVisible] = useState(false);
     const handleMessageContentChange = (v: string) => {
       const parts = splitMultimodalContent(v) as ContentPart[];
       onMessageChange?.({ ...message, content: parts.length ? '' : v, parts });
@@ -226,6 +239,24 @@ export const PromptEditor = forwardRef(
                   />
                 ) : null}
                 {rightActionBtns}
+                {message?.role && message?.role === 'system' ? (
+                  <Tooltip
+                    content={I18n.t('prompt_quick_optimize')}
+                    theme="dark"
+                  >
+                    <IconButton
+                      icon={<IconCozAiFill className="coz-fg-hglt" />}
+                      color="secondary"
+                      size="mini"
+                      disabled={!spaceID}
+                      onClick={() => {
+                        setOptimizeDialogVisible(true);
+                      }}
+                      data-btm="d39312"
+                      data-btm-title={I18n.t('prompt_quick_optimize')}
+                    />
+                  </Tooltip>
+                ) : null}
                 {!readonly &&
                 !modalVariableBtnHidden &&
                 message?.role !== placeholderRoleValue ? (
@@ -388,6 +419,21 @@ export const PromptEditor = forwardRef(
             {placeholderError}
           </Typography.Text>
         </div>
+        <PromptOptimizeDialog
+          visible={optimizeDialogVisible}
+          promptContent={getCopyContent() ?? ''}
+          messageRole={message?.role || 'system'}
+          spaceID={spaceID || ''}
+          promptID={promptID}
+          promptName={promptName}
+          promptKey={promptKey}
+          promptDesc={promptDesc}
+          onClose={() => setOptimizeDialogVisible(false)}
+          onAccept={onOptimizeAccept}
+          originalMessage={message as Record<string, unknown>}
+          messageList={optimizeMessageList}
+          variableVals={optimizeVariableVals}
+        />
       </>
     );
   },

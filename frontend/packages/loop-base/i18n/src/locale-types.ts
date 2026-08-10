@@ -1465,6 +1465,20 @@ if __name__ == "__main__":
   (key: 'prompt_blank_prompt', fallbackText?: string): string;
   /** Prompt片段支持被嵌套在不同的Prompt Template里复用 */
   (key: 'prompt_prompt_snippet_nesting_support', fallbackText?: string): string;
+  /** 基于模版创建 */
+  (key: 'prompt_create_from_template', fallbackText?: string): string;
+  /** Prompt 模板 */
+  (key: 'prompt_template_title', fallbackText?: string): string;
+  /** 搜索 Prompt 模板名称 */
+  (key: 'prompt_search_template_placeholder', fallbackText?: string): string;
+  /** 自定义创建 */
+  (key: 'prompt_custom_create', fallbackText?: string): string;
+  /** 未找到匹配的模板 */
+  (key: 'prompt_no_template_found', fallbackText?: string): string;
+  /** 预览 */
+  (key: 'prompt_preview', fallbackText?: string): string;
+  /** 使用 */
+  (key: 'prompt_use', fallbackText?: string): string;
   /** 查看文档 */
   (key: 'prompt_view_documentation', fallbackText?: string): string;
   /** 本次提交草稿版本 */
