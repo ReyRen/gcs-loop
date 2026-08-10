@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -2890,10 +2889,6 @@ func TestPromptManageApplicationImpl_SaveDraft(t *testing.T) {
 }
 
 func TestPromptManageApplicationImpl_CommitDraft(t *testing.T) {
-	invalidVersionErr := func() error {
-		_, err := semver.StrictNewVersion("invalid")
-		return err
-	}()
 	type fields struct {
 		manageRepo    repo.IManageRepo
 		authProvider  rpc.IAuthProvider
@@ -2917,7 +2912,7 @@ func TestPromptManageApplicationImpl_CommitDraft(t *testing.T) {
 				ctx:     session.WithCtxUser(context.Background(), &session.User{ID: "user"}),
 				request: &manage.CommitDraftRequest{PromptID: ptr.Of(int64(4)), CommitVersion: ptr.Of("invalid")},
 			},
-			wantErr: invalidVersionErr,
+			wantErr: errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("Invalid Semantic Version")),
 		},
 		{
 			name: "audit error",

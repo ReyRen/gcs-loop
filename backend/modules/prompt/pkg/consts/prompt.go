@@ -6,3 +6,5 @@ package consts
 const PromptPersonalDraftVersion = "$Draft"
 
 const OpenAPIUserID = "openAPI"
+
+const MaxCommitDescriptionLength = 200

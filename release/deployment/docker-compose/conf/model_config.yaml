@@ -20,7 +20,7 @@ models:
   protocol: "deepseek" # Required. Options Include [ark, openai, deepseek, qwen, qianfan, ollama, gemini, claude, arkbot]
   protocol_config: # Required.
     base_url: "https://api.gpt.ge/v1" # Optional. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
-    api_key: "" # Required. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
+    api_key: ""
     model: "DeepSeek-V4-Flash" # Required. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
     protocol_config_deepseek: #Optional
       response_format_type: "" # Optional. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go

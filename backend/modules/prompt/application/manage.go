@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/samber/lo"
 	"golang.org/x/exp/maps"
 
@@ -25,6 +25,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/mysql"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/consts"
 	prompterr "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/errno"
+	promptversion "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/version"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
@@ -674,9 +675,12 @@ func (app *PromptManageApplicationImpl) CommitDraft(ctx context.Context, request
 	}
 
 	// 校验
-	_, err = semver.StrictNewVersion(request.GetCommitVersion())
-	if err != nil {
-		return r, err
+	if _, err = promptversion.Parse(request.GetCommitVersion()); err != nil {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(err.Error()))
+	}
+	if utf8.RuneCountInString(request.GetCommitDescription()) > consts.MaxCommitDescriptionLength {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode,
+			errorx.WithExtraMsg(fmt.Sprintf("commit description must not exceed %d characters", consts.MaxCommitDescriptionLength)))
 	}
 
 	// prompt

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"github.com/samber/lo"
 	"golang.org/x/exp/maps"
@@ -25,7 +26,9 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/mysql/gorm_gen/model"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/mysql/gorm_gen/query"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/redis"
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/consts"
 	prompterr "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/errno"
+	promptversion "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/version"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/json"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
@@ -761,6 +764,13 @@ func (d *ManageRepoImpl) CommitDraft(ctx context.Context, param repo.CommitDraft
 	if param.PromptID <= 0 || lo.IsEmpty(param.UserID) || lo.IsEmpty(param.CommitVersion) {
 		return errorx.New("param(PromptID or UserID or CommitVersion) is invalid, param = %s", json.Jsonify(param))
 	}
+	if _, err = promptversion.Parse(param.CommitVersion); err != nil {
+		return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(err.Error()))
+	}
+	if utf8.RuneCountInString(param.CommitDescription) > consts.MaxCommitDescriptionLength {
+		return errorx.NewByCode(prompterr.CommonInvalidParamCode,
+			errorx.WithExtraMsg(fmt.Sprintf("commit description must not exceed %d characters", consts.MaxCommitDescriptionLength)))
+	}
 
 	commitID, err := d.idgen.GenID(ctx)
 	if err != nil {
@@ -782,6 +792,9 @@ func (d *ManageRepoImpl) CommitDraft(ctx context.Context, param repo.CommitDraft
 		}
 		spaceID = basicPO.SpaceID
 		promptKey = basicPO.PromptKey
+		if err = promptversion.ValidateNext(param.CommitVersion, basicPO.LatestVersion); err != nil {
+			return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(err.Error()))
+		}
 
 		var draftPO *model.PromptUserDraft
 		draftPO, err = d.promptDraftDAO.Get(ctx, param.PromptID, param.UserID, opt)

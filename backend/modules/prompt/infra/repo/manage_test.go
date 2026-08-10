@@ -3552,6 +3552,57 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 			wantErr: errorx.New("param(PromptID or UserID or CommitVersion) is invalid, param = {\"PromptID\":1,\"UserID\":\"test_user\",\"CommitVersion\":\"\",\"CommitDescription\":\"\",\"LabelKeys\":null}"),
 		},
 		{
+			name: "unsupported commit version format",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				return fields{}
+			},
+			args: args{
+				ctx: context.Background(),
+				param: repo.CommitDraftParam{
+					PromptID:      1,
+					UserID:        "test_user",
+					CommitVersion: "1.0.0-alpha",
+				},
+			},
+			wantErr: errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("Invalid Semantic Version")),
+		},
+		{
+			name: "commit version must be greater than latest version",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
+				mockIDGen.EXPECT().GenID(gomock.Any()).Return(int64(1001), nil)
+
+				mockDB := dbmocks.NewMockProvider(ctrl)
+				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fc func(*gorm.DB) error, opts ...db.Option) error {
+					return fc(nil)
+				})
+
+				mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+				mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+					ID:            1,
+					SpaceID:       100,
+					PromptKey:     "test_key",
+					LatestVersion: "1.2.3",
+				}, nil)
+
+				return fields{
+					db:             mockDB,
+					idgen:          mockIDGen,
+					promptBasicDAO: mockBasicDAO,
+				}
+			},
+			args: args{
+				ctx: context.Background(),
+				param: repo.CommitDraftParam{
+					PromptID:      1,
+					UserID:        "test_user",
+					CommitVersion: "1.2.3",
+				},
+			},
+			wantErr: errorx.NewByCode(errno.CommonInvalidParamCode,
+				errorx.WithExtraMsg("commit version 1.2.3 must be greater than latest version 1.2.3")),
+		},
+		{
 			name: "db error",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)

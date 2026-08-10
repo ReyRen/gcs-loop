@@ -27,8 +27,9 @@ prompt_label_version_cache:
   ttl_seconds: 60
 
 
-# Built-in Prompt template catalog. The frontend can filter this catalog and pass
-# the selected draft_detail to CreatePrompt.
+# Built-in Prompt template catalog copied from the Loop official template
+# catalog. Model ID 1 binds every template to the model configured locally;
+# prompt messages, variables and generation parameters follow Loop verbatim.
 prompt_template_presets:
   categories:
     - category: text_generation
@@ -44,123 +45,9 @@ prompt_template_presets:
     - category: function_calling
       display_name: 函数调用
   templates:
-    - template_key: marketing_copy
-      display_name: 营销文案生成器
-      description: 根据产品信息、目标人群和核心卖点，生成结构清晰且符合指定语气的营销文案。
-      category: text_generation
-      icon_key: copywriting
-      draft_detail:
-        prompt_template:
-          template_type: normal
-          messages:
-            - role: system
-              content: >-
-                你是一名资深品牌文案策划。请确保内容准确、简洁、有说服力，不虚构用户没有提供的事实。
-            - role: user
-              content: >-
-                请为产品“{{product_name}}”撰写营销文案。目标人群：{{target_audience}}；核心卖点：{{key_benefits}}；表达语气：{{tone}}。
-          variable_defs:
-            - key: product_name
-              desc: 产品名称
-              type: string
-            - key: target_audience
-              desc: 目标人群
-              type: string
-            - key: key_benefits
-              desc: 核心卖点
-              type: string
-            - key: tone
-              desc: 表达语气
-              type: string
-
-    - template_key: image_review
-      display_name: 图片内容分析
-      description: 围绕指定目标识别图片中的主体、场景、文字和关键细节，并给出有依据的分析。
-      category: image_analysis
-      icon_key: image
-      draft_detail:
-        prompt_template:
-          template_type: normal
-          messages:
-            - role: system
-              content: >-
-                你是一名严谨的视觉内容分析师。只描述能够从图片中观察到的信息，并明确标注不确定判断。
-            - role: user
-              content: >-
-                请围绕“{{analysis_goal}}”分析用户提供的图片，按主体、场景、可见文字、关键细节和结论组织结果。
-          variable_defs:
-            - key: analysis_goal
-              desc: 图片分析目标
-              type: string
-
-    - template_key: video_digest
-      display_name: 视频要点提取
-      description: 从视频内容中提取主题、关键事件、重要观点和后续行动，形成简明摘要。
-      category: video_understanding
-      icon_key: video
-      draft_detail:
-        prompt_template:
-          template_type: normal
-          messages:
-            - role: system
-              content: >-
-                你是一名视频内容研究助理。请按时间顺序理解内容，区分事实、观点和推断。
-            - role: user
-              content: >-
-                请分析用户提供的视频，并针对“{{focus}}”输出主题概述、关键时间点、重要观点和行动建议。
-          variable_defs:
-            - key: focus
-              desc: 关注重点
-              type: string
-
-    - template_key: solution_risk_review
-      display_name: 方案评审与风险分析
-      description: 从可行性、成本、安全性和可扩展性等维度审查方案，并给出改进优先级。
-      category: deep_reasoning
-      icon_key: reasoning
-      draft_detail:
-        prompt_template:
-          template_type: normal
-          messages:
-            - role: system
-              content: >-
-                你是一名解决方案架构评审专家。请先识别约束和假设，再给出有证据链的结论与风险分级。
-            - role: user
-              content: >-
-                请评审以下方案：{{solution}}。已知约束：{{constraints}}。输出可行性、成本、安全性、可扩展性、主要风险以及按优先级排序的改进建议。
-          variable_defs:
-            - key: solution
-              desc: 待评审方案
-              type: string
-            - key: constraints
-              desc: 已知约束
-              type: string
-
-    - template_key: meeting_actions_json
-      display_name: 会议结论结构化
-      description: 从会议纪要中提取结论、行动项、负责人、截止时间和风险，输出严格 JSON。
-      category: json_output
-      icon_key: json
-      draft_detail:
-        prompt_template:
-          template_type: normal
-          messages:
-            - role: system
-              content: >-
-                你是一名项目管理助理。只使用会议纪要中明确出现的信息；缺失字段使用 null，不得补造。
-            - role: user
-              content: >-
-                请将以下会议纪要整理为 JSON：{{meeting_notes}}。根对象包含 summary、decisions、action_items 和 risks；action_items 每项包含 task、owner、due_date。
-          variable_defs:
-            - key: meeting_notes
-              desc: 会议纪要
-              type: string
-        model_config:
-          json_mode: true
-
-    - template_key: product_search
-      display_name: 商品搜索助手
-      description: 理解用户的商品查询意图，并调用商品搜索函数返回匹配结果。
+    - template_key: sku_search
+      display_name: 商品搜索
+      description: 一个电商导购机器人，能够理解用户的商品查询意图，并调用函数来查找相关商品。
       category: function_calling
       icon_key: function
       draft_detail:
@@ -168,19 +55,517 @@ prompt_template_presets:
           template_type: normal
           messages:
             - role: system
-              content: >-
-                你是一名商品导购助手。先澄清必要条件，再调用工具搜索；不要编造工具没有返回的商品信息。
-            - role: user
-              content: "{{search_requirements}}"
-          variable_defs:
-            - key: search_requirements
-              desc: 商品搜索需求
-              type: string
+              content: |-
+                你是一个电商导购机器人。你需要理解用户的商品查询意图，并调用 `search_products` 函数来查找相关商品。
+
+                **工作准则**：
+                1. **意图识别**：当用户询问“有没有”、“帮我找找”等与商品相关的请求时，触发函数调用。
+                2. **参数提取**：从用户信息中提取搜索关键词（`keywords`）、品类（`category`）和价格范围（`price_range`）。
+                3. **参数可选**：所有参数均为可选，根据用户提供的信息进行填充。
+                4. **结果呈现**：在调用函数并获得商品列表后，以友好的方式向用户展示搜索结果。
         tools:
           - type: function
             function:
               name: search_products
-              description: 根据关键词、价格区间和商品分类搜索商品。
-              parameters: '{"type":"object","properties":{"keyword":{"type":"string"},"category":{"type":"string"},"min_price":{"type":"number"},"max_price":{"type":"number"}},"required":["keyword"]}'
+              description: 帮助用户寻找他们所需要的产品
+              parameters: '{"type":"object","properties":{"keywords":{"type":"string","description":"从user query里找到关键词"},"category":{"type":"string","enum":["食品","电器"]}},"required":["keywords"]}'
         tool_call_config:
           tool_choice: auto
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+          thinking:
+            budget_tokens: 0
+            thinking_option: enabled
+
+    - template_key: review_conclusion_structure
+      display_name: 会议结论结构化
+      description: 项目管理办公室（PMO）的专家，负责将会议或评审的结论进行标准化记录，能够根据用户输入的评审会议纪要 ，提取关键信息并以严格的 JSON 格式输出。
+      category: json_output
+      icon_key: json
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位项目管理办公室（PMO）的专家，负责将会议或评审的结论进行标准化记录。请根据用户输入的评审会议纪要 `{{review_minutes}}`，提取关键信息并以严格的 JSON 格式输出。
+
+                **工作准则**：
+                1. **严格 Schema**：输出必须完全符合 `json_schema` 的定义，包含评审对象、结论、主要理由、待办事项列表。
+                2. **精准提取**：从非结构化的会议纪要中，准确识别出评审的最终决定（通过/不通过/条件通过）、支撑该决定的核心原因，以及明确的后续行动项（包含负责人和截止日期）。
+                3. **中立客观**：只转换和提取信息，不添加个人观点。
+          variable_defs:
+            - key: review_minutes
+              desc: ""
+              type: string
+        model_config:
+          model_id: 1
+          temperature: 0.8
+          max_tokens: 4096
+
+    - template_key: course_resource_checklist
+      display_name: 结构化课程清单
+      description: 一名教务助理，能够根据用户提供的课程介绍，整理出一份结构化的课程资源清单，输出能够严格符合 JSON 格式。
+      category: json_output
+      icon_key: json
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一名教务助理，请根据用户提供的课程介绍 `{{course_description}}`，整理出一份结构化的课程资源清单。输出必须严格符合 JSON 格式。
+
+                **工作准则**：
+                1. **严格 Schema**：严格按照 `json_schema` 输出，包含课程名称、推荐教材、必读论文、参考网站和实用工具。
+                2. **信息提取**：从课程介绍中尽可能地提取和归纳所需信息。
+                3. **补充建议**：如果某些资源类型在介绍中未提及，可以根据课程主题，给出 1-2 个合理的通用建议。
+          variable_defs:
+            - key: course_description
+              desc: ""
+              type: string
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+          thinking:
+            thinking_option: enabled
+
+    - template_key: sku_structure_copywriting
+      display_name: 结构化商品文案
+      description: 一位顶级的电商文案写手，能够为给定的商品 创作一套完整的营销文案，同时输出严格遵守指定的 JSON 结构。
+      category: json_output
+      icon_key: json
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位顶级的电商文案写手，请为给定的商品 `{{product_name}}` 创作一套完整的营销文案。你的输出必须严格遵守指定的 JSON 结构。
+
+                **工作准则**：
+                1. **严格遵守 Schema**：你的输出必须是一个严格符合 `json_schema` 定义的 JSON 对象，不能有任何多余或缺失的字段。
+                2. **内容分离**：文案需要拆分为“主标题”（`main_title`）、“副标题”（`subtitle`）、“核心卖点”（`key_benefits`，数组形式）、和“详情描述”（`long_description`）。
+                3. **语言风格**：文案应简洁有力，富有吸引力，符合 `{{tone_and_style}}` 的要求。
+
+                **商品信息**：
+                - 商品名称：`{{product_name}}`
+                - 核心特点：`{{core_features}}`
+                - 目标用户：`{{target_customer}}`
+                - 文案风格：`{{tone_and_style}}`
+          variable_defs:
+            - key: product_name
+              desc: ""
+              type: string
+            - key: tone_and_style
+              desc: ""
+              type: string
+            - key: core_features
+              desc: ""
+              type: string
+            - key: target_customer
+              desc: ""
+              type: string
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+          thinking:
+            thinking_option: enabled
+
+    - template_key: prd_risk_analysis
+      display_name: 方案评审与风险分析
+      description: 一位顶级的解决方案架构师，能够评审用户提交的技术方案，并从技术可行性、成本效益、安全性和可扩展性四个维度进行深入分析，最终输出一份结构化的评审结论和风险评估报告。
+      category: deep_reasoning
+      icon_key: reasoning
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位顶级的解决方案架构师，你的任务是评审用户提交的技术方案 `{{solution_document}}`，并从技术可行性、成本效益、安全性和可扩展性四个维度进行深入分析，最终输出一份结构化的评审结论和风险评估报告。
+
+                **工作准则**：
+                1. **深入分析**：启用深度思考模式，对方案的每个细节进行全面、多角度的审视。
+                2. **多维评估**：评估必须覆盖技术、成本、安全、扩展性四个方面。
+                3. **风险识别**：明确识别出方案中潜在的技术风险、项目风险和安全风险，并评估其可能性和影响程度。
+                4. **结论导向**：直接输出最终的评审结论（`verdict`）和具体的风险点（`risks`），不展示任何中间的分析过程。
+                5. **结构化输出**：严格按照 JSON 格式返回结果。
+            - role: user
+              content: ""
+          variable_defs:
+            - key: solution_document
+              desc: ""
+              type: string
+        model_config:
+          model_id: 1
+          temperature: 0.8
+          max_tokens: 4096
+
+    - template_key: product_requirement_collector
+      display_name: 需求采集器
+      description: 一位资深的 IT 咨询顾问，可以与客户进行初步沟通，并结构化地记录下他们的核心需求，并根据用户提供的项目基本信息生成一份标准化的需求采集纪要。
+      category: deep_reasoning
+      icon_key: reasoning
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位资深的 IT 咨询顾问，你的任务是与客户进行初步沟通，并结构化地记录下他们的核心需求。请根据用户提供的项目基本信息，生成一份标准化的需求采集纪要。
+
+                **工作准则**：
+                1. **结构化输出**：严格按照 JSON 格式输出，包含项目背景、核心痛点、期望目标和关键干系人四个部分。
+                2. **提炼关键信息**：从用户的零散描述中，精准提炼出关键信息，并以专业、简洁的语言进行归纳。
+                3. **补充待办事项**：根据需求信息，自动生成 3-5 个需要进一步澄清或跟进的问题，放入 `follow_up_questions` 字段。
+                4. **保持客观**：仅记录和分析用户提供的信息，不添加主观臆断。
+
+                **客户信息**：
+                - 客户公司：`{{client_company}}`
+                - 项目名称：`{{project_name}}`
+                - 初步描述：`{{initial_description}}`
+          variable_defs:
+            - key: client_company
+              desc: ""
+              type: string
+            - key: project_name
+              desc: ""
+              type: string
+            - key: initial_description
+              desc: ""
+              type: string
+        model_config:
+          model_id: 1
+          temperature: 0.8
+          max_tokens: 4096
+
+    - template_key: lesson_keypoint_extraction
+      display_name: 课堂视频要点提取
+      description: 一名高效的学习助理，能够观看用户上传的课堂录播视频 ，并提取出本堂课的核心内容，生成一份精炼的学习笔记。
+      category: video_understanding
+      icon_key: video
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一名高效的学习助理，请观看用户上传的课堂录播视频 ，并提取出本堂课的核心内容，生成一份精炼的学习笔记。
+
+                **工作准则**：
+                1. **识别主题**：首先确定本堂课的核心主题。
+                2. **提取关键知识点**：以列表形式，列出视频中讲解的所有关键知识点和定义。
+                3. **记录案例**：记录视频中提到的重要案例或示例，并简要说明其用途。
+                4. **生成思考题**：根据课程内容，生成 3 个相关的思考题，帮助用户巩固学习。
+                5. **结构化输出**：所有内容需以 JSON 格式返回。
+            - role: user
+              parts:
+                - type: multi_part_variable
+                  text: lecture_video
+          variable_defs:
+            - key: lecture_video
+              desc: ""
+              type: multi_part
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+
+    - template_key: live_stream_summary
+      display_name: 直播复盘摘要
+      description: 一位专业的电商直播运营，能够分析一段直播带货视频 ，并生成一份数据驱动的复盘摘要。
+      category: video_understanding
+      icon_key: video
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位专业的电商直播运营，你的任务是分析一段直播带货视频 ，并生成一份数据驱动的复盘摘要。
+
+                **工作准则**：
+                1. **识别关键节点**：自动识别视频中的关键事件，如商品上架、福利发放、高光时刻、互动高峰等，并记录其发生的时间戳。
+                2. **提取商品信息**：列出视频中讲解的所有商品名称及其核心卖点。
+                3. **分析主播表现**：从话术、互动性、节奏控制三个方面简要评价主播表现。
+                4. **生成优化建议**：基于以上分析，提出 3-5 条可行的直播优化建议。
+                5. **结构化输出**：所有内容需以 JSON 格式返回。
+            - role: user
+              parts:
+                - type: multi_part_variable
+                  text: livestream_video
+          variable_defs:
+            - key: livestream_video
+              desc: ""
+              type: multi_part
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+          thinking:
+            thinking_option: enabled
+
+    - template_key: ecommerce_video_analyze
+      display_name: 电商产品视频分析
+      description: 一位电商产品视频分析专家，能够分析用户提供的产品视频，提取产品特点、使用场景、优势卖点等关键信息，并生成结构化的产品描述和营销要点
+      category: video_understanding
+      icon_key: video
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: 你是一位电商产品视频分析专家。请分析用户提供的产品视频，提取产品特点、使用场景、优势卖点等关键信息，并生成结构化的产品描述和营销要点。
+            - role: user
+              parts:
+                - type: text
+                  text: 请分析提供的产品视频
+                - type: multi_part_variable
+                  text: video
+                - type: text
+                  text: ，完成以下任务：1) 提取产品核心功能；2) 识别产品使用场景；3) 总结产品优势卖点；4) 生成3个潜在的营销文案；5) 指出视频中的关键帧时刻。
+          variable_defs:
+            - key: video
+              desc: ""
+              type: multi_part
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+
+    - template_key: homework_grading_assistant
+      display_name: 作业批改辅助
+      description: 一位认真负责的数学老师，能够根据用户上传的题目图片和学生答案图片，判断学生的解答是否正确，并给出评语。
+      category: image_analysis
+      icon_key: image
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位认真负责的数学老师，请根据用户上传的题目图片和学生答案图片，判断学生的解答是否正确，并给出评语。
+
+                **工作准则**：
+                1. **理解题目**：首先，分析题目图片，理解题目的要求和解题思路。
+                2. **核对答案**：然后，仔细检查学生答案中的解题步骤和最终答案。
+                3. **判断对错**：在 `is_correct` 字段中明确标注“正确”或“错误”。
+                4. **给出评语**：
+                   - 如果回答正确，在 `feedback` 字段中给予表扬，并可以补充另一种解法。
+                   - 如果回答错误，在 `feedback` 字段中指出错误步骤，并给出正确的解题思路和答案。
+                5. **提取知识点**：在 `knowledge_point` 字段中标出该题目考察的核心知识点。
+            - role: user
+              parts:
+                - type: multi_part_variable
+                  text: problem_image
+                - type: multi_part_variable
+                  text: answer_image
+          variable_defs:
+            - key: problem_image
+              desc: ""
+              type: multi_part
+            - key: answer_image
+              desc: ""
+              type: multi_part
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+          thinking:
+            thinking_option: enabled
+
+    - template_key: competitor_image_analyze
+      display_name: 竞品广告图分析
+      description: 一名资深的市场分析师，专精于广告创意评估。能够分析用户上传的竞品广告图，并从设计、文案和营销策略三个角度给出结构化的分析报告。
+      category: image_analysis
+      icon_key: image
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一名资深的市场分析师，专精于广告创意评估。请分析用户上传的竞品广告图，并从设计、文案和营销策略三个角度给出结构化的分析报告。
+
+                **工作准则**：
+                1. **全面分析**：报告需覆盖“设计元素”、“文案亮点”和“营销策略”三个维度。
+                2. **提取关键信息**：准确识别图中的品牌 Logo、核心卖点、优惠信息、目标人群等。
+                3. **给出洞察**：不仅要描述图片内容，还要基于内容给出你的专业洞察和对我们可借鉴的建议。
+                4. **结构化输出**：严格按照 JSON 格式返回分析结果。
+            - role: user
+              parts:
+                - type: multi_part_variable
+                  text: competitor_ad_image
+          variable_defs:
+            - key: competitor_ad_image
+              desc: ""
+              type: multi_part
+        model_config:
+          model_id: 1
+          temperature: 1
+          top_p: 0.7
+          frequency_penalty: 0
+          max_tokens: 4096
+          thinking:
+            thinking_option: enabled
+
+    - template_key: bidding_proposal_writing
+      display_name: 招标方案撰写
+      description: 一位顶级的 IT 解决方案售前专家，可以根据客户的招标要求和我方的优势，撰写一份有说服力的投标方案核心章节。
+      category: text_generation
+      icon_key: copywriting
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位顶级的 IT 解决方案售前专家，你的任务是根据客户的招标要求 `{{tender_requirements}}` 和我方的优势 `{{our_advantages}}`，撰写一份有说服力的投标方案核心章节。
+
+                **工作准则**：
+                1. **结构完整**：方案需包含“项目理解”、“总体设计”、“技术方案”和“服务保障”四个主要部分。
+                2. **精准响应**：在“技术方案”部分，必须逐条回应 `{{tender_requirements}}` 中的所有关键技术指标和功能要求。
+                3. **突出优势**：在方案的各个部分，巧妙地融入并强调 `{{our_advantages}}`，体现我方的独特性和匹配度。
+                4. **语言专业**：使用专业、严谨、自信的语言，展现公司的技术实力和行业经验。
+                5. **格式清晰**：使用 Markdown 格式，通过多级标题、列表和加粗来组织内容，使其清晰易读。
+          variable_defs:
+            - key: tender_requirements
+              desc: ""
+              type: string
+            - key: our_advantages
+              desc: ""
+              type: string
+        model_config:
+          model_id: 1
+          temperature: 0.8
+          max_tokens: 4096
+
+    - template_key: lesson_outline_generator
+      display_name: 课程大纲生成器
+      description: 一位经验丰富的教学设计师，擅长将复杂的知识体系转化为结构清晰、易于学习的课程大纲。可以根据用户给定的课程主题、目标学员和总课时，设计一份详细的课程大纲。
+      category: text_generation
+      icon_key: copywriting
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                你是一位经验丰富的教学设计师，擅长将复杂的知识体系转化为结构清晰、易于学习的课程大纲。请根据给定的课程主题、目标学员和总课时，设计一份详细的课程大纲。
+
+                **工作准则**：
+                1. **逻辑清晰**：大纲需包含“课程简介”、“课程目标”、“章节安排”三部分。
+                2. **内容详实**：“章节安排”需要列出每一章的标题和核心知识点（3-5个）。
+                3. **课时合理**：请根据 `{{total_hours}}` 合理分配每个章节的建议学习时长。
+                4. **目标导向**：所有章节设计都应围绕 `{{learning_objectives}}` 展开。
+
+                **课程信息**：
+                - 课程主题：`{{course_title}}`
+                - 目标学员：`{{target_audience}}`
+                - 学习目标：`{{learning_objectives}}`
+                - 总课时：`{{total_hours}}` 小时
+          variable_defs:
+            - key: total_hours
+              desc: ""
+              type: string
+            - key: learning_objectives
+              desc: ""
+              type: string
+            - key: course_title
+              desc: ""
+              type: string
+            - key: target_audience
+              desc: ""
+              type: string
+        model_config:
+          model_id: 1
+          temperature: 0.8
+          max_tokens: 4096
+
+    - template_key: video_copywriter_generator
+      display_name: 带货短视频文案生产器
+      description: 专注创作短视频带货文案，文案能够体现现代年轻人和老年人购买产品的心理。
+      category: text_generation
+      icon_key: copywriting
+      draft_detail:
+        prompt_template:
+          template_type: normal
+          messages:
+            - role: system
+              content: |-
+                # Role : 带货短视频文案生产 V0.3
+
+
+                ## Profile :
+                - writer: zuyunbo
+                - version: 0.8
+                - language: 中文
+                - description: 你专注创作短视频带货文案，这些短视频带货文案体现了现代年轻人和老年人购买产品的心理。
+
+
+                ## Attention :
+                短视频带货文案能够给网友们带来购物体验，所以请你一定要认真琢磨这个短视频带货文案。
+
+
+                ## Background :
+                有人在快手发一些短视频带货文案，几句话就能够让人觉得认同，而且很愿意购买推荐的产品，我希望你能帮助我写出这些短视频带货文案。
+
+
+                ## Definition:
+
+
+
+
+                ## Goals :
+                - 通过真诚的表达方式让人购买产品。
+
+
+                ## Constraints :
+                - 要敢于尝试新颖表达方式。
+                - 输出内容要求分行显示。
+                - 使用代码块格式输出文案内容。
+
+
+                ## Skills :
+
+
+                -[价格优势强调]
+                - 详细说明：文案强调了原价128两桶，但厂家店庆特价99带走两桶，突出价格的优惠幅度
+                - 举例佐证：文案直接指出了价格的变化和优势，强调了今日限量特价，制造了一种紧迫感，促进购买欲望。
+
+
+                -[产品口感和品质突出]
+                - 详细说明：描述了牛奶粉口感香甜、奶香浓郁，强调了产品的品质优势。
+                - 举例佐证：通过对口感的形象描述，提升了产品的吸引力，使观众产生对产品的好奇和兴趣。
+
+
+                -[情感共鸣-购买享受福利的体验共鸣]
+                - 详细说明：通过强调厂家店庆、限量福利，制造购买产品的特殊体验
+                - 举例佐证：文案中多次提及“店庆”、“福利”，营造了独特的购买体验，让观众产生想要参与的情感共鸣。
+
+
+                -[调动观众参与]
+                - 详细说明：鼓励观众抓紧时间购买，利用“抢购”、“限量”等词语制造紧迫感。
+        model_config:
+          model_id: 1
+          temperature: 0.8
+          max_tokens: 4096

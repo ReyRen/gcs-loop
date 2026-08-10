@@ -4764,7 +4764,7 @@ func TestPromptOpenAPIApplicationImpl_CommitDraftOApi(t *testing.T) {
 				},
 			},
 			wantR:   openapi.NewCommitDraftOApiResponse(),
-			wantErr: errors.New("Invalid Semantic Version"),
+			wantErr: errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("Invalid Semantic Version")),
 		},
 		{
 			name: "error: get prompt failed",

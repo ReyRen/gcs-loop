@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/asaskevich/govalidator"
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/codes"
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/status"
@@ -36,6 +36,7 @@ import (
 	promptmetrics "github.com/coze-dev/coze-loop/backend/modules/prompt/infra/metrics"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/consts"
 	prompterr "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/errno"
+	promptversion "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/version"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/goroutine"
 	"github.com/coze-dev/coze-loop/backend/pkg/json"
@@ -351,8 +352,12 @@ func (p *PromptOpenAPIApplicationImpl) CommitDraftOApi(ctx context.Context, req 
 	r = openapi.NewCommitDraftOApiResponse()
 	userID := p.getOpenAPIUserID(ctx)
 
-	if _, err = semver.StrictNewVersion(req.GetCommitVersion()); err != nil {
-		return r, err
+	if _, err = promptversion.Parse(req.GetCommitVersion()); err != nil {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(err.Error()))
+	}
+	if utf8.RuneCountInString(req.GetCommitDescription()) > consts.MaxCommitDescriptionLength {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode,
+			errorx.WithExtraMsg(fmt.Sprintf("commit description must not exceed %d characters", consts.MaxCommitDescriptionLength)))
 	}
 
 	promptDO, err := p.promptManageRepo.GetPrompt(ctx, repo.GetPromptParam{
