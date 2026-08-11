@@ -1,6 +1,6 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import { PromptDevelop } from '@cozeloop/prompt-components-v2';
 import { useModalData } from '@cozeloop/hooks';
@@ -17,9 +17,8 @@ export default function PromptPlaygroundPage() {
   const navigate = useNavigateModule();
   const sendEvent = useReportEvent();
 
-  const { template } = useParams<{
-    template: string;
-  }>();
+  const [searchParams] = useSearchParams();
+  const templateKey = searchParams.get('template') || undefined;
   const { spaceID } = useSpace();
   const service = useModelList(spaceID);
   const traceLogPannel = useModalData<string>();
@@ -28,7 +27,7 @@ export default function PromptPlaygroundPage() {
     <>
       <PromptDevelop
         spaceID={spaceID}
-        promptID={template}
+        templateKey={templateKey}
         isPlayground
         modelInfo={{
           list: service.data?.models,

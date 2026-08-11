@@ -32,7 +32,7 @@ import { TemplateSelect } from './template-select';
 
 export function SegmentEditorCard() {
   const editorRef = useRef<BasicPromptEditorRef>(null);
-  const { renderTemplateType } = usePromptDevProviderContext();
+  const { renderTemplateType, spaceID } = usePromptDevProviderContext();
 
   const {
     promptInfo,
@@ -169,6 +169,11 @@ export function SegmentEditorCard() {
           isJinja2Template={templateType?.type === TemplateType.Jinja2}
           isGoTemplate={templateType?.type === TemplateType.GoTemplate}
           disabled={readonly}
+          spaceID={spaceID}
+          promptID={promptInfo?.id}
+          promptName={promptInfo?.prompt_basic?.display_name}
+          promptKey={promptInfo?.prompt_key}
+          promptDesc={promptInfo?.prompt_basic?.description}
         />
       </div>
     </PromptDevLayout>

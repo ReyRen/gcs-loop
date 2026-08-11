@@ -6,6 +6,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { PrimaryPage } from '@cozeloop/components';
+import { type Prompt } from '@cozeloop/api-schema/prompt';
 import { StonePromptApi } from '@cozeloop/api-schema';
 import { IconCozArrowDown, IconCozPlus } from '@coze-arch/coze-design/icons';
 import {
@@ -18,7 +19,12 @@ import {
   Tooltip,
 } from '@coze-arch/coze-design';
 
+import {
+  PromptTemplateDialog,
+  type PromptTemplate,
+} from '../prompt-template-dialog';
 import { PromptTable, type PromptTableProps } from '../prompt-table';
+import { PromptCreateModal } from '../prompt-create-modal';
 import { promptDisplayColumns } from './column';
 
 // 通过TypeScript工具类型提取changeInfo参数的类型
@@ -39,6 +45,9 @@ interface PromptListProps extends PromptTableProps {
   emptySnippetCreateBtn?: React.ReactNode;
   onCreatePromptClick?: () => void;
   onCreateSegmentClick?: () => void;
+  onCreateFromTemplateClick?: () => void;
+  onTemplateSelect?: (template: PromptTemplate) => void;
+  onTemplatePreview?: (template: PromptTemplate) => void;
   onTabChange?: (key: PromptTabKey) => void;
 }
 
@@ -56,6 +65,10 @@ export function PromptList({
   onTableChange: propsOnTableChange,
   hideSnippet,
   onCreateSegmentClick,
+  onCreateFromTemplateClick,
+  onTemplateSelect,
+  onTemplatePreview,
+  spaceID,
   defaultTabKey = 'prompts',
   onTabChange,
   emptyPromptCreateBtn,
@@ -66,6 +79,10 @@ export function PromptList({
   const [filterRecord, setFilterRecord] = useState<PromptSearchProps>();
   const debouncedFilterRecord = useDebounce(filterRecord, { wait: 300 });
   const [tabKey, setTabKey] = useState<PromptTabKey>(defaultTabKey);
+  const [refreshFlag, setRefreshFlag] = useState(0);
+  const [templateDialogVisible, setTemplateDialogVisible] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState<PromptTemplate>();
 
   const onFilterValueChange = (allValues?: PromptSearchProps) => {
     setFilterRecord({ ...allValues });
@@ -123,6 +140,19 @@ export function PromptList({
     [tabKey],
   );
 
+  const templatePromptData: Prompt | undefined = pendingTemplate
+    ? {
+        prompt_key: `${pendingTemplate.templateKey}_copy`,
+        prompt_basic: {
+          display_name: pendingTemplate.title,
+          description: pendingTemplate.description,
+        },
+        prompt_commit: {
+          detail: pendingTemplate.draftDetail,
+        },
+      }
+    : undefined;
+
   const filterForm = useMemo(
     () => (
       <Form<PromptSearchProps>
@@ -162,6 +192,15 @@ export function PromptList({
                   >
                     {I18n.t('prompt_blank_prompt')}
                   </Menu.Item>
+                  <Menu.Item
+                    itemKey={I18n.t('prompt_create_from_template')}
+                    onClick={() => {
+                      onCreateFromTemplateClick?.();
+                      setTemplateDialogVisible(true);
+                    }}
+                  >
+                    {I18n.t('prompt_create_from_template')}
+                  </Menu.Item>
                   {onCreateSegmentClick ? (
                     <Tooltip
                       content={I18n.t('prompt_prompt_snippet_nesting_support')}
@@ -192,6 +231,8 @@ export function PromptList({
         <PromptTable
           key={tabKey}
           {...rest}
+          spaceID={spaceID}
+          refreshFlag={refreshFlag}
           columns={columns}
           filterRecord={debouncedFilterRecord}
           onTableChange={propsOnTableChange || onTableChange}
@@ -212,6 +253,36 @@ export function PromptList({
           }
         />
       </div>
+      <PromptTemplateDialog
+        visible={templateDialogVisible}
+        spaceID={spaceID}
+        onCancel={() => setTemplateDialogVisible(false)}
+        onSelect={template => {
+          setTemplateDialogVisible(false);
+          setPendingTemplate(template);
+          setCreateModalVisible(true);
+          onTemplateSelect?.(template);
+        }}
+        onPreview={onTemplatePreview}
+        onCreateClick={() => {
+          setTemplateDialogVisible(false);
+          onCreatePromptClick?.();
+        }}
+      />
+      <PromptCreateModal
+        spaceID={spaceID}
+        visible={createModalVisible}
+        onCancel={() => {
+          setCreateModalVisible(false);
+          setPendingTemplate(undefined);
+        }}
+        onOk={_prompt => {
+          setCreateModalVisible(false);
+          setPendingTemplate(undefined);
+          setRefreshFlag(v => v + 1);
+        }}
+        data={templatePromptData}
+      />
     </PrimaryPage>
   );
 }

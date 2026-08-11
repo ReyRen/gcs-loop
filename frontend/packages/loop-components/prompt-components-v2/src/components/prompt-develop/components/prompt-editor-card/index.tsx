@@ -20,6 +20,7 @@ import {
   type VariableDef,
   VariableType,
 } from '@cozeloop/api-schema/prompt';
+import { StonePromptApi } from '@cozeloop/api-schema';
 import { IconCozPlus } from '@coze-arch/coze-design/icons';
 import { Button, Typography } from '@coze-arch/coze-design';
 
@@ -55,8 +56,13 @@ export function PromptEditorCard({
   setConfigAreaVisible,
   setConfigExecuteVisible,
 }: PromptEditorCardProps) {
-  const { renderEditorLeftActions, renderEditorRightActions, hideSnippet } =
-    usePromptDevProviderContext();
+  const {
+    renderEditorLeftActions,
+    renderEditorRightActions,
+    hideSnippet,
+    spaceID,
+    templateKey,
+  } = usePromptDevProviderContext();
   const sortableContainer = useRef<HTMLDivElement>(null);
   const {
     streaming,
@@ -77,9 +83,10 @@ export function PromptEditorCard({
     })),
   );
 
-  const { promptInfo, templateType } = usePromptStore(
+  const { promptInfo, setPromptInfo, templateType } = usePromptStore(
     useShallow(state => ({
       promptInfo: state.promptInfo,
+      setPromptInfo: state.setPromptInfo,
       templateType: state.templateType,
     })),
   );
@@ -156,6 +163,62 @@ export function PromptEditorCard({
       return newInfo;
     });
   };
+
+  const handleOptimizeAccept = useCallback(
+    async (optimizedContent: string) => {
+      const draftDetail =
+        promptInfo?.prompt_draft?.detail || promptInfo?.prompt_commit?.detail;
+      if (!draftDetail || !promptInfo?.id) {
+        return;
+      }
+      const draftInfo = promptInfo?.prompt_draft?.draft_info;
+      // 将 role 为 system 的 message 内容替换为快捷优化后内容
+      const messages = (draftDetail.prompt_template?.messages || []).map(
+        (msg: any) =>
+          msg.role === 'system' ? { ...msg, content: optimizedContent } : msg,
+      );
+      const detail = {
+        ...draftDetail,
+        prompt_template: {
+          ...draftDetail.prompt_template,
+          messages,
+        },
+      };
+      await StonePromptApi.SaveDraft({
+        prompt_id: promptInfo?.id || '',
+        prompt_draft: {
+          detail,
+          draft_info: draftInfo || {},
+        },
+      });
+      // 加锁避免 store 更新触发二次 save
+      useBasicStore.getState().setSaveLock(true);
+      // 更新当前页面 Prompt 模板内容（更新 key 强制编辑器重新挂载）
+      setMessageList((prev: any) =>
+        prev?.map((msg: any) =>
+          msg.role === 'system'
+            ? { ...msg, content: optimizedContent, key: nanoid() }
+            : msg,
+        ),
+      );
+      // 同步更新 store 中的 promptInfo
+      setPromptInfo((prev: any) => {
+        if (!prev?.prompt_draft?.detail) {
+          return prev;
+        }
+        return {
+          ...prev,
+          prompt_draft: {
+            ...prev.prompt_draft,
+            detail,
+          },
+        };
+      });
+      // 解锁，允许后续自动保存
+      useBasicStore.getState().setSaveLock(false);
+    },
+    [promptInfo, setMessageList, setPromptInfo],
+  );
 
   const insertSnippetVariables = useCallback(
     (newVariables?: VariableDef[]) => {
@@ -340,6 +403,20 @@ export function PromptEditorCard({
                   isGoTemplate={templateType?.type === TemplateType.GoTemplate}
                   insertSnippetVariables={insertSnippetVariables}
                   snippetBtnHidden={hideSnippet}
+                  spaceID={spaceID}
+                  optimizeBtnHidden={!!templateKey}
+                  onOptimizeAccept={handleOptimizeAccept}
+                  optimizeMessageList={messageList as any}
+                  optimizeVariableVals={
+                    mockVariables?.map((v: any) => ({
+                      key: v.key,
+                      value: v.value,
+                    })) as any
+                  }
+                  promptID={promptInfo?.id || ''}
+                  promptName={promptInfo?.prompt_basic?.display_name || ''}
+                  promptKey={promptInfo?.prompt_key || ''}
+                  promptDesc={promptInfo?.prompt_basic?.description || ''}
                 ></PromptEditor>
               ))}
           </div>
