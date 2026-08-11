@@ -4,6 +4,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @coze-arch/max-line-per-function */
 /* eslint-disable complexity */
+/* eslint-disable max-lines */
 
 import { useEffect, useState } from 'react';
 
@@ -11,7 +12,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { useModalData } from '@cozeloop/hooks';
-import { sleep, useReportEvent } from '@cozeloop/components';
+import { handleCopy, sleep, useReportEvent } from '@cozeloop/components';
 import {
   type Label,
   type CommitInfo,
@@ -19,7 +20,11 @@ import {
   PromptType,
 } from '@cozeloop/api-schema/prompt';
 import { StonePromptApi } from '@cozeloop/api-schema';
-import { IconCozDuplicate, IconCozUpdate } from '@coze-arch/coze-design/icons';
+import {
+  IconCozApply,
+  IconCozDuplicate,
+  IconCozUpdate,
+} from '@coze-arch/coze-design/icons';
 import {
   Button,
   Descriptions,
@@ -29,6 +34,8 @@ import {
   Spin,
   Tag,
   Toast,
+  Tooltip,
+  Typography,
 } from '@coze-arch/coze-design';
 
 import { usePromptStore } from '@/store/use-prompt-store';
@@ -42,6 +49,24 @@ import { SnippetUseageModal } from '../snippet-useage-modal';
 import { usePromptDevProviderContext } from '../prompt-develop/components/prompt-provider';
 import { PromptCreateModal } from '../prompt-create-modal';
 import VersionItem from './version-item';
+
+interface InvokeParam {
+  description?: string;
+  example?: string;
+  key?: string;
+  type?: string;
+  value_field?: string;
+}
+interface InvokeInfo {
+  curl?: string;
+  execute_endpoint?: string;
+  parameters?: InvokeParam[];
+  prompt_key?: string;
+  request_body?: string;
+  streaming_curl?: string;
+  streaming_execute_endpoint?: string;
+  version?: string;
+}
 
 export function VersionList() {
   const sendEvent = useReportEvent();
@@ -87,6 +112,38 @@ export function VersionList() {
   const [getDraftLoading, setGetDraftLoading] = useState(true);
 
   const promptInfoModal = useModalData<Prompt>();
+
+  const [invokeVisible, setInvokeVisible] = useState(false);
+  const [invokeData, setInvokeData] = useState<InvokeInfo>({});
+  const [invokeLoading, setInvokeLoading] = useState(false);
+
+  const handleInvoke = async () => {
+    if (!promptInfo?.id || !activeVersion || !spaceID) {
+      return;
+    }
+    setInvokeVisible(true);
+    setInvokeData({});
+    setInvokeLoading(true);
+    try {
+      const baseUrl = process.env.API_SCHEMA_BASE_URL || '';
+      const version = encodeURIComponent(activeVersion);
+      const wsId = encodeURIComponent(spaceID);
+      const resp = await fetch(
+        `${baseUrl}/api/prompt/v1/prompts/${promptInfo.id}/commits/${version}/invoke_info?workspace_id=${wsId}`,
+        {
+          headers: { 'Agw-Js-Conv': 'str' },
+        },
+      );
+      const data: InvokeInfo = await resp.json();
+      console.log(data, 1111);
+      setInvokeData(data.invoke_info);
+      // eslint-disable-next-line @coze-arch/use-error-in-catch -- 异常时显示兜底文案
+    } catch {
+      setInvokeData({});
+    } finally {
+      setInvokeLoading(false);
+    }
+  };
 
   const versionListService = useVersionList({
     promptID: promptInfo?.id,
@@ -289,6 +346,15 @@ export function VersionList() {
             className="flex-1"
             color="primary"
             disabled={versionChangeLoading}
+            icon={<IconCozApply />}
+            onClick={handleInvoke}
+          >
+            {I18n.t('prompt_invoke')}
+          </Button>
+          <Button
+            className="flex-1"
+            color="primary"
+            disabled={versionChangeLoading}
             icon={<IconCozDuplicate />}
             onClick={() => promptInfoModal.open(promptInfo)}
           >
@@ -366,6 +432,159 @@ export function VersionList() {
           buttonConfig?.promptJumpButton?.onClick?.({ prompt: versionPrompt });
         }}
       />
+
+      <InvokeModal
+        visible={invokeVisible}
+        data={invokeData}
+        loading={invokeLoading}
+        onClose={() => setInvokeVisible(false)}
+      />
     </div>
+  );
+}
+
+interface InvokeModalProps {
+  visible: boolean;
+  data: InvokeInfo;
+  loading: boolean;
+  onClose: () => void;
+}
+
+function InvokeModal({ visible, data, loading, onClose }: InvokeModalProps) {
+  const [tab, setTab] = useState<string>('sync');
+
+  return (
+    <Modal
+      visible={visible}
+      title={I18n.t('prompt_invoke')}
+      width={900}
+      footer={null}
+      onCancel={onClose}
+    >
+      {loading ? (
+        <div className="flex items-center justify-center h-[300px]">
+          <Spin />
+        </div>
+      ) : (
+        <div
+          className="flex flex-col gap-4"
+          style={{ maxHeight: '70vh', overflow: 'auto' }}
+        >
+          <div className="flex items-center gap-3">
+            <Tag color="primary">{data.prompt_key || '-'}</Tag>
+            <Tag size="small">v{data.version || '-'}</Tag>
+            {/* <Tooltip content={I18n.t('copy')}>
+              <Button
+                size="small"
+                onClick={() =>
+                  handleCopy(
+                    `Prompt Key: ${data.prompt_key}\nVersion: ${data.version}\nEndpoint: ${data.execute_endpoint}`,
+                  )
+                }
+              >
+                {I18n.t('copy_prompt_key')}
+              </Button>
+            </Tooltip> */}
+          </div>
+
+          <div>
+            <Typography.Text strong>Endpoint</Typography.Text>
+            <pre
+              style={{ background: 'rgb(247, 247, 252)' }}
+              className="rounded p-3 text-xs font-mono mt-1"
+            >
+              {data.execute_endpoint || '-'}
+            </pre>
+          </div>
+
+          {data.parameters?.length ? (
+            <div>
+              <Typography.Text strong>{I18n.t('param_value')}</Typography.Text>
+              <div className="mt-2 border rounded overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead style={{ background: 'rgb(247, 247, 252)' }}>
+                    <tr>
+                      <th className="text-left p-2 font-medium">Key</th>
+                      <th className="text-left p-2 font-medium">
+                        {I18n.t('type')}
+                      </th>
+                      <th className="text-left p-2 font-medium">Example</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.parameters.map((p, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2 font-mono text-xs">{p.key}</td>
+                        <td className="p-2">
+                          <Tag size="small">{p.type}</Tag>
+                        </td>
+                        <td className="p-2 text-xs text-gray-500">
+                          {p.example || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
+
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                size="small"
+                color={tab === 'sync' ? 'primary' : 'secondary'}
+                onClick={() => setTab('sync')}
+              >
+                {I18n.t('prompt_synchronous_call')}
+              </Button>
+              <Button
+                size="small"
+                color={tab === 'stream' ? 'primary' : 'secondary'}
+                onClick={() => setTab('stream')}
+              >
+                {I18n.t('prompt_streaming_call')}
+              </Button>
+            </div>
+            <div style={{ position: 'relative' }}>
+              <Tooltip content={I18n.t('copy')}>
+                <Button
+                  size="small"
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    zIndex: 1,
+                  }}
+                  onClick={() =>
+                    handleCopy(
+                      tab === 'sync'
+                        ? data.curl || ''
+                        : data.streaming_curl || '',
+                    )
+                  }
+                >
+                  {I18n.t('copy')}
+                </Button>
+              </Tooltip>
+              <pre
+                style={{
+                  background: 'rgb(247, 247, 252)',
+                  borderRadius: 4,
+                  padding: '16px 60px 16px 16px',
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  overflow: 'auto',
+                  maxHeight: 300,
+                  margin: 0,
+                }}
+              >
+                {tab === 'sync' ? data.curl || '-' : data.streaming_curl || '-'}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 }

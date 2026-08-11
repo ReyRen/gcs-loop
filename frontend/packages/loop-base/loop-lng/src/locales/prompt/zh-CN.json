@@ -2,6 +2,7 @@
   "prompt_ak_ak_get_tip": "点击后前往空间管理页面获取",
   "prompt_ak_ak_get_label": "获取 AK/SK",
   "prompt_usage_call_title": "调用配置",
+  "prompt_invoke": "调用",
   "prompt_view_detailed_instructions": "查看详细说明",
   "prompt_choose_language": "选择语言",
   "prompt_install_sdk": "安装 SDK",
