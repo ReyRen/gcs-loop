@@ -98,6 +98,7 @@ export const PromptEditor = forwardRef(
       onOptimizeAccept,
       optimizeMessageList,
       optimizeVariableVals,
+      optimizeBtnHidden,
       ...rest
     } = props;
 
@@ -239,7 +240,9 @@ export const PromptEditor = forwardRef(
                   />
                 ) : null}
                 {rightActionBtns}
-                {message?.role && message?.role === 'system' ? (
+                {message?.role &&
+                message?.role === 'system' &&
+                !optimizeBtnHidden ? (
                   <Tooltip
                     content={I18n.t('prompt_quick_optimize')}
                     theme="dark"

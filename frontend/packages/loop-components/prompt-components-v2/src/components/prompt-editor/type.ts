@@ -64,6 +64,7 @@ export interface PromptEditorProps extends BasicEditorProps {
   onOptimizeAccept?: (optimizedContent: string) => Promise<void>;
   optimizeMessageList?: Array<Record<string, unknown>>;
   optimizeVariableVals?: Array<{ key: string; value: string }>;
+  optimizeBtnHidden?: boolean;
 }
 
 export interface PromptDiffEditorProps extends PromptEditorProps {

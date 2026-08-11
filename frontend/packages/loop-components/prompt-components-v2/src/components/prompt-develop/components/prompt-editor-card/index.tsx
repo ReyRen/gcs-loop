@@ -61,6 +61,7 @@ export function PromptEditorCard({
     renderEditorRightActions,
     hideSnippet,
     spaceID,
+    templateKey,
   } = usePromptDevProviderContext();
   const sortableContainer = useRef<HTMLDivElement>(null);
   const {
@@ -165,8 +166,9 @@ export function PromptEditorCard({
 
   const handleOptimizeAccept = useCallback(
     async (optimizedContent: string) => {
-      const draftDetail = promptInfo?.prompt_draft?.detail;
-      if (!draftDetail) {
+      const draftDetail =
+        promptInfo?.prompt_draft?.detail || promptInfo?.prompt_commit?.detail;
+      if (!draftDetail || !promptInfo?.id) {
         return;
       }
       const draftInfo = promptInfo?.prompt_draft?.draft_info;
@@ -189,6 +191,8 @@ export function PromptEditorCard({
           draft_info: draftInfo || {},
         },
       });
+      // 加锁避免 store 更新触发二次 save
+      useBasicStore.getState().setSaveLock(true);
       // 更新当前页面 Prompt 模板内容（更新 key 强制编辑器重新挂载）
       setMessageList((prev: any) =>
         prev?.map((msg: any) =>
@@ -210,6 +214,8 @@ export function PromptEditorCard({
           },
         };
       });
+      // 解锁，允许后续自动保存
+      useBasicStore.getState().setSaveLock(false);
     },
     [promptInfo, setMessageList, setPromptInfo],
   );
@@ -398,6 +404,7 @@ export function PromptEditorCard({
                   insertSnippetVariables={insertSnippetVariables}
                   snippetBtnHidden={hideSnippet}
                   spaceID={spaceID}
+                  optimizeBtnHidden={!!templateKey}
                   onOptimizeAccept={handleOptimizeAccept}
                   optimizeMessageList={messageList as any}
                   optimizeVariableVals={
@@ -406,10 +413,10 @@ export function PromptEditorCard({
                       value: v.value,
                     })) as any
                   }
-                  promptID={promptInfo?.id}
-                  promptName={promptInfo?.prompt_basic?.display_name}
-                  promptKey={promptInfo?.prompt_key}
-                  promptDesc={promptInfo?.prompt_basic?.description}
+                  promptID={promptInfo?.id || ''}
+                  promptName={promptInfo?.prompt_basic?.display_name || ''}
+                  promptKey={promptInfo?.prompt_key || ''}
+                  promptDesc={promptInfo?.prompt_basic?.description || ''}
                 ></PromptEditor>
               ))}
           </div>

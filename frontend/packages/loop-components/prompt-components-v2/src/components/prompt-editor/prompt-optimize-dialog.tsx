@@ -10,8 +10,8 @@ import {
   Space,
   Typography,
 } from '@coze-arch/coze-design';
-import { EditorView } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+
+import { BasicPromptEditor } from '../basic-prompt-editor';
 
 interface PromptOptimizeDialogProps {
   visible: boolean;
@@ -35,20 +35,6 @@ interface PromptOptimizeDialogProps {
 const SSE_DATA_PREFIX = 'data:';
 const SSE_DATA_PREFIX_LEN = SSE_DATA_PREFIX.length;
 
-const cmBaseExtensions = [
-  EditorView.editable.of(false),
-  EditorView.theme({
-    '&': { height: '100%' },
-    '.cm-scroller': { overflow: 'auto' },
-    '.cm-content': {
-      padding: '8px 12px',
-      fontSize: '13px',
-      fontFamily: 'monospace',
-    },
-    '.cm-gutters': { display: 'none' },
-  }),
-];
-
 interface ParsedSSEResult {
   result: string;
   remainder: string;
@@ -60,6 +46,7 @@ function parseSSELines(buffer: string): ParsedSSEResult {
   const remainder = lines.pop() || '';
   let result = '';
   let recordId: string | undefined;
+  console.log('lines', lines);
   for (const line of lines) {
     if (!line.startsWith(SSE_DATA_PREFIX)) {
       continue;
@@ -178,7 +165,6 @@ const flexColumnStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   minWidth: 0,
-  border: '1px solid #f0f0f7',
 };
 
 const labelStyle: React.CSSProperties = { marginBottom: 8, display: 'block' };
@@ -195,57 +181,20 @@ const loadingOverlayStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.7)',
 };
 
-interface CodeMirrorPanelProps {
+interface EditorPanelProps {
   label: string;
   content: string;
   loading?: boolean;
   labelBg?: boolean;
 }
 
-function CodeMirrorPanel({
+function EditorPanel({
   label,
   content,
   loading,
   labelBg,
-}: CodeMirrorPanelProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
-
-  // 初始化 CodeMirror 编辑器
-  useEffect(() => {
-    if (!containerRef.current || viewRef.current) {
-      return;
-    }
-    const state = EditorState.create({
-      doc: content,
-      extensions: cmBaseExtensions,
-    });
-    const view = new EditorView({ state, parent: containerRef.current });
-    viewRef.current = view;
-    return () => {
-      view.destroy();
-      viewRef.current = null;
-    };
-  }, []);
-
-  // content 变化时全量替换文档
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) {
-      return;
-    }
-    const currentDoc = view.state.doc.toString();
-    if (currentDoc !== content) {
-      view.dispatch({
-        changes: {
-          from: 0,
-          to: view.state.doc.length,
-          insert: content,
-        },
-      });
-    }
-  }, [content]);
-
+  editorKey,
+}: EditorPanelProps & { editorKey?: string }) {
   return (
     <div style={flexColumnStyle}>
       <Typography.Text
@@ -272,7 +221,13 @@ function CodeMirrorPanel({
           overflow: 'hidden',
         }}
       >
-        <div ref={containerRef} style={{ height: '100%' }} />
+        <BasicPromptEditor
+          key={editorKey || label}
+          defaultValue={content}
+          readOnly
+          minHeight={10}
+          height={undefined}
+        />
         {loading ? (
           <div style={loadingOverlayStyle}>
             <Loading loading />
@@ -284,18 +239,9 @@ function CodeMirrorPanel({
 }
 
 function useOptimizeStream(params: UseOptimizeStreamParams) {
-  const {
-    promptContent,
-    messageRole,
-    spaceID,
-    promptID,
-    promptName,
-    promptKey,
-    promptDesc,
-    originalMessage,
-    messageList,
-    variableVals,
-  } = params;
+  const paramsRef = useRef(params);
+  paramsRef.current = params;
+
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -312,7 +258,8 @@ function useOptimizeStream(params: UseOptimizeStreamParams) {
   }, []);
 
   const start = useCallback(async () => {
-    if (!promptContent || !spaceID) {
+    const p = paramsRef.current;
+    if (!p.promptContent || !p.spaceID) {
       return;
     }
     setResult('');
@@ -321,11 +268,12 @@ function useOptimizeStream(params: UseOptimizeStreamParams) {
     const abortController = new AbortController();
     abortRef.current = abortController;
     try {
+      const requestBody = buildRequestBody(p);
       const baseUrl = process.env.API_SCHEMA_BASE_URL || '';
       const resp = await fetch(`${baseUrl}/api/prompt/v1/prompts/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Agw-Js-Conv': 'str' },
-        body: JSON.stringify(buildRequestBody(params)),
+        body: JSON.stringify(requestBody),
         signal: abortController.signal,
       });
       if (!resp.ok) {
@@ -358,18 +306,7 @@ function useOptimizeStream(params: UseOptimizeStreamParams) {
       setLoading(false);
       abortRef.current = null;
     }
-  }, [
-    promptContent,
-    spaceID,
-    messageRole,
-    promptID,
-    promptName,
-    promptKey,
-    promptDesc,
-    originalMessage,
-    messageList,
-    variableVals,
-  ]);
+  }, []);
 
   return { result, loading, recordIdRef, start, stop, reset };
 }
@@ -487,16 +424,17 @@ export function PromptOptimizeDialog({
           maxHeight: '60vh',
         }}
       >
-        <CodeMirrorPanel
+        <EditorPanel
           label={I18n.t('prompt_template')}
           content={promptContent}
           labelBg
         />
-        <CodeMirrorPanel
+        <EditorPanel
           label={I18n.t('prompt_quick_optimize')}
           content={result}
           loading={loading}
           labelBg
+          editorKey={`optimize-${result.length}`}
         />
       </div>
     </Modal>
