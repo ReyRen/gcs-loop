@@ -18,6 +18,7 @@ import (
 
 	"github.com/coze-dev/coze-loop/backend/infra/limiter"
 	limitermocks "github.com/coze-dev/coze-loop/backend/infra/limiter/mocks"
+	looptracermocks "github.com/coze-dev/coze-loop/backend/infra/looptracer/mocks"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
 	domainopenapi "github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain_openapi/prompt"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/openapi"
@@ -2430,6 +2431,52 @@ func TestPromptOpenAPIApplicationImpl_finishPromptExecutorSpan(t *testing.T) {
 	}
 }
 
+func TestPromptOpenAPIApplicationImpl_finishPromptExecutorSpan_FinishesWhenPromptLoadFails(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	span := looptracermocks.NewMockSpan(ctrl)
+	loadErr := errors.New("prompt lookup failed")
+
+	span.EXPECT().SetOutput(gomock.Any(), gomock.Any())
+	span.EXPECT().SetInputTokens(gomock.Any(), 0)
+	span.EXPECT().SetOutputTokens(gomock.Any(), 0)
+	span.EXPECT().SetTags(gomock.Any(), gomock.Any())
+	span.EXPECT().SetStatusCode(gomock.Any(), gomock.Any())
+	span.EXPECT().SetError(gomock.Any(), gomock.Any())
+	span.EXPECT().Finish(gomock.Any())
+
+	p := &PromptOpenAPIApplicationImpl{}
+	p.finishPromptExecutorSpan(context.Background(), span, nil, nil, loadErr)
+}
+
+func TestGetPromptExecutorTraceID(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil span", func(t *testing.T) {
+		assert.Nil(t, getPromptExecutorTraceID(nil))
+	})
+
+	t.Run("empty trace id", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		span := looptracermocks.NewMockSpan(ctrl)
+		span.EXPECT().GetTraceID().Return("")
+
+		assert.Nil(t, getPromptExecutorTraceID(span))
+	})
+
+	t.Run("trace id", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		span := looptracermocks.NewMockSpan(ctrl)
+		span.EXPECT().GetTraceID().Return("trace-123")
+
+		traceID := getPromptExecutorTraceID(span)
+		if assert.NotNil(t, traceID) {
+			assert.Equal(t, "trace-123", *traceID)
+		}
+	})
+}
+
 func TestPromptOpenAPIApplicationImpl_doExecute(t *testing.T) {
 	t.Parallel()
 
@@ -2684,7 +2731,6 @@ func TestPromptOpenAPIApplicationImpl_doExecute(t *testing.T) {
 				mockRateLimiter.EXPECT().AllowN(gomock.Any(), "ptaas:qps:space_id:123456:prompt_key:test_prompt", 1, gomock.Any()).Return(&limiter.Result{
 					Allowed: false,
 				}, nil)
-
 				return fields{
 					config:      mockConfig,
 					rateLimiter: mockRateLimiter,
@@ -2718,7 +2764,6 @@ func TestPromptOpenAPIApplicationImpl_doExecute(t *testing.T) {
 				mockPromptService := servicemocks.NewMockIPromptService(ctrl)
 				mockPromptService.EXPECT().ExpandSnippets(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 				mockPromptService.EXPECT().MGetPromptIDs(gomock.Any(), int64(123456), []string{"test_prompt"}).Return(nil, errors.New("database error"))
-
 				return fields{
 					promptService: mockPromptService,
 					config:        mockConfig,
@@ -2986,6 +3031,7 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				expectedReply := &entity.Reply{
@@ -3035,6 +3081,8 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 			},
 			wantR: &openapi.ExecuteResponse{
 				Data: &domainopenapi.ExecuteData{
+					PromptKey:       ptr.Of("test_prompt"),
+					ResolvedVersion: ptr.Of("1.0.0"),
 					Message: &domainopenapi.Message{
 						Role:    ptr.Of(prompt.RoleAssistant),
 						Content: ptr.Of("Hello, how can I help you?"),
@@ -3079,6 +3127,7 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				expectedReply := &entity.Reply{
@@ -3132,10 +3181,33 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 			wantErr: errors.New("convert error"),
 		},
 		{
+			name: "error: workspace permission denied before tenant telemetry",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).
+					Return(errorx.NewByCode(prompterr.CommonNoPermissionCode))
+				// No collector expectation: an unauthorized caller must not write
+				// workspace-scoped invocation statistics.
+				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
+				return fields{auth: mockAuth, collector: mockCollector}
+			},
+			args: args{
+				ctx: context.Background(),
+				req: &openapi.ExecuteRequest{
+					WorkspaceID: ptr.Of(int64(123456)),
+					PromptIdentifier: &domainopenapi.PromptQuery{
+						PromptKey: ptr.Of("test_prompt"),
+						Version:   ptr.Of("1.0.0"),
+					},
+				},
+			},
+			wantR:   openapi.NewExecuteResponse(),
+			wantErr: errorx.NewByCode(prompterr.CommonNoPermissionCode),
+		},
+		{
 			name: "error: invalid request",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
-				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
 
 				return fields{
 					collector: mockCollector,
@@ -3163,12 +3235,15 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 				mockRateLimiter.EXPECT().AllowN(gomock.Any(), "ptaas:qps:space_id:123456:prompt_key:test_prompt", 1, gomock.Any()).Return(&limiter.Result{
 					Allowed: false,
 				}, nil)
+				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
 				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
 
 				return fields{
 					config:      mockConfig,
+					auth:        mockAuth,
 					rateLimiter: mockRateLimiter,
 					collector:   mockCollector,
 				}
@@ -3228,6 +3303,7 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				// 返回 nil reply 或者 reply.Item 为 nil
@@ -3266,7 +3342,10 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 				},
 			},
 			wantR: &openapi.ExecuteResponse{
-				Data: nil, // 当 reply.Item 为 nil 时，Data 应该为 nil
+				Data: &domainopenapi.ExecuteData{
+					PromptKey:       ptr.Of("test_prompt"),
+					ResolvedVersion: ptr.Of("1.0.0"),
+				},
 			},
 			wantErr: nil,
 		},
@@ -3289,6 +3368,9 @@ func TestPromptOpenAPIApplicationImpl_Execute(t *testing.T) {
 			unittest.AssertErrorEqual(t, tt.wantErr, err)
 			if tt.wantR != nil && gotR != nil {
 				if tt.wantR.Data != nil && gotR.Data != nil {
+					assert.Equal(t, tt.wantR.Data.TraceID, gotR.Data.TraceID)
+					assert.Equal(t, tt.wantR.Data.PromptKey, gotR.Data.PromptKey)
+					assert.Equal(t, tt.wantR.Data.ResolvedVersion, gotR.Data.ResolvedVersion)
 					assert.Equal(t, tt.wantR.Data.FinishReason, gotR.Data.FinishReason)
 					if tt.wantR.Data.Message != nil && gotR.Data.Message != nil {
 						assert.Equal(t, tt.wantR.Data.Message.Role, gotR.Data.Message.Role)
@@ -5226,6 +5308,31 @@ func TestPromptTypeToMetricValue(t *testing.T) {
 	}
 }
 
+func TestGetInvocationStatisticsVersion(t *testing.T) {
+	t.Parallel()
+
+	resolvedPrompt := &entity.Prompt{
+		PromptCommit: &entity.PromptCommit{
+			CommitInfo: &entity.CommitInfo{Version: "2.0.0"},
+		},
+	}
+	assert.Equal(t, "2.0.0", getInvocationStatisticsVersion(&openapi.ExecuteRequest{
+		PromptIdentifier: &domainopenapi.PromptQuery{Version: ptr.Of("1.0.0")},
+	}, resolvedPrompt))
+
+	assert.Equal(t, "1.0.0", getInvocationStatisticsVersion(&openapi.ExecuteRequest{
+		PromptIdentifier: &domainopenapi.PromptQuery{Version: ptr.Of("1.0.0")},
+	}, nil))
+
+	assert.Empty(t, getInvocationStatisticsVersion(&openapi.ExecuteRequest{
+		PromptIdentifier: &domainopenapi.PromptQuery{Label: ptr.Of("production")},
+	}, nil))
+	assert.Empty(t, getInvocationStatisticsVersion(&openapi.ExecuteRequest{
+		PromptIdentifier: &domainopenapi.PromptQuery{},
+	}, nil))
+	assert.Empty(t, getInvocationStatisticsVersion(nil, nil))
+}
+
 func TestGetRequestPromptKey(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -5539,6 +5646,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 		req    *openapi.ExecuteRequest
 		stream openapi.PromptOpenAPIService_ExecuteStreamingServer
 	}
+	canceledWorkerDone := make(chan struct{})
 
 	tests := []struct {
 		name             string
@@ -5547,6 +5655,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 		wantErr          error
 		validateFunc     func(t *testing.T, stream *mockExecuteStreamingServer)
 		setupConvertMock func(mockSvc *servicemocks.MockIPromptService)
+		maxDuration      time.Duration
 	}{
 		{
 			name: "success: normal streaming execution",
@@ -5612,6 +5721,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				// Mock ExecuteStreaming 返回多个流式响应
@@ -5715,6 +5825,9 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				assert.Equal(t, "Hello", calls[0].Data.Message.GetContent())
 				assert.Equal(t, ", how can I help you?", calls[1].Data.Message.GetContent())
 				assert.Equal(t, "stop", calls[1].Data.GetFinishReason())
+				assert.Equal(t, "test_prompt", calls[0].Data.GetPromptKey())
+				assert.Equal(t, "1.0.0", calls[0].Data.GetResolvedVersion())
+				assert.Equal(t, calls[0].Data.TraceID, calls[1].Data.TraceID)
 			},
 		},
 		{
@@ -5747,6 +5860,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				mockPromptService.EXPECT().ExpandSnippets(gomock.Any(), gomock.Any()).Return(nil)
@@ -5813,10 +5927,39 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 			},
 		},
 		{
+			name: "error: workspace permission denied before tenant telemetry",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).
+					Return(errorx.NewByCode(prompterr.CommonNoPermissionCode))
+				// No collector expectation: an unauthorized caller must not write
+				// workspace-scoped invocation statistics.
+				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
+				return fields{auth: mockAuth, collector: mockCollector}
+			},
+			argsGetter: func(ctrl *gomock.Controller) args {
+				ctx := context.Background()
+				return args{
+					ctx: ctx,
+					req: &openapi.ExecuteRequest{
+						WorkspaceID: ptr.Of(int64(123456)),
+						PromptIdentifier: &domainopenapi.PromptQuery{
+							PromptKey: ptr.Of("test_prompt"),
+							Version:   ptr.Of("1.0.0"),
+						},
+					},
+					stream: newMockExecuteStreamingServer(ctx),
+				}
+			},
+			wantErr: errorx.NewByCode(prompterr.CommonNoPermissionCode),
+			validateFunc: func(t *testing.T, stream *mockExecuteStreamingServer) {
+				assert.Empty(t, stream.GetSendCalls())
+			},
+		},
+		{
 			name: "error: workspace_id is empty",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
-				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
 
 				return fields{
 					collector: mockCollector,
@@ -5846,7 +5989,6 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 			name: "error: prompt_key is empty",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
-				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
 
 				return fields{
 					collector: mockCollector,
@@ -5876,7 +6018,6 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 			name: "error: invalid URL in message parts",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
-				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
 
 				return fields{
 					collector: mockCollector,
@@ -5917,7 +6058,6 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 			name: "error: invalid base64 data",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
-				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
 
 				return fields{
 					collector: mockCollector,
@@ -5964,12 +6104,15 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				mockRateLimiter.EXPECT().AllowN(gomock.Any(), "ptaas:qps:space_id:123456:prompt_key:test_prompt", 1, gomock.Any()).Return(&limiter.Result{
 					Allowed: false,
 				}, nil)
+				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
 				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
 
 				return fields{
 					config:      mockConfig,
+					auth:        mockAuth,
 					rateLimiter: mockRateLimiter,
 					collector:   mockCollector,
 				}
@@ -6066,6 +6209,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(
 					errorx.NewByCode(prompterr.CommonNoPermissionCode))
 
@@ -6122,6 +6266,8 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				mockPromptService := servicemocks.NewMockIPromptService(ctrl)
 				mockPromptService.EXPECT().ExpandSnippets(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 				mockPromptService.EXPECT().MGetPromptIDs(gomock.Any(), int64(123456), []string{"test_prompt"}).Return(nil, errors.New("database error"))
+				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
 				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
@@ -6129,6 +6275,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				return fields{
 					promptService: mockPromptService,
 					config:        mockConfig,
+					auth:          mockAuth,
 					rateLimiter:   mockRateLimiter,
 					collector:     mockCollector,
 				}
@@ -6225,6 +6372,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				// Mock ExecuteStreaming 返回错误
@@ -6338,6 +6486,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				// Mock ExecuteStreaming 返回流式响应
@@ -6416,7 +6565,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 			},
 		},
 		{
-			name: "success: client canceled context",
+			name: "error: client canceled context",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockConfig := confmocks.NewMockIConfigProvider(ctrl)
 				mockConfig.EXPECT().GetPTaaSMaxQPSByPromptKey(gomock.Any(), int64(123456), "test_prompt").Return(100, nil)
@@ -6480,6 +6629,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				// Mock ExecuteStreaming 返回流式响应
@@ -6499,6 +6649,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}
 				mockPromptService.EXPECT().ExecuteStreaming(gomock.Any(), gomock.Any()).DoAndReturn(
 					func(ctx context.Context, param service.ExecuteStreamingParam) (*entity.Reply, error) {
+						defer close(canceledWorkerDone)
 						// 发送一个响应
 						param.ResultStream <- &entity.Reply{
 							Item: &entity.ReplyItem{
@@ -6513,7 +6664,8 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 								},
 							},
 						}
-						return expectedReply, nil
+						<-ctx.Done()
+						return expectedReply, ctx.Err()
 					})
 
 				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
@@ -6555,6 +6707,100 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 			validateFunc: func(t *testing.T, stream *mockExecuteStreamingServer) {
 				calls := stream.GetSendCalls()
 				assert.Len(t, calls, 1)
+				assert.Eventually(t, func() bool {
+					select {
+					case <-canceledWorkerDone:
+						return true
+					default:
+						return false
+					}
+				}, time.Second, 10*time.Millisecond, "streaming worker should observe cancellation and exit")
+			},
+			maxDuration: promptStreamingWorkerShutdownTimeout / 2,
+		},
+		{
+			name: "error: stream send deadline exceeded",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				mockConfig := confmocks.NewMockIConfigProvider(ctrl)
+				mockConfig.EXPECT().GetPTaaSMaxQPSByPromptKey(gomock.Any(), int64(123456), "test_prompt").Return(100, nil)
+
+				mockRateLimiter := limitermocks.NewMockIRateLimiter(ctrl)
+				mockRateLimiter.EXPECT().AllowN(gomock.Any(), "ptaas:qps:space_id:123456:prompt_key:test_prompt", 1, gomock.Any()).Return(&limiter.Result{
+					Allowed: true,
+				}, nil)
+
+				mockPromptService := servicemocks.NewMockIPromptService(ctrl)
+				mockPromptService.EXPECT().ExpandSnippets(gomock.Any(), gomock.Any()).Return(nil)
+				mockPromptService.EXPECT().MGetPromptIDs(gomock.Any(), int64(123456), []string{"test_prompt"}).Return(map[string]int64{
+					"test_prompt": 123,
+				}, nil)
+				mockPromptService.EXPECT().MParseCommitVersion(gomock.Any(), int64(123456), gomock.Any()).Return(map[service.PromptQueryParam]string{
+					{PromptID: 123, PromptKey: "test_prompt", Version: "1.0.0"}: "1.0.0",
+				}, nil)
+
+				expectedPrompt := &entity.Prompt{
+					ID:        123,
+					SpaceID:   123456,
+					PromptKey: "test_prompt",
+					PromptCommit: &entity.PromptCommit{
+						CommitInfo: &entity.CommitInfo{Version: "1.0.0"},
+					},
+				}
+				mockManageRepo := repomocks.NewMockIManageRepo(ctrl)
+				mockManageRepo.EXPECT().MGetPrompt(gomock.Any(), gomock.Any(), gomock.Any()).Return(map[repo.GetPromptParam]*entity.Prompt{
+					{PromptID: 123, WithCommit: true, CommitVersion: "1.0.0"}: expectedPrompt,
+				}, nil)
+
+				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
+				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
+
+				mockPromptService.EXPECT().ExecuteStreaming(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, param service.ExecuteStreamingParam) (*entity.Reply, error) {
+						reply := &entity.Reply{
+							Item: &entity.ReplyItem{
+								Message: &entity.Message{
+									Role:    entity.RoleAssistant,
+									Content: ptr.Of("Hello"),
+								},
+								TokenUsage: &entity.TokenUsage{InputTokens: 5, OutputTokens: 1},
+							},
+						}
+						param.ResultStream <- reply
+						return reply, nil
+					})
+
+				mockCollector := collectormocks.NewMockICollectorProvider(ctrl)
+				mockCollector.EXPECT().CollectPTaaSEvent(gomock.Any(), gomock.Any()).Return()
+
+				return fields{
+					promptService:    mockPromptService,
+					promptManageRepo: mockManageRepo,
+					config:           mockConfig,
+					auth:             mockAuth,
+					rateLimiter:      mockRateLimiter,
+					collector:        mockCollector,
+				}
+			},
+			argsGetter: func(ctrl *gomock.Controller) args {
+				ctx := context.Background()
+				stream := newMockExecuteStreamingServer(ctx)
+				stream.SetSendErrors(context.DeadlineExceeded)
+				return args{
+					ctx: ctx,
+					req: &openapi.ExecuteRequest{
+						WorkspaceID: ptr.Of(int64(123456)),
+						PromptIdentifier: &domainopenapi.PromptQuery{
+							PromptKey: ptr.Of("test_prompt"),
+							Version:   ptr.Of("1.0.0"),
+						},
+					},
+					stream: stream,
+				}
+			},
+			wantErr: context.DeadlineExceeded,
+			validateFunc: func(t *testing.T, stream *mockExecuteStreamingServer) {
+				assert.Len(t, stream.GetSendCalls(), 1)
 			},
 		},
 		{
@@ -6622,6 +6868,7 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)
+				mockAuth.EXPECT().CheckSpacePermissionForOpenAPI(gomock.Any(), int64(123456), consts.ActionLoopPromptExecute).Return(nil)
 				mockAuth.EXPECT().MCheckPromptPermissionForOpenAPI(gomock.Any(), int64(123456), []int64{123}, consts.ActionLoopPromptExecute).Return(nil)
 
 				// Mock ExecuteStreaming 模拟panic
@@ -6694,8 +6941,13 @@ func TestPromptOpenAPIApplicationImpl_ExecuteStreaming(t *testing.T) {
 				rateLimiter:      ttFields.rateLimiter,
 				collector:        ttFields.collector,
 			}
+			startedAt := time.Now()
 			err := p.ExecuteStreaming(ttArgs.ctx, ttArgs.req, ttArgs.stream)
+			duration := time.Since(startedAt)
 			unittest.AssertErrorEqual(t, tt.wantErr, err)
+			if tt.maxDuration > 0 {
+				assert.Less(t, duration, tt.maxDuration, "streaming worker shutdown should not wait for the timeout")
+			}
 			if tt.validateFunc != nil {
 				if mockStream, ok := ttArgs.stream.(*mockExecuteStreamingServer); ok {
 					tt.validateFunc(t, mockStream)

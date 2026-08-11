@@ -113,6 +113,27 @@ func (l *LocalPromptManageService) GetPrompt(ctx context.Context, request *manag
 	return result.GetSuccess(), nil
 }
 
+func (l *LocalPromptManageService) GetPromptInvokeInfo(ctx context.Context, request *manage.GetPromptInvokeInfoRequest, callOptions ...callopt.Option) (*manage.GetPromptInvokeInfoResponse, error) {
+	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
+		arg := in.(*manage.PromptManageServiceGetPromptInvokeInfoArgs)
+		result := out.(*manage.PromptManageServiceGetPromptInvokeInfoResult)
+		resp, err := l.impl.GetPromptInvokeInfo(ctx, arg.Request)
+		if err != nil {
+			return err
+		}
+		result.SetSuccess(resp)
+		return nil
+	})
+
+	arg := &manage.PromptManageServiceGetPromptInvokeInfoArgs{Request: request}
+	result := &manage.PromptManageServiceGetPromptInvokeInfoResult{}
+	ctx = l.injectRPCInfo(ctx, "GetPromptInvokeInfo")
+	if err := chain(ctx, arg, result); err != nil {
+		return nil, err
+	}
+	return result.GetSuccess(), nil
+}
+
 func (l *LocalPromptManageService) BatchGetPrompt(ctx context.Context, request *manage.BatchGetPromptRequest, callOptions ...callopt.Option) (*manage.BatchGetPromptResponse, error) {
 	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
 		arg := in.(*manage.PromptManageServiceBatchGetPromptArgs)

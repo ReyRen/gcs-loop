@@ -602,3 +602,48 @@ func (p *BatchGetPromptBasicResponse) IsValid() error {
 	}
 	return nil
 }
+func (p *GetPromptInvokeInfoRequest) IsValid() error {
+	if p.PromptID == nil {
+		return fmt.Errorf("field PromptID not_nil rule failed")
+	}
+	if *p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", *p.PromptID)
+	}
+	if p.CommitVersion == nil {
+		return fmt.Errorf("field CommitVersion not_nil rule failed")
+	}
+	if len(*p.CommitVersion) < int(1) {
+		return fmt.Errorf("field CommitVersion min_len rule failed, current value: %d", len(*p.CommitVersion))
+	}
+	if p.WorkspaceID == nil {
+		return fmt.Errorf("field WorkspaceID not_nil rule failed")
+	}
+	if *p.WorkspaceID <= int64(0) {
+		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", *p.WorkspaceID)
+	}
+	if p.Base != nil {
+		if err := p.Base.IsValid(); err != nil {
+			return fmt.Errorf("field Base not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *PromptInvokeParameter) IsValid() error {
+	return nil
+}
+func (p *PromptInvokeInfo) IsValid() error {
+	return nil
+}
+func (p *GetPromptInvokeInfoResponse) IsValid() error {
+	if p.InvokeInfo != nil {
+		if err := p.InvokeInfo.IsValid(); err != nil {
+			return fmt.Errorf("field InvokeInfo not valid, %w", err)
+		}
+	}
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}

@@ -18,6 +18,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/foundation/domain/authn/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/foundation/domain/authn/repo"
 	"github.com/coze-dev/coze-loop/backend/modules/foundation/domain/authn/repo/mocks"
+	appcontexts "github.com/coze-dev/coze-loop/backend/pkg/contexts"
 	"github.com/coze-dev/coze-loop/backend/pkg/unittest"
 )
 
@@ -75,6 +76,26 @@ func TestAuthNApplicationImpl_CreatePersonalAccessToken(t *testing.T) {
 			assert.Equal(t, tt.wantR, *resp.Token)
 		})
 	}
+}
+
+func TestAuthNApplicationImpl_GetPublicAPIConfig(t *testing.T) {
+	app := &AuthNApplicationImpl{}
+
+	t.Run("success", func(t *testing.T) {
+		ctx := session.WithCtxUser(context.Background(), &session.User{ID: "123"})
+		ctx = appcontexts.WithPublicBaseURL(ctx, "https://gcs.example.com")
+		resp, err := app.GetPublicAPIConfig(ctx, &authn.GetPublicAPIConfigRequest{})
+
+		assert.NoError(t, err)
+		assert.Equal(t, "https://gcs.example.com", resp.GetBaseURL())
+	})
+
+	t.Run("session required", func(t *testing.T) {
+		resp, err := app.GetPublicAPIConfig(context.Background(), &authn.GetPublicAPIConfigRequest{})
+
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+	})
 }
 
 func TestAuthNApplicationImpl_DeletePersonalAccessToken(t *testing.T) {

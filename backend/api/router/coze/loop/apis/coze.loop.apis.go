@@ -30,6 +30,7 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 				_personal_access_tokens.GET("/:id", append(_getpersonalaccesstokenMw(handler), apis.GetPersonalAccessToken)...)
 				_personal_access_tokens.PUT("/:id", append(_updatepersonalaccesstokenMw(handler), apis.UpdatePersonalAccessToken)...)
 				_personal_access_tokens.POST("/list", append(_listpersonalaccesstokenMw(handler), apis.ListPersonalAccessToken)...)
+				_v1.GET("/public_api_config", append(_getpublicapiconfigMw(handler), apis.GetPublicAPIConfig)...)
 			}
 		}
 		{
@@ -450,6 +451,7 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 					_commits.POST("/list", append(_listcommitMw(handler), apis.ListCommit)...)
 					{
 						_commit_version := _commits.Group("/:commit_version", _commit_versionMw(handler)...)
+						_commit_version.GET("/invoke_info", append(_getpromptinvokeinfoMw(handler), apis.GetPromptInvokeInfo)...)
 						_commit_version.POST("/labels_update", append(_updatecommitlabelsMw(handler), apis.UpdateCommitLabels)...)
 					}
 				}

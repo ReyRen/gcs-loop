@@ -39,6 +39,8 @@ services:
       coze-loop-js-faas:
         condition: service_healthy
     environment:
+      # externally reachable API origin used in Prompt curl examples
+      COZE_LOOP_PUBLIC_BASE_URL: "${COZE_LOOP_PUBLIC_BASE_URL}"
       # redis
       COZE_LOOP_REDIS_DOMAIN: "${COZE_LOOP_REDIS_DOMAIN}"
       COZE_LOOP_REDIS_PORT: "${COZE_LOOP_REDIS_PORT}"

@@ -129,6 +129,27 @@ func (l *LocalAuthNService) ListPersonalAccessToken(ctx context.Context, req *au
 	return result.GetSuccess(), nil
 }
 
+func (l *LocalAuthNService) GetPublicAPIConfig(ctx context.Context, req *authn.GetPublicAPIConfigRequest, callOptions ...callopt.Option) (*authn.GetPublicAPIConfigResponse, error) {
+	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
+		arg := in.(*authn.AuthNServiceGetPublicAPIConfigArgs)
+		result := out.(*authn.AuthNServiceGetPublicAPIConfigResult)
+		resp, err := l.impl.GetPublicAPIConfig(ctx, arg.Req)
+		if err != nil {
+			return err
+		}
+		result.SetSuccess(resp)
+		return nil
+	})
+
+	arg := &authn.AuthNServiceGetPublicAPIConfigArgs{Req: req}
+	result := &authn.AuthNServiceGetPublicAPIConfigResult{}
+	ctx = l.injectRPCInfo(ctx, "GetPublicAPIConfig")
+	if err := chain(ctx, arg, result); err != nil {
+		return nil, err
+	}
+	return result.GetSuccess(), nil
+}
+
 // VerifyToken
 // 验证token是否有效
 func (l *LocalAuthNService) VerifyToken(ctx context.Context, req *authn.VerifyTokenRequest, callOptions ...callopt.Option) (*authn.VerifyTokenResponse, error) {

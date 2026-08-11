@@ -121,3 +121,9 @@ func ListPromptTemplates(ctx context.Context, c *app.RequestContext) {
 func GetPromptTemplate(ctx context.Context, c *app.RequestContext) {
 	invokeAndRender(ctx, c, promptManageSvc.GetPromptTemplate)
 }
+
+// GetPromptInvokeInfo .
+// @router /api/prompt/v1/prompts/:prompt_id/commits/:commit_version/invoke_info [GET]
+func GetPromptInvokeInfo(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, promptManageSvc.GetPromptInvokeInfo)
+}

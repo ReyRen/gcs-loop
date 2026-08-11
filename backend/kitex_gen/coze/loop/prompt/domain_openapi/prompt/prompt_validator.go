@@ -22,6 +22,12 @@ var (
 )
 
 func (p *PromptQuery) IsValid() error {
+	if p.PromptKey == nil {
+		return fmt.Errorf("field PromptKey not_nil rule failed")
+	}
+	if len(*p.PromptKey) < int(1) {
+		return fmt.Errorf("field PromptKey min_len rule failed, current value: %d", len(*p.PromptKey))
+	}
 	return nil
 }
 func (p *PromptResultData) IsValid() error {

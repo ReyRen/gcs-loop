@@ -85,6 +85,17 @@ struct VerifyTokenResponse {
     255: optional base.BaseResp BaseResp
 }
 
+// Console 页面使用的公开 HTTP API 部署信息。
+struct GetPublicAPIConfigRequest {
+    255: optional base.Base Base
+}
+
+struct GetPublicAPIConfigResponse {
+    1: optional string base_url // 用户可访问的 GCS Loop API Origin，不含 /v1 路径
+
+    255: optional base.BaseResp BaseResp
+}
+
 service AuthNService {
     // OpenAPI PAT管理
     CreatePersonalAccessTokenResponse CreatePersonalAccessToken(1: CreatePersonalAccessTokenRequest req) (api.post='/api/auth/v1/personal_access_tokens')
@@ -92,6 +103,7 @@ service AuthNService {
     UpdatePersonalAccessTokenResponse UpdatePersonalAccessToken(1: UpdatePersonalAccessTokenRequest req) (api.put='/api/auth/v1/personal_access_tokens/:id')
     GetPersonalAccessTokenResponse GetPersonalAccessToken(1: GetPersonalAccessTokenRequest req) (api.get='/api/auth/v1/personal_access_tokens/:id')
     ListPersonalAccessTokenResponse ListPersonalAccessToken(1: ListPersonalAccessTokenRequest req) (api.post='/api/auth/v1/personal_access_tokens/list')
+    GetPublicAPIConfigResponse GetPublicAPIConfig(1: GetPublicAPIConfigRequest req) (api.get='/api/auth/v1/public_api_config')
 
     // 验证token是否有效
     VerifyTokenResponse VerifyToken(1: VerifyTokenRequest req)

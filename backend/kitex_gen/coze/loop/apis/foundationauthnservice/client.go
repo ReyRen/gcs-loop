@@ -16,6 +16,7 @@ type Client interface {
 	UpdatePersonalAccessToken(ctx context.Context, req *authn.UpdatePersonalAccessTokenRequest, callOptions ...callopt.Option) (r *authn.UpdatePersonalAccessTokenResponse, err error)
 	GetPersonalAccessToken(ctx context.Context, req *authn.GetPersonalAccessTokenRequest, callOptions ...callopt.Option) (r *authn.GetPersonalAccessTokenResponse, err error)
 	ListPersonalAccessToken(ctx context.Context, req *authn.ListPersonalAccessTokenRequest, callOptions ...callopt.Option) (r *authn.ListPersonalAccessTokenResponse, err error)
+	GetPublicAPIConfig(ctx context.Context, req *authn.GetPublicAPIConfigRequest, callOptions ...callopt.Option) (r *authn.GetPublicAPIConfigResponse, err error)
 	VerifyToken(ctx context.Context, req *authn.VerifyTokenRequest, callOptions ...callopt.Option) (r *authn.VerifyTokenResponse, err error)
 }
 
@@ -71,6 +72,11 @@ func (p *kFoundationAuthNServiceClient) GetPersonalAccessToken(ctx context.Conte
 func (p *kFoundationAuthNServiceClient) ListPersonalAccessToken(ctx context.Context, req *authn.ListPersonalAccessTokenRequest, callOptions ...callopt.Option) (r *authn.ListPersonalAccessTokenResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.ListPersonalAccessToken(ctx, req)
+}
+
+func (p *kFoundationAuthNServiceClient) GetPublicAPIConfig(ctx context.Context, req *authn.GetPublicAPIConfigRequest, callOptions ...callopt.Option) (r *authn.GetPublicAPIConfigResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetPublicAPIConfig(ctx, req)
 }
 
 func (p *kFoundationAuthNServiceClient) VerifyToken(ctx context.Context, req *authn.VerifyTokenRequest, callOptions ...callopt.Option) (r *authn.VerifyTokenResponse, err error) {

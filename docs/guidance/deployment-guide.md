@@ -25,6 +25,7 @@ release/deployment/docker-compose/
 | `COZE_LOOP_APP_IMAGE_TAG` | `1.5.1` | 应用镜像版本 |
 | `COZE_LOOP_APP_OPENAPI_PORT` | `8888` | OpenAPI 端口 |
 | `COZE_LOOP_APP_DEBUG_PORT` | `40000` | 远程调试端口 |
+| `COZE_LOOP_PUBLIC_BASE_URL` | 空 | 返回给用户的公开 HTTP API Origin，例如 `https://gcs.example.com` |
 | `COZE_LOOP_REDIS_PORT` | `6379` | Redis 端口 |
 | `COZE_LOOP_REDIS_PASSWORD` | `cozeloop-redis` | Redis 密码 |
 
@@ -45,6 +46,18 @@ release/deployment/docker-compose/
 ### 访问地址
 
 - 应用: `http://localhost:8082`
+
+### 公开 API Base URL
+
+生产环境应在 `.env` 中显式设置用户真正能够访问的地址：
+
+```dotenv
+COZE_LOOP_PUBLIC_BASE_URL=https://gcs.example.com
+```
+
+该值只包含协议、域名和可选端口，不带结尾 `/`、`/v1`、query 或 fragment。后端通过 `GET /api/auth/v1/public_api_config` 返回该地址，并将它写入已发布 Prompt 的 cURL 示例。
+
+留空时，简单 Docker Compose 部署会从当前请求的 `Host` 推导，Nginx 使用 `$http_host` 保留外部端口。TLS 终止、多层反向代理或多域名生产部署不要依赖自动推导，应显式配置该变量。
 
 ## 镜像构建
 

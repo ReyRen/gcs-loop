@@ -12599,6 +12599,12 @@ type ExecuteData struct {
 	FinishReason *string `thrift:"finish_reason,2,optional" frugal:"2,optional,string" form:"finish_reason" json:"finish_reason,omitempty" query:"finish_reason"`
 	//  token消耗
 	Usage *TokenUsage `thrift:"usage,3,optional" frugal:"3,optional,TokenUsage" form:"usage" json:"usage,omitempty" query:"usage"`
+	// 本次 HTTP 调用自动产生的根 Trace ID
+	TraceID *string `thrift:"trace_id,10,optional" frugal:"10,optional,string" form:"trace_id" json:"trace_id,omitempty" query:"trace_id"`
+	// 实际执行的 Prompt Key
+	PromptKey *string `thrift:"prompt_key,11,optional" frugal:"11,optional,string" form:"prompt_key" json:"prompt_key,omitempty" query:"prompt_key"`
+	// 实际执行的已提交版本
+	ResolvedVersion *string `thrift:"resolved_version,12,optional" frugal:"12,optional,string" form:"resolved_version" json:"resolved_version,omitempty" query:"resolved_version"`
 }
 
 func NewExecuteData() *ExecuteData {
@@ -12643,6 +12649,42 @@ func (p *ExecuteData) GetUsage() (v *TokenUsage) {
 	}
 	return p.Usage
 }
+
+var ExecuteData_TraceID_DEFAULT string
+
+func (p *ExecuteData) GetTraceID() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTraceID() {
+		return ExecuteData_TraceID_DEFAULT
+	}
+	return *p.TraceID
+}
+
+var ExecuteData_PromptKey_DEFAULT string
+
+func (p *ExecuteData) GetPromptKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptKey() {
+		return ExecuteData_PromptKey_DEFAULT
+	}
+	return *p.PromptKey
+}
+
+var ExecuteData_ResolvedVersion_DEFAULT string
+
+func (p *ExecuteData) GetResolvedVersion() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetResolvedVersion() {
+		return ExecuteData_ResolvedVersion_DEFAULT
+	}
+	return *p.ResolvedVersion
+}
 func (p *ExecuteData) SetMessage(val *Message) {
 	p.Message = val
 }
@@ -12652,11 +12694,23 @@ func (p *ExecuteData) SetFinishReason(val *string) {
 func (p *ExecuteData) SetUsage(val *TokenUsage) {
 	p.Usage = val
 }
+func (p *ExecuteData) SetTraceID(val *string) {
+	p.TraceID = val
+}
+func (p *ExecuteData) SetPromptKey(val *string) {
+	p.PromptKey = val
+}
+func (p *ExecuteData) SetResolvedVersion(val *string) {
+	p.ResolvedVersion = val
+}
 
 var fieldIDToName_ExecuteData = map[int16]string{
-	1: "message",
-	2: "finish_reason",
-	3: "usage",
+	1:  "message",
+	2:  "finish_reason",
+	3:  "usage",
+	10: "trace_id",
+	11: "prompt_key",
+	12: "resolved_version",
 }
 
 func (p *ExecuteData) IsSetMessage() bool {
@@ -12669,6 +12723,18 @@ func (p *ExecuteData) IsSetFinishReason() bool {
 
 func (p *ExecuteData) IsSetUsage() bool {
 	return p.Usage != nil
+}
+
+func (p *ExecuteData) IsSetTraceID() bool {
+	return p.TraceID != nil
+}
+
+func (p *ExecuteData) IsSetPromptKey() bool {
+	return p.PromptKey != nil
+}
+
+func (p *ExecuteData) IsSetResolvedVersion() bool {
+	return p.ResolvedVersion != nil
 }
 
 func (p *ExecuteData) Read(iprot thrift.TProtocol) (err error) {
@@ -12708,6 +12774,30 @@ func (p *ExecuteData) Read(iprot thrift.TProtocol) (err error) {
 		case 3:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 10:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 11:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 12:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField12(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -12769,6 +12859,39 @@ func (p *ExecuteData) ReadField3(iprot thrift.TProtocol) error {
 	p.Usage = _field
 	return nil
 }
+func (p *ExecuteData) ReadField10(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.TraceID = _field
+	return nil
+}
+func (p *ExecuteData) ReadField11(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptKey = _field
+	return nil
+}
+func (p *ExecuteData) ReadField12(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ResolvedVersion = _field
+	return nil
+}
 
 func (p *ExecuteData) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -12786,6 +12909,18 @@ func (p *ExecuteData) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField3(oprot); err != nil {
 			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField10(oprot); err != nil {
+			fieldId = 10
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+		if err = p.writeField12(oprot); err != nil {
+			fieldId = 12
 			goto WriteFieldError
 		}
 	}
@@ -12860,6 +12995,60 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
+func (p *ExecuteData) writeField10(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTraceID() {
+		if err = oprot.WriteFieldBegin("trace_id", thrift.STRING, 10); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.TraceID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
+}
+func (p *ExecuteData) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptKey() {
+		if err = oprot.WriteFieldBegin("prompt_key", thrift.STRING, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.PromptKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+func (p *ExecuteData) writeField12(oprot thrift.TProtocol) (err error) {
+	if p.IsSetResolvedVersion() {
+		if err = oprot.WriteFieldBegin("resolved_version", thrift.STRING, 12); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ResolvedVersion); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 end error: ", p), err)
+}
 
 func (p *ExecuteData) String() string {
 	if p == nil {
@@ -12882,6 +13071,15 @@ func (p *ExecuteData) DeepEqual(ano *ExecuteData) bool {
 		return false
 	}
 	if !p.Field3DeepEqual(ano.Usage) {
+		return false
+	}
+	if !p.Field10DeepEqual(ano.TraceID) {
+		return false
+	}
+	if !p.Field11DeepEqual(ano.PromptKey) {
+		return false
+	}
+	if !p.Field12DeepEqual(ano.ResolvedVersion) {
 		return false
 	}
 	return true
@@ -12913,6 +13111,42 @@ func (p *ExecuteData) Field3DeepEqual(src *TokenUsage) bool {
 	}
 	return true
 }
+func (p *ExecuteData) Field10DeepEqual(src *string) bool {
+
+	if p.TraceID == src {
+		return true
+	} else if p.TraceID == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.TraceID, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ExecuteData) Field11DeepEqual(src *string) bool {
+
+	if p.PromptKey == src {
+		return true
+	} else if p.PromptKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.PromptKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ExecuteData) Field12DeepEqual(src *string) bool {
+
+	if p.ResolvedVersion == src {
+		return true
+	} else if p.ResolvedVersion == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ResolvedVersion, *src) != 0 {
+		return false
+	}
+	return true
+}
 
 type ExecuteStreamingData struct {
 	Code *int32  `thrift:"code,1,optional" frugal:"1,optional,i32" form:"code" json:"code,omitempty" query:"code"`
@@ -12923,6 +13157,12 @@ type ExecuteStreamingData struct {
 	FinishReason *string `thrift:"finish_reason,4,optional" frugal:"4,optional,string" form:"finish_reason" json:"finish_reason,omitempty" query:"finish_reason"`
 	// token消耗
 	Usage *TokenUsage `thrift:"usage,5,optional" frugal:"5,optional,TokenUsage" form:"usage" json:"usage,omitempty" query:"usage"`
+	// 整个 SSE 调用共用的根 Trace ID
+	TraceID *string `thrift:"trace_id,10,optional" frugal:"10,optional,string" form:"trace_id" json:"trace_id,omitempty" query:"trace_id"`
+	// 实际执行的 Prompt Key
+	PromptKey *string `thrift:"prompt_key,11,optional" frugal:"11,optional,string" form:"prompt_key" json:"prompt_key,omitempty" query:"prompt_key"`
+	// 实际执行的已提交版本
+	ResolvedVersion *string `thrift:"resolved_version,12,optional" frugal:"12,optional,string" form:"resolved_version" json:"resolved_version,omitempty" query:"resolved_version"`
 }
 
 func NewExecuteStreamingData() *ExecuteStreamingData {
@@ -12991,6 +13231,42 @@ func (p *ExecuteStreamingData) GetUsage() (v *TokenUsage) {
 	}
 	return p.Usage
 }
+
+var ExecuteStreamingData_TraceID_DEFAULT string
+
+func (p *ExecuteStreamingData) GetTraceID() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTraceID() {
+		return ExecuteStreamingData_TraceID_DEFAULT
+	}
+	return *p.TraceID
+}
+
+var ExecuteStreamingData_PromptKey_DEFAULT string
+
+func (p *ExecuteStreamingData) GetPromptKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptKey() {
+		return ExecuteStreamingData_PromptKey_DEFAULT
+	}
+	return *p.PromptKey
+}
+
+var ExecuteStreamingData_ResolvedVersion_DEFAULT string
+
+func (p *ExecuteStreamingData) GetResolvedVersion() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetResolvedVersion() {
+		return ExecuteStreamingData_ResolvedVersion_DEFAULT
+	}
+	return *p.ResolvedVersion
+}
 func (p *ExecuteStreamingData) SetCode(val *int32) {
 	p.Code = val
 }
@@ -13006,13 +13282,25 @@ func (p *ExecuteStreamingData) SetFinishReason(val *string) {
 func (p *ExecuteStreamingData) SetUsage(val *TokenUsage) {
 	p.Usage = val
 }
+func (p *ExecuteStreamingData) SetTraceID(val *string) {
+	p.TraceID = val
+}
+func (p *ExecuteStreamingData) SetPromptKey(val *string) {
+	p.PromptKey = val
+}
+func (p *ExecuteStreamingData) SetResolvedVersion(val *string) {
+	p.ResolvedVersion = val
+}
 
 var fieldIDToName_ExecuteStreamingData = map[int16]string{
-	1: "code",
-	2: "msg",
-	3: "message",
-	4: "finish_reason",
-	5: "usage",
+	1:  "code",
+	2:  "msg",
+	3:  "message",
+	4:  "finish_reason",
+	5:  "usage",
+	10: "trace_id",
+	11: "prompt_key",
+	12: "resolved_version",
 }
 
 func (p *ExecuteStreamingData) IsSetCode() bool {
@@ -13033,6 +13321,18 @@ func (p *ExecuteStreamingData) IsSetFinishReason() bool {
 
 func (p *ExecuteStreamingData) IsSetUsage() bool {
 	return p.Usage != nil
+}
+
+func (p *ExecuteStreamingData) IsSetTraceID() bool {
+	return p.TraceID != nil
+}
+
+func (p *ExecuteStreamingData) IsSetPromptKey() bool {
+	return p.PromptKey != nil
+}
+
+func (p *ExecuteStreamingData) IsSetResolvedVersion() bool {
+	return p.ResolvedVersion != nil
 }
 
 func (p *ExecuteStreamingData) Read(iprot thrift.TProtocol) (err error) {
@@ -13088,6 +13388,30 @@ func (p *ExecuteStreamingData) Read(iprot thrift.TProtocol) (err error) {
 		case 5:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 10:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 11:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 12:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField12(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -13171,6 +13495,39 @@ func (p *ExecuteStreamingData) ReadField5(iprot thrift.TProtocol) error {
 	p.Usage = _field
 	return nil
 }
+func (p *ExecuteStreamingData) ReadField10(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.TraceID = _field
+	return nil
+}
+func (p *ExecuteStreamingData) ReadField11(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptKey = _field
+	return nil
+}
+func (p *ExecuteStreamingData) ReadField12(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ResolvedVersion = _field
+	return nil
+}
 
 func (p *ExecuteStreamingData) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -13196,6 +13553,18 @@ func (p *ExecuteStreamingData) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField5(oprot); err != nil {
 			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField10(oprot); err != nil {
+			fieldId = 10
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+		if err = p.writeField12(oprot); err != nil {
+			fieldId = 12
 			goto WriteFieldError
 		}
 	}
@@ -13306,6 +13675,60 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
 }
+func (p *ExecuteStreamingData) writeField10(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTraceID() {
+		if err = oprot.WriteFieldBegin("trace_id", thrift.STRING, 10); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.TraceID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
+}
+func (p *ExecuteStreamingData) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptKey() {
+		if err = oprot.WriteFieldBegin("prompt_key", thrift.STRING, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.PromptKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+func (p *ExecuteStreamingData) writeField12(oprot thrift.TProtocol) (err error) {
+	if p.IsSetResolvedVersion() {
+		if err = oprot.WriteFieldBegin("resolved_version", thrift.STRING, 12); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ResolvedVersion); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 end error: ", p), err)
+}
 
 func (p *ExecuteStreamingData) String() string {
 	if p == nil {
@@ -13334,6 +13757,15 @@ func (p *ExecuteStreamingData) DeepEqual(ano *ExecuteStreamingData) bool {
 		return false
 	}
 	if !p.Field5DeepEqual(ano.Usage) {
+		return false
+	}
+	if !p.Field10DeepEqual(ano.TraceID) {
+		return false
+	}
+	if !p.Field11DeepEqual(ano.PromptKey) {
+		return false
+	}
+	if !p.Field12DeepEqual(ano.ResolvedVersion) {
 		return false
 	}
 	return true
@@ -13385,6 +13817,42 @@ func (p *ExecuteStreamingData) Field4DeepEqual(src *string) bool {
 func (p *ExecuteStreamingData) Field5DeepEqual(src *TokenUsage) bool {
 
 	if !p.Usage.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *ExecuteStreamingData) Field10DeepEqual(src *string) bool {
+
+	if p.TraceID == src {
+		return true
+	} else if p.TraceID == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.TraceID, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ExecuteStreamingData) Field11DeepEqual(src *string) bool {
+
+	if p.PromptKey == src {
+		return true
+	} else if p.PromptKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.PromptKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ExecuteStreamingData) Field12DeepEqual(src *string) bool {
+
+	if p.ResolvedVersion == src {
+		return true
+	} else if p.ResolvedVersion == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ResolvedVersion, *src) != 0 {
 		return false
 	}
 	return true

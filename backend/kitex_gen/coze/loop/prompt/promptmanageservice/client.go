@@ -15,6 +15,7 @@ type Client interface {
 	ClonePrompt(ctx context.Context, request *manage.ClonePromptRequest, callOptions ...callopt.Option) (r *manage.ClonePromptResponse, err error)
 	DeletePrompt(ctx context.Context, request *manage.DeletePromptRequest, callOptions ...callopt.Option) (r *manage.DeletePromptResponse, err error)
 	GetPrompt(ctx context.Context, request *manage.GetPromptRequest, callOptions ...callopt.Option) (r *manage.GetPromptResponse, err error)
+	GetPromptInvokeInfo(ctx context.Context, request *manage.GetPromptInvokeInfoRequest, callOptions ...callopt.Option) (r *manage.GetPromptInvokeInfoResponse, err error)
 	BatchGetPrompt(ctx context.Context, request *manage.BatchGetPromptRequest, callOptions ...callopt.Option) (r *manage.BatchGetPromptResponse, err error)
 	ListPrompt(ctx context.Context, request *manage.ListPromptRequest, callOptions ...callopt.Option) (r *manage.ListPromptResponse, err error)
 	ListPromptTemplates(ctx context.Context, request *manage.ListPromptTemplatesRequest, callOptions ...callopt.Option) (r *manage.ListPromptTemplatesResponse, err error)
@@ -79,6 +80,11 @@ func (p *kPromptManageServiceClient) DeletePrompt(ctx context.Context, request *
 func (p *kPromptManageServiceClient) GetPrompt(ctx context.Context, request *manage.GetPromptRequest, callOptions ...callopt.Option) (r *manage.GetPromptResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetPrompt(ctx, request)
+}
+
+func (p *kPromptManageServiceClient) GetPromptInvokeInfo(ctx context.Context, request *manage.GetPromptInvokeInfoRequest, callOptions ...callopt.Option) (r *manage.GetPromptInvokeInfoResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetPromptInvokeInfo(ctx, request)
 }
 
 func (p *kPromptManageServiceClient) BatchGetPrompt(ctx context.Context, request *manage.BatchGetPromptRequest, callOptions ...callopt.Option) (r *manage.BatchGetPromptResponse, err error) {

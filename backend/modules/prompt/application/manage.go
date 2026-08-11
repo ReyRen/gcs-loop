@@ -5,6 +5,7 @@ package application
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -26,6 +27,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/consts"
 	prompterr "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/errno"
 	promptversion "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/version"
+	appcontexts "github.com/coze-dev/coze-loop/backend/pkg/contexts"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
@@ -465,6 +467,110 @@ func (app *PromptManageApplicationImpl) GetPrompt(ctx context.Context, request *
 		}
 	}
 	return r, err
+}
+
+func (app *PromptManageApplicationImpl) GetPromptInvokeInfo(ctx context.Context, request *manage.GetPromptInvokeInfoRequest) (r *manage.GetPromptInvokeInfoResponse, err error) {
+	r = manage.NewGetPromptInvokeInfoResponse()
+	if request == nil || request.GetPromptID() <= 0 || request.GetWorkspaceID() <= 0 || strings.TrimSpace(request.GetCommitVersion()) == "" {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("Prompt ID, workspace ID and commit version are required"))
+	}
+
+	userID, ok := session.UserIDInCtx(ctx)
+	if !ok || lo.IsEmpty(userID) {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found"))
+	}
+
+	promptDO, err := app.promptService.GetPrompt(ctx, service.GetPromptParam{
+		PromptID:      request.GetPromptID(),
+		WithCommit:    true,
+		CommitVersion: strings.TrimSpace(request.GetCommitVersion()),
+	})
+	if err != nil {
+		return r, err
+	}
+	if promptDO == nil {
+		return r, errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg("Prompt not found"))
+	}
+
+	if err = app.authRPCProvider.MCheckPromptPermission(ctx, promptDO.SpaceID, []int64{request.GetPromptID()}, consts.ActionLoopPromptRead); err != nil {
+		return r, err
+	}
+	if request.GetWorkspaceID() != promptDO.SpaceID {
+		return r, errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg("WorkspaceID not match"))
+	}
+	if promptDO.PromptBasic != nil && promptDO.PromptBasic.PromptType == entity.PromptTypeSnippet {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("Snippet prompt cannot be invoked independently"))
+	}
+	if promptDO.PromptCommit == nil || promptDO.PromptCommit.PromptDetail == nil || promptDO.PromptCommit.PromptDetail.PromptTemplate == nil {
+		return r, errorx.NewByCode(prompterr.CommonInternalErrorCode, errorx.WithExtraMsg("Committed prompt template is incomplete"))
+	}
+
+	invokeInfo, err := BuildPromptInvokeInfo(PromptInvokeInfoInput{
+		WorkspaceID:    promptDO.SpaceID,
+		PromptKey:      promptDO.PromptKey,
+		Version:        promptDO.GetVersion(),
+		BaseURL:        appcontexts.CtxPublicBaseURL(ctx),
+		PromptTemplate: promptDO.PromptCommit.PromptDetail.PromptTemplate,
+	})
+	if err != nil {
+		return r, errorx.WrapByCode(err, prompterr.CommonInternalErrorCode)
+	}
+	invokeInfoDTO, err := promptInvokeInfoDO2DTO(promptDO.PromptKey, promptDO.GetVersion(), invokeInfo)
+	if err != nil {
+		return r, errorx.WrapByCode(err, prompterr.CommonInternalErrorCode)
+	}
+	r.InvokeInfo = invokeInfoDTO
+	return r, nil
+}
+
+func promptInvokeInfoDO2DTO(promptKey, version string, invokeInfo *PromptInvokeInfo) (*manage.PromptInvokeInfo, error) {
+	if invokeInfo == nil {
+		return nil, fmt.Errorf("prompt invoke info is nil")
+	}
+	parameters := make([]*manage.PromptInvokeParameter, 0, len(invokeInfo.Parameters))
+	for _, parameter := range invokeInfo.Parameters {
+		if parameter == nil {
+			continue
+		}
+		example, err := promptInvokeParameterExample(parameter)
+		if err != nil {
+			return nil, err
+		}
+		parameters = append(parameters, &manage.PromptInvokeParameter{
+			Key:         ptr.Of(parameter.Key),
+			Description: ptr.Of(parameter.Description),
+			Type:        ptr.Of(prompt.VariableType(parameter.Type)),
+			ValueField:  ptr.Of(parameter.ValueField),
+			Example:     ptr.Of(example),
+			TypeTags:    append([]string(nil), parameter.TypeTags...),
+		})
+	}
+	return &manage.PromptInvokeInfo{
+		PromptKey:                ptr.Of(promptKey),
+		Version:                  ptr.Of(version),
+		Parameters:               parameters,
+		BaseURL:                  ptr.Of(invokeInfo.BaseURL),
+		ExecuteEndpoint:          ptr.Of(invokeInfo.ExecuteEndpoint),
+		StreamingExecuteEndpoint: ptr.Of(invokeInfo.StreamingExecuteEndpoint),
+		RequestBody:              ptr.Of(invokeInfo.RequestBody),
+		Curl:                     ptr.Of(invokeInfo.Curl),
+		StreamingCurl:            ptr.Of(invokeInfo.StreamingCurl),
+	}, nil
+}
+
+func promptInvokeParameterExample(parameter *PromptInvokeParameter) (string, error) {
+	if parameter.ValueField == "value" {
+		value, ok := parameter.Example.(string)
+		if !ok {
+			return "", fmt.Errorf("prompt variable %q has a non-string value example", parameter.Key)
+		}
+		return value, nil
+	}
+	raw, err := json.Marshal(parameter.Example)
+	if err != nil {
+		return "", fmt.Errorf("marshal prompt variable %q example: %w", parameter.Key, err)
+	}
+	return string(raw), nil
 }
 
 func (app *PromptManageApplicationImpl) BatchGetPrompt(ctx context.Context, request *manage.BatchGetPromptRequest) (r *manage.BatchGetPromptResponse, err error) {

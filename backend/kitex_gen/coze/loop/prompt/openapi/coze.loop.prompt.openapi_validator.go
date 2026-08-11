@@ -48,10 +48,17 @@ func (p *BatchGetPromptByPromptKeyResponse) IsValid() error {
 	return nil
 }
 func (p *ExecuteRequest) IsValid() error {
-	if p.PromptIdentifier != nil {
-		if err := p.PromptIdentifier.IsValid(); err != nil {
-			return fmt.Errorf("field PromptIdentifier not valid, %w", err)
-		}
+	if p.WorkspaceID == nil {
+		return fmt.Errorf("field WorkspaceID not_nil rule failed")
+	}
+	if *p.WorkspaceID <= int64(0) {
+		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", *p.WorkspaceID)
+	}
+	if p.PromptIdentifier == nil {
+		return fmt.Errorf("field PromptIdentifier not_nil rule failed")
+	}
+	if err := p.PromptIdentifier.IsValid(); err != nil {
+		return fmt.Errorf("field PromptIdentifier not valid, %w", err)
 	}
 	if p.CustomToolCallConfig != nil {
 		if err := p.CustomToolCallConfig.IsValid(); err != nil {

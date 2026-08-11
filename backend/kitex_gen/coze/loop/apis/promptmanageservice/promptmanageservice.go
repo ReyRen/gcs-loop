@@ -42,6 +42,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"GetPromptInvokeInfo": kitex.NewMethodInfo(
+		getPromptInvokeInfoHandler,
+		newPromptManageServiceGetPromptInvokeInfoArgs,
+		newPromptManageServiceGetPromptInvokeInfoResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"BatchGetPrompt": kitex.NewMethodInfo(
 		batchGetPromptHandler,
 		newPromptManageServiceBatchGetPromptArgs,
@@ -254,6 +261,25 @@ func newPromptManageServiceGetPromptArgs() interface{} {
 
 func newPromptManageServiceGetPromptResult() interface{} {
 	return manage.NewPromptManageServiceGetPromptResult()
+}
+
+func getPromptInvokeInfoHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*manage.PromptManageServiceGetPromptInvokeInfoArgs)
+	realResult := result.(*manage.PromptManageServiceGetPromptInvokeInfoResult)
+	success, err := handler.(manage.PromptManageService).GetPromptInvokeInfo(ctx, realArg.Request)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newPromptManageServiceGetPromptInvokeInfoArgs() interface{} {
+	return manage.NewPromptManageServiceGetPromptInvokeInfoArgs()
+}
+
+func newPromptManageServiceGetPromptInvokeInfoResult() interface{} {
+	return manage.NewPromptManageServiceGetPromptInvokeInfoResult()
 }
 
 func batchGetPromptHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -588,6 +614,16 @@ func (p *kClient) GetPrompt(ctx context.Context, request *manage.GetPromptReques
 	_args.Request = request
 	var _result manage.PromptManageServiceGetPromptResult
 	if err = p.c.Call(ctx, "GetPrompt", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetPromptInvokeInfo(ctx context.Context, request *manage.GetPromptInvokeInfoRequest) (r *manage.GetPromptInvokeInfoResponse, err error) {
+	var _args manage.PromptManageServiceGetPromptInvokeInfoArgs
+	_args.Request = request
+	var _result manage.PromptManageServiceGetPromptInvokeInfoResult
+	if err = p.c.Call(ctx, "GetPromptInvokeInfo", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

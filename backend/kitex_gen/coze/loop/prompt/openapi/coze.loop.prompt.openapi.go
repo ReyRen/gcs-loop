@@ -7714,13 +7714,15 @@ func (p *SaveDraftOApiResponse) Field255DeepEqual(src *base.BaseResp) bool {
 }
 
 type ListCommitOApiRequest struct {
-	PromptID         *int64       `thrift:"prompt_id,1,optional" frugal:"1,optional,i64" json:"prompt_id" path:"prompt_id" `
-	WorkspaceID      *int64       `thrift:"workspace_id,2,optional" frugal:"2,optional,i64" json:"workspace_id" form:"workspace_id" `
-	WithCommitDetail *bool        `thrift:"with_commit_detail,3,optional" frugal:"3,optional,bool" json:"with_commit_detail,omitempty" query:"with_commit_detail"`
-	PageSize         *int32       `thrift:"page_size,127,optional" frugal:"127,optional,i32" form:"page_size" json:"page_size,omitempty"`
-	PageToken        *string      `thrift:"page_token,128,optional" frugal:"128,optional,string" form:"page_token" json:"page_token,omitempty"`
-	Extra            *extra.Extra `thrift:"extra,254,optional" frugal:"254,optional,extra.Extra" form:"extra" json:"extra,omitempty" query:"extra"`
-	Base             *base.Base   `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
+	PromptID         *int64 `thrift:"prompt_id,1,optional" frugal:"1,optional,i64" json:"prompt_id" path:"prompt_id" `
+	WorkspaceID      *int64 `thrift:"workspace_id,2,optional" frugal:"2,optional,i64" json:"workspace_id" form:"workspace_id" `
+	WithCommitDetail *bool  `thrift:"with_commit_detail,3,optional" frugal:"3,optional,bool" json:"with_commit_detail,omitempty" query:"with_commit_detail"`
+	// 1..200
+	PageSize *int32 `thrift:"page_size,127,optional" frugal:"127,optional,i32" form:"page_size" json:"page_size,omitempty"`
+	// 第一页省略；后续原样回传 next_page_token，不得解析
+	PageToken *string      `thrift:"page_token,128,optional" frugal:"128,optional,string" form:"page_token" json:"page_token,omitempty"`
+	Extra     *extra.Extra `thrift:"extra,254,optional" frugal:"254,optional,extra.Extra" form:"extra" json:"extra,omitempty" query:"extra"`
+	Base      *base.Base   `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 
 func NewListCommitOApiRequest() *ListCommitOApiRequest {
@@ -9576,6 +9578,7 @@ func (p *CommitDraftOApiRequest) Field255DeepEqual(src *base.Base) bool {
 	return true
 }
 
+// 提交成功返回 code=0；非零 code 为业务错误，并可能在响应顶层携带结构化 extra。
 type CommitDraftOApiResponse struct {
 	Code     *int32         `thrift:"code,1,optional" frugal:"1,optional,i32" form:"code" json:"code,omitempty" query:"code"`
 	Msg      *string        `thrift:"msg,2,optional" frugal:"2,optional,string" form:"msg" json:"msg,omitempty" query:"msg"`

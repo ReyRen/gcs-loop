@@ -83,7 +83,7 @@ const UsageScenario UsageScenario_AIScore = "ai_score"
 const UsageScenario UsageScenario_AITag = "ai_tag"
 
 struct PromptQuery {
-    1: optional string prompt_key // prompt_key
+    1: optional string prompt_key (vt.not_nil='true', vt.min_size='1') // prompt_key
     2: optional string version // prompt版本
     3: optional string label // prompt版本标识（如果version不为空，该字段会被忽略）
 }
@@ -291,6 +291,10 @@ struct ExecuteData {
     1: optional Message message // 消息
     2: optional string finish_reason // 结束原因
     3: optional TokenUsage usage //  token消耗
+
+    10: optional string trace_id // 本次 HTTP 调用自动产生的根 Trace ID
+    11: optional string prompt_key // 实际执行的 Prompt Key
+    12: optional string resolved_version // 实际执行的已提交版本
 }
 
 struct ExecuteStreamingData {
@@ -299,6 +303,10 @@ struct ExecuteStreamingData {
     3: optional Message message // 消息
     4: optional string finish_reason // 结束原因
     5: optional TokenUsage usage // token消耗
+
+    10: optional string trace_id // 整个 SSE 调用共用的根 Trace ID
+    11: optional string prompt_key // 实际执行的 Prompt Key
+    12: optional string resolved_version // 实际执行的已提交版本
 }
 
 struct PromptDetail {

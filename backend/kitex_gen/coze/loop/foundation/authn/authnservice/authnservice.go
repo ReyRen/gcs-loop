@@ -48,6 +48,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"GetPublicAPIConfig": kitex.NewMethodInfo(
+		getPublicAPIConfigHandler,
+		newAuthNServiceGetPublicAPIConfigArgs,
+		newAuthNServiceGetPublicAPIConfigResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"VerifyToken": kitex.NewMethodInfo(
 		verifyTokenHandler,
 		newAuthNServiceVerifyTokenArgs,
@@ -183,6 +190,25 @@ func newAuthNServiceListPersonalAccessTokenResult() interface{} {
 	return authn.NewAuthNServiceListPersonalAccessTokenResult()
 }
 
+func getPublicAPIConfigHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*authn.AuthNServiceGetPublicAPIConfigArgs)
+	realResult := result.(*authn.AuthNServiceGetPublicAPIConfigResult)
+	success, err := handler.(authn.AuthNService).GetPublicAPIConfig(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newAuthNServiceGetPublicAPIConfigArgs() interface{} {
+	return authn.NewAuthNServiceGetPublicAPIConfigArgs()
+}
+
+func newAuthNServiceGetPublicAPIConfigResult() interface{} {
+	return authn.NewAuthNServiceGetPublicAPIConfigResult()
+}
+
 func verifyTokenHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*authn.AuthNServiceVerifyTokenArgs)
 	realResult := result.(*authn.AuthNServiceVerifyTokenResult)
@@ -259,6 +285,16 @@ func (p *kClient) ListPersonalAccessToken(ctx context.Context, req *authn.ListPe
 	_args.Req = req
 	var _result authn.AuthNServiceListPersonalAccessTokenResult
 	if err = p.c.Call(ctx, "ListPersonalAccessToken", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetPublicAPIConfig(ctx context.Context, req *authn.GetPublicAPIConfigRequest) (r *authn.GetPublicAPIConfigResponse, err error) {
+	var _args authn.AuthNServiceGetPublicAPIConfigArgs
+	_args.Req = req
+	var _result authn.AuthNServiceGetPublicAPIConfigResult
+	if err = p.c.Call(ctx, "GetPublicAPIConfig", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

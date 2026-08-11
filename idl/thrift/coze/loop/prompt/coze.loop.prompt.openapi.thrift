@@ -34,8 +34,8 @@ struct BatchGetPromptByPromptKeyResponse {
 }
 
 struct ExecuteRequest {
-    1: optional i64 workspace_id (api.body="workspace_id", api.js_conv='true', go.tag='json:"workspace_id"') // 工作空间ID
-    2: optional prompt.PromptQuery prompt_identifier (api.body="prompt_identifier") // Prompt 标识
+    1: optional i64 workspace_id (api.body="workspace_id", api.js_conv='true', vt.not_nil='true', vt.gt='0', go.tag='json:"workspace_id"') // 工作空间ID
+    2: optional prompt.PromptQuery prompt_identifier (api.body="prompt_identifier", vt.not_nil='true') // Prompt 标识
 
     10: optional list<prompt.VariableVal> variable_vals (api.body="variable_vals") // 变量值
     11: optional list<prompt.Message> messages (api.body="messages") // 消息

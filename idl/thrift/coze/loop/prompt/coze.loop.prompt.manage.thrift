@@ -18,6 +18,7 @@ service PromptManageService {
 
     // 查
     GetPromptResponse GetPrompt(1: GetPromptRequest request) (api.get = '/api/prompt/v1/prompts/:prompt_id')
+    GetPromptInvokeInfoResponse GetPromptInvokeInfo(1: GetPromptInvokeInfoRequest request) (api.get = '/api/prompt/v1/prompts/:prompt_id/commits/:commit_version/invoke_info')
     BatchGetPromptResponse BatchGetPrompt(1: BatchGetPromptRequest request)
     ListPromptResponse ListPrompt(1: ListPromptRequest request) (api.post = '/api/prompt/v1/prompts/list')
     ListPromptTemplatesResponse ListPromptTemplates(1: ListPromptTemplatesRequest request) (api.post = '/api/prompt/v1/prompt_templates/list')
@@ -384,4 +385,42 @@ struct BatchGetPromptBasicResponse {
     1: optional list<prompt.Prompt> prompts
 
     255: optional base.BaseResp  BaseResp
+}
+
+// 返回指定已提交 Prompt 版本的 HTTP 调用契约与 curl 示例。
+// 该接口仅用于 Console 展示；实际调用使用 /v1/loop/prompts/execute(_streaming)。
+struct GetPromptInvokeInfoRequest {
+    1: optional i64 prompt_id (api.path='prompt_id', api.js_conv='true', vt.not_nil='true', vt.gt='0', go.tag='json:"prompt_id"')
+    2: optional string commit_version (api.path='commit_version', vt.not_nil='true', vt.min_size='1')
+    3: optional i64 workspace_id (api.query='workspace_id', api.js_conv='true', vt.not_nil='true', vt.gt='0', go.tag='json:"workspace_id"')
+
+    255: optional base.Base Base
+}
+
+struct PromptInvokeParameter {
+    1: optional string key
+    2: optional string description
+    3: optional prompt.VariableType type
+    4: optional string value_field // value / placeholder_messages / multi_part_values
+    5: optional string example // value 或 JSON 序列化后的结构化示例
+    6: optional list<string> type_tags // multi_part 等变量的 image / video 类型约束
+}
+
+struct PromptInvokeInfo {
+    1: optional string prompt_key
+    2: optional string version
+    3: optional list<PromptInvokeParameter> parameters (go.tag='json:"parameters"')
+
+    10: optional string base_url // 可从用户浏览器访问的 GCS Loop HTTP API Origin，不含 /v1 路径
+    11: optional string execute_endpoint
+    12: optional string streaming_execute_endpoint
+    13: optional string request_body
+    14: optional string curl
+    15: optional string streaming_curl
+}
+
+struct GetPromptInvokeInfoResponse {
+    1: optional PromptInvokeInfo invoke_info
+
+    255: optional base.BaseResp BaseResp
 }

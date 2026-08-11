@@ -17,7 +17,9 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/foundation/domain/authn/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/foundation/domain/authn/repo"
 	"github.com/coze-dev/coze-loop/backend/modules/foundation/pkg/errno"
+	appcontexts "github.com/coze-dev/coze-loop/backend/pkg/contexts"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
+	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
 
 const (
@@ -219,6 +221,15 @@ func (a AuthNApplicationImpl) ListPersonalAccessToken(ctx context.Context, req *
 				ExpireAt:   item.ExpiredAt,
 			}
 		}),
+	}, nil
+}
+
+func (a AuthNApplicationImpl) GetPublicAPIConfig(ctx context.Context, _ *authn.GetPublicAPIConfigRequest) (r *authn.GetPublicAPIConfigResponse, err error) {
+	if _, ok := session.UserIDInCtx(ctx); !ok {
+		return nil, errorx.NewByCode(errno.CommonNoPermissionCode)
+	}
+	return &authn.GetPublicAPIConfigResponse{
+		BaseURL: ptr.Of(appcontexts.CtxPublicBaseURL(ctx)),
 	}, nil
 }
 

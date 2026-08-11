@@ -2499,3 +2499,11 @@ func _updategeneraterecordMw(handler *apis.APIHandler) []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _getpromptinvokeinfoMw(handler *apis.APIHandler) []app.HandlerFunc {
+	return []app.HandlerFunc{middleware.PublicBaseURLMW()}
+}
+
+func _getpublicapiconfigMw(handler *apis.APIHandler) []app.HandlerFunc {
+	return []app.HandlerFunc{middleware.PublicBaseURLMW()}
+}

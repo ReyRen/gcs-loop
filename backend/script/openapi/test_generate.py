@@ -65,6 +65,63 @@ class OpenAPIGeneratorTest(unittest.TestCase):
         self.assertIn("prompt_draft", body_schema["properties"])
         self.assertNotIn("Base", body_schema["properties"])
 
+        invoke_info = self.document["paths"][
+            "/api/prompt/v1/prompts/{prompt_id}/commits/{commit_version}/invoke_info"
+        ]["get"]
+        invoke_parameters = {
+            (parameter["in"], parameter["name"]): parameter
+            for parameter in invoke_info["parameters"]
+        }
+        self.assertTrue(invoke_parameters[("path", "prompt_id")]["required"])
+        self.assertTrue(
+            invoke_parameters[("path", "commit_version")]["required"]
+        )
+        self.assertTrue(
+            invoke_parameters[("query", "workspace_id")]["required"]
+        )
+        self.assertEqual(invoke_info["security"], [{"sessionCookie": []}])
+
+        invoke_schema = self.document["components"]["schemas"][
+            "coze.loop.prompt.manage.PromptInvokeInfo"
+        ]
+        self.assertEqual(
+            invoke_schema["properties"]["base_url"]["type"], "string"
+        )
+        self.assertNotIn("base_url", invoke_schema.get("required", []))
+
+    def test_prompt_execute_response_has_trace_and_resolved_version(self) -> None:
+        for path in (
+            "/v1/loop/prompts/execute",
+            "/v1/loop/prompts/execute_streaming",
+        ):
+            request_body = self.document["paths"][path]["post"]["requestBody"]
+            self.assertTrue(request_body["required"])
+            request_schema = request_body["content"]["application/json"][
+                "schema"
+            ]
+            self.assertSetEqual(
+                set(request_schema["required"]),
+                {"workspace_id", "prompt_identifier"},
+            )
+
+        prompt_query = self.document["components"]["schemas"][
+            "coze.loop.prompt.domain_openapi.prompt.PromptQuery"
+        ]
+        self.assertIn("prompt_key", prompt_query["required"])
+
+        for schema_name in (
+            "coze.loop.prompt.domain_openapi.prompt.ExecuteData",
+            "coze.loop.prompt.domain_openapi.prompt.ExecuteStreamingData",
+        ):
+            properties = self.document["components"]["schemas"][schema_name][
+                "properties"
+            ]
+            self.assertTrue(
+                {"trace_id", "prompt_key", "resolved_version"}.issubset(
+                    properties
+                )
+            )
+
     def test_unannotated_body_field_is_documented_in_json_body(self) -> None:
         list_datasets = self.document["paths"]["/api/data/v1/datasets/list"][
             "post"
@@ -150,6 +207,20 @@ class OpenAPIGeneratorTest(unittest.TestCase):
             "/api/foundation/v1/users/reset_password"
         ]["post"]
         self.assertEqual(reset_password["security"], [{"sessionCookie": []}])
+
+        public_api_config = self.document["paths"][
+            "/api/auth/v1/public_api_config"
+        ]["get"]
+        self.assertEqual(
+            public_api_config["security"], [{"sessionCookie": []}]
+        )
+        public_api_config_schema = self.document["components"]["schemas"][
+            "coze.loop.foundation.authn.GetPublicAPIConfigResponse"
+        ]
+        self.assertEqual(
+            public_api_config_schema["properties"]["base_url"]["type"],
+            "string",
+        )
 
         logout = self.document["paths"]["/api/foundation/v1/users/logout"][
             "post"

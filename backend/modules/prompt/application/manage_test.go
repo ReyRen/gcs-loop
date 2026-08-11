@@ -5,6 +5,7 @@ package application
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -28,6 +29,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/mysql"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/consts"
 	prompterr "github.com/coze-dev/coze-loop/backend/modules/prompt/pkg/errno"
+	appcontexts "github.com/coze-dev/coze-loop/backend/pkg/contexts"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 	"github.com/coze-dev/coze-loop/backend/pkg/unittest"
@@ -1364,6 +1366,173 @@ func TestPromptManageApplicationImpl_GetPrompt(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPromptManageApplicationImpl_GetPromptInvokeInfo(t *testing.T) {
+	t.Parallel()
+
+	const (
+		promptID      = int64(101)
+		workspaceID   = int64(202)
+		promptKey     = "bidding_proposal_writing"
+		commitVersion = "1.2.3"
+	)
+
+	newRequest := func(workspace int64) *manage.GetPromptInvokeInfoRequest {
+		return &manage.GetPromptInvokeInfoRequest{
+			PromptID:      ptr.Of(promptID),
+			WorkspaceID:   ptr.Of(workspace),
+			CommitVersion: ptr.Of(" " + commitVersion + " "),
+		}
+	}
+	newPrompt := func(promptType entity.PromptType) *entity.Prompt {
+		return &entity.Prompt{
+			ID:        promptID,
+			SpaceID:   workspaceID,
+			PromptKey: promptKey,
+			PromptBasic: &entity.PromptBasic{
+				PromptType:    promptType,
+				LatestVersion: "9.9.9",
+			},
+			PromptCommit: &entity.PromptCommit{
+				CommitInfo: &entity.CommitInfo{Version: commitVersion},
+				PromptDetail: &entity.PromptDetail{
+					PromptTemplate: &entity.PromptTemplate{
+						VariableDefs: []*entity.VariableDef{
+							{Key: "section_goal", Desc: "章节目标", Type: entity.VariableTypeString},
+						},
+					},
+				},
+			},
+		}
+	}
+	userCtx := func() context.Context {
+		ctx := session.WithCtxUser(context.Background(), &session.User{ID: "user-1"})
+		return appcontexts.WithPublicBaseURL(ctx, "https://gcs.example.com:8443")
+	}
+
+	t.Run("success uses the exact committed version", func(t *testing.T) {
+		t.Parallel()
+		ctrl := gomock.NewController(t)
+		promptSvc := servicemocks.NewMockIPromptService(ctrl)
+		promptSvc.EXPECT().GetPrompt(gomock.Any(), service.GetPromptParam{
+			PromptID:      promptID,
+			WithCommit:    true,
+			CommitVersion: commitVersion,
+		}).Return(newPrompt(entity.PromptTypeNormal), nil)
+		auth := mocks.NewMockIAuthProvider(ctrl)
+		auth.EXPECT().MCheckPromptPermission(gomock.Any(), workspaceID, []int64{promptID}, consts.ActionLoopPromptRead).Return(nil)
+
+		app := &PromptManageApplicationImpl{promptService: promptSvc, authRPCProvider: auth}
+		resp, err := app.GetPromptInvokeInfo(userCtx(), newRequest(workspaceID))
+
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		info := resp.GetInvokeInfo()
+		require.NotNil(t, info)
+		assert.Equal(t, promptKey, info.GetPromptKey())
+		assert.Equal(t, commitVersion, info.GetVersion())
+		assert.Equal(t, "https://gcs.example.com:8443", info.GetBaseURL())
+		require.Len(t, info.GetParameters(), 1)
+		assert.Equal(t, "section_goal", info.GetParameters()[0].GetKey())
+		assert.Equal(t, "value", info.GetParameters()[0].GetValueField())
+		assert.Contains(t, info.GetRequestBody(), `"workspace_id": "202"`)
+		assert.Contains(t, info.GetRequestBody(), `"version": "1.2.3"`)
+		assert.NotContains(t, info.GetRequestBody(), `"version": "9.9.9"`)
+		assert.Contains(t, info.GetCurl(), promptExecuteEndpoint)
+		assert.Contains(t, info.GetCurl(), "https://gcs.example.com:8443"+promptExecuteEndpoint)
+		assert.Contains(t, info.GetStreamingCurl(), promptExecuteStreamingEndpoint)
+	})
+
+	t.Run("no variables serializes parameters as an empty array", func(t *testing.T) {
+		t.Parallel()
+		ctrl := gomock.NewController(t)
+		promptDO := newPrompt(entity.PromptTypeNormal)
+		promptDO.PromptCommit.PromptDetail.PromptTemplate.VariableDefs = nil
+		promptSvc := servicemocks.NewMockIPromptService(ctrl)
+		promptSvc.EXPECT().GetPrompt(gomock.Any(), service.GetPromptParam{
+			PromptID:      promptID,
+			WithCommit:    true,
+			CommitVersion: commitVersion,
+		}).Return(promptDO, nil)
+		auth := mocks.NewMockIAuthProvider(ctrl)
+		auth.EXPECT().MCheckPromptPermission(gomock.Any(), workspaceID, []int64{promptID}, consts.ActionLoopPromptRead).Return(nil)
+
+		app := &PromptManageApplicationImpl{promptService: promptSvc, authRPCProvider: auth}
+		resp, err := app.GetPromptInvokeInfo(userCtx(), newRequest(workspaceID))
+
+		require.NoError(t, err)
+		raw, err := json.Marshal(resp)
+		require.NoError(t, err)
+		assert.Contains(t, string(raw), `"parameters":[]`)
+	})
+
+	t.Run("workspace mismatch", func(t *testing.T) {
+		t.Parallel()
+		ctrl := gomock.NewController(t)
+		promptSvc := servicemocks.NewMockIPromptService(ctrl)
+		promptSvc.EXPECT().GetPrompt(gomock.Any(), service.GetPromptParam{
+			PromptID:      promptID,
+			WithCommit:    true,
+			CommitVersion: commitVersion,
+		}).Return(newPrompt(entity.PromptTypeNormal), nil)
+		auth := mocks.NewMockIAuthProvider(ctrl)
+		auth.EXPECT().MCheckPromptPermission(gomock.Any(), workspaceID, []int64{promptID}, consts.ActionLoopPromptRead).Return(nil)
+
+		app := &PromptManageApplicationImpl{promptService: promptSvc, authRPCProvider: auth}
+		resp, err := app.GetPromptInvokeInfo(userCtx(), newRequest(workspaceID+1))
+
+		unittest.AssertErrorEqual(t, errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg("WorkspaceID not match")), err)
+		assert.Nil(t, resp.GetInvokeInfo())
+	})
+
+	t.Run("user session is required", func(t *testing.T) {
+		t.Parallel()
+		app := &PromptManageApplicationImpl{}
+		resp, err := app.GetPromptInvokeInfo(context.Background(), newRequest(workspaceID))
+
+		unittest.AssertErrorEqual(t, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found")), err)
+		assert.Nil(t, resp.GetInvokeInfo())
+	})
+
+	t.Run("permission failure", func(t *testing.T) {
+		t.Parallel()
+		ctrl := gomock.NewController(t)
+		promptSvc := servicemocks.NewMockIPromptService(ctrl)
+		promptSvc.EXPECT().GetPrompt(gomock.Any(), service.GetPromptParam{
+			PromptID:      promptID,
+			WithCommit:    true,
+			CommitVersion: commitVersion,
+		}).Return(newPrompt(entity.PromptTypeNormal), nil)
+		permissionErr := errorx.New("permission denied")
+		auth := mocks.NewMockIAuthProvider(ctrl)
+		auth.EXPECT().MCheckPromptPermission(gomock.Any(), workspaceID, []int64{promptID}, consts.ActionLoopPromptRead).Return(permissionErr)
+
+		app := &PromptManageApplicationImpl{promptService: promptSvc, authRPCProvider: auth}
+		resp, err := app.GetPromptInvokeInfo(userCtx(), newRequest(workspaceID))
+
+		unittest.AssertErrorEqual(t, permissionErr, err)
+		assert.Nil(t, resp.GetInvokeInfo())
+	})
+
+	t.Run("snippet cannot be invoked independently", func(t *testing.T) {
+		t.Parallel()
+		ctrl := gomock.NewController(t)
+		promptSvc := servicemocks.NewMockIPromptService(ctrl)
+		promptSvc.EXPECT().GetPrompt(gomock.Any(), service.GetPromptParam{
+			PromptID:      promptID,
+			WithCommit:    true,
+			CommitVersion: commitVersion,
+		}).Return(newPrompt(entity.PromptTypeSnippet), nil)
+		auth := mocks.NewMockIAuthProvider(ctrl)
+		auth.EXPECT().MCheckPromptPermission(gomock.Any(), workspaceID, []int64{promptID}, consts.ActionLoopPromptRead).Return(nil)
+
+		app := &PromptManageApplicationImpl{promptService: promptSvc, authRPCProvider: auth}
+		resp, err := app.GetPromptInvokeInfo(userCtx(), newRequest(workspaceID))
+
+		unittest.AssertErrorEqual(t, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("Snippet prompt cannot be invoked independently")), err)
+		assert.Nil(t, resp.GetInvokeInfo())
+	})
 }
 
 func TestPromptManageApplicationImpl_ListPrompt(t *testing.T) {

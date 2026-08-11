@@ -16005,6 +16005,34 @@
         ],
         "type": "object"
       },
+      "coze.loop.foundation.authn.GetPublicAPIConfigResponse": {
+        "properties": {
+          "base_url": {
+            "description": "用户可访问的 GCS Loop API Origin，不含 /v1 路径",
+            "type": "string"
+          },
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "msg": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
       "coze.loop.foundation.authn.ListPersonalAccessTokenResponse": {
         "properties": {
           "code": {
@@ -22046,6 +22074,18 @@
             "$ref": "#/components/schemas/coze.loop.prompt.domain_openapi.prompt.Message",
             "description": "消息"
           },
+          "prompt_key": {
+            "description": "实际执行的 Prompt Key",
+            "type": "string"
+          },
+          "resolved_version": {
+            "description": "实际执行的已提交版本",
+            "type": "string"
+          },
+          "trace_id": {
+            "description": "本次 HTTP 调用自动产生的根 Trace ID",
+            "type": "string"
+          },
           "usage": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain_openapi.prompt.TokenUsage",
             "description": "token消耗"
@@ -22068,6 +22108,18 @@
             "description": "消息"
           },
           "msg": {
+            "type": "string"
+          },
+          "prompt_key": {
+            "description": "实际执行的 Prompt Key",
+            "type": "string"
+          },
+          "resolved_version": {
+            "description": "实际执行的已提交版本",
+            "type": "string"
+          },
+          "trace_id": {
+            "description": "整个 SSE 调用共用的根 Trace ID",
             "type": "string"
           },
           "usage": {
@@ -22560,6 +22612,7 @@
           },
           "prompt_key": {
             "description": "prompt_key",
+            "minLength": 1,
             "type": "string"
           },
           "version": {
@@ -22567,6 +22620,9 @@
             "type": "string"
           }
         },
+        "required": [
+          "prompt_key"
+        ],
         "type": "object"
       },
       "coze.loop.prompt.domain_openapi.prompt.PromptResult": {
@@ -23142,6 +23198,33 @@
         ],
         "type": "object"
       },
+      "coze.loop.prompt.manage.GetPromptInvokeInfoResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "invoke_info": {
+            "$ref": "#/components/schemas/coze.loop.prompt.manage.PromptInvokeInfo"
+          },
+          "msg": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
       "coze.loop.prompt.manage.GetPromptResponse": {
         "properties": {
           "code": {
@@ -23420,6 +23503,85 @@
           "code",
           "msg"
         ],
+        "type": "object"
+      },
+      "coze.loop.prompt.manage.PromptInvokeInfo": {
+        "properties": {
+          "base_url": {
+            "description": "可从用户浏览器访问的 GCS Loop HTTP API Origin，不含 /v1 路径",
+            "type": "string"
+          },
+          "curl": {
+            "type": "string"
+          },
+          "execute_endpoint": {
+            "type": "string"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.prompt.manage.PromptInvokeParameter"
+            },
+            "type": "array"
+          },
+          "prompt_key": {
+            "type": "string"
+          },
+          "request_body": {
+            "type": "string"
+          },
+          "streaming_curl": {
+            "type": "string"
+          },
+          "streaming_execute_endpoint": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "coze.loop.prompt.manage.PromptInvokeParameter": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "example": {
+            "description": "value 或 JSON 序列化后的结构化示例",
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "string",
+              "boolean",
+              "integer",
+              "float",
+              "object",
+              "array<string>",
+              "array<boolean>",
+              "array<integer>",
+              "array<float>",
+              "array<object>",
+              "placeholder",
+              "multi_part"
+            ],
+            "type": "string"
+          },
+          "type_tags": {
+            "description": "multi_part 等变量的 image / video 类型约束",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "value_field": {
+            "description": "value / placeholder_messages / multi_part_values",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "coze.loop.prompt.manage.PromptTemplatePreset": {
@@ -24684,6 +24846,32 @@
           }
         ],
         "summary": "UpdatePersonalAccessToken",
+        "tags": [
+          "foundation"
+        ]
+      }
+    },
+    "/api/auth/v1/public_api_config": {
+      "get": {
+        "operationId": "GetPublicAPIConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.foundation.authn.GetPublicAPIConfigResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "GetPublicAPIConfig",
         "tags": [
           "foundation"
         ]
@@ -39021,6 +39209,61 @@
         ]
       }
     },
+    "/api/prompt/v1/prompts/{prompt_id}/commits/{commit_version}/invoke_info": {
+      "get": {
+        "operationId": "GetPromptInvokeInfo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "commit_version",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "prompt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.prompt.manage.GetPromptInvokeInfoResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "GetPromptInvokeInfo",
+        "tags": [
+          "prompt"
+        ]
+      }
+    },
     "/api/prompt/v1/prompts/{prompt_id}/commits/{commit_version}/labels_update": {
       "post": {
         "operationId": "UpdateCommitLabels",
@@ -44381,11 +44624,15 @@
                     "type": "string"
                   }
                 },
+                "required": [
+                  "prompt_identifier",
+                  "workspace_id"
+                ],
                 "type": "object"
               }
             }
           },
-          "required": false
+          "required": true
         },
         "responses": {
           "200": {
@@ -44493,11 +44740,15 @@
                     "type": "string"
                   }
                 },
+                "required": [
+                  "prompt_identifier",
+                  "workspace_id"
+                ],
                 "type": "object"
               }
             }
           },
-          "required": false
+          "required": true
         },
         "responses": {
           "200": {
@@ -45565,5 +45816,5 @@
       "name": "prompt"
     }
   ],
-  "x-generated-endpoint-count": 304
+  "x-generated-endpoint-count": 306
 }

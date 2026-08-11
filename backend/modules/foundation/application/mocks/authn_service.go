@@ -86,6 +86,21 @@ func (mr *MockAuthNServiceMockRecorder) GetPersonalAccessToken(ctx, req any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPersonalAccessToken", reflect.TypeOf((*MockAuthNService)(nil).GetPersonalAccessToken), ctx, req)
 }
 
+// GetPublicAPIConfig mocks base method.
+func (m *MockAuthNService) GetPublicAPIConfig(ctx context.Context, req *authn.GetPublicAPIConfigRequest) (*authn.GetPublicAPIConfigResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPublicAPIConfig", ctx, req)
+	ret0, _ := ret[0].(*authn.GetPublicAPIConfigResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPublicAPIConfig indicates an expected call of GetPublicAPIConfig.
+func (mr *MockAuthNServiceMockRecorder) GetPublicAPIConfig(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicAPIConfig", reflect.TypeOf((*MockAuthNService)(nil).GetPublicAPIConfig), ctx, req)
+}
+
 // ListPersonalAccessToken mocks base method.
 func (m *MockAuthNService) ListPersonalAccessToken(ctx context.Context, req *authn.ListPersonalAccessTokenRequest) (*authn.ListPersonalAccessTokenResponse, error) {
 	m.ctrl.T.Helper()

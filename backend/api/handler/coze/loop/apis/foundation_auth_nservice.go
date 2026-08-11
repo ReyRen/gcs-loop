@@ -40,7 +40,13 @@ func GetPersonalAccessToken(ctx context.Context, c *app.RequestContext) {
 }
 
 // ListPersonalAccessToken .
-// @router /api/auth/v1/personal_access_tokens/list [GET]
+// @router /api/auth/v1/personal_access_tokens/list [POST]
 func ListPersonalAccessToken(ctx context.Context, c *app.RequestContext) {
 	invokeAndRender(ctx, c, localAuthNClient.ListPersonalAccessToken)
+}
+
+// GetPublicAPIConfig .
+// @router /api/auth/v1/public_api_config [GET]
+func GetPublicAPIConfig(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localAuthNClient.GetPublicAPIConfig)
 }

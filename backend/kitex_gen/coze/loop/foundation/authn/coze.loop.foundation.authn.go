@@ -3296,6 +3296,431 @@ func (p *VerifyTokenResponse) Field255DeepEqual(src *base.BaseResp) bool {
 	return true
 }
 
+// Console 页面使用的公开 HTTP API 部署信息。
+type GetPublicAPIConfigRequest struct {
+	Base *base.Base `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
+}
+
+func NewGetPublicAPIConfigRequest() *GetPublicAPIConfigRequest {
+	return &GetPublicAPIConfigRequest{}
+}
+
+func (p *GetPublicAPIConfigRequest) InitDefault() {
+}
+
+var GetPublicAPIConfigRequest_Base_DEFAULT *base.Base
+
+func (p *GetPublicAPIConfigRequest) GetBase() (v *base.Base) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBase() {
+		return GetPublicAPIConfigRequest_Base_DEFAULT
+	}
+	return p.Base
+}
+func (p *GetPublicAPIConfigRequest) SetBase(val *base.Base) {
+	p.Base = val
+}
+
+var fieldIDToName_GetPublicAPIConfigRequest = map[int16]string{
+	255: "Base",
+}
+
+func (p *GetPublicAPIConfigRequest) IsSetBase() bool {
+	return p.Base != nil
+}
+
+func (p *GetPublicAPIConfigRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPublicAPIConfigRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *GetPublicAPIConfigRequest) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBase()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Base = _field
+	return nil
+}
+
+func (p *GetPublicAPIConfigRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPublicAPIConfigRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetPublicAPIConfigRequest) writeField255(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBase() {
+		if err = oprot.WriteFieldBegin("Base", thrift.STRUCT, 255); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Base.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *GetPublicAPIConfigRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPublicAPIConfigRequest(%+v)", *p)
+
+}
+
+func (p *GetPublicAPIConfigRequest) DeepEqual(ano *GetPublicAPIConfigRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.Base) {
+		return false
+	}
+	return true
+}
+
+func (p *GetPublicAPIConfigRequest) Field255DeepEqual(src *base.Base) bool {
+
+	if !p.Base.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type GetPublicAPIConfigResponse struct {
+	// 用户可访问的 GCS Loop API Origin，不含 /v1 路径
+	BaseURL  *string        `thrift:"base_url,1,optional" frugal:"1,optional,string" form:"base_url" json:"base_url,omitempty" query:"base_url"`
+	BaseResp *base.BaseResp `thrift:"BaseResp,255,optional" frugal:"255,optional,base.BaseResp" form:"BaseResp" json:"BaseResp,omitempty" query:"BaseResp"`
+}
+
+func NewGetPublicAPIConfigResponse() *GetPublicAPIConfigResponse {
+	return &GetPublicAPIConfigResponse{}
+}
+
+func (p *GetPublicAPIConfigResponse) InitDefault() {
+}
+
+var GetPublicAPIConfigResponse_BaseURL_DEFAULT string
+
+func (p *GetPublicAPIConfigResponse) GetBaseURL() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseURL() {
+		return GetPublicAPIConfigResponse_BaseURL_DEFAULT
+	}
+	return *p.BaseURL
+}
+
+var GetPublicAPIConfigResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *GetPublicAPIConfigResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return GetPublicAPIConfigResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *GetPublicAPIConfigResponse) SetBaseURL(val *string) {
+	p.BaseURL = val
+}
+func (p *GetPublicAPIConfigResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_GetPublicAPIConfigResponse = map[int16]string{
+	1:   "base_url",
+	255: "BaseResp",
+}
+
+func (p *GetPublicAPIConfigResponse) IsSetBaseURL() bool {
+	return p.BaseURL != nil
+}
+
+func (p *GetPublicAPIConfigResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *GetPublicAPIConfigResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPublicAPIConfigResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *GetPublicAPIConfigResponse) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.BaseURL = _field
+	return nil
+}
+func (p *GetPublicAPIConfigResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *GetPublicAPIConfigResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPublicAPIConfigResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetPublicAPIConfigResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBaseURL() {
+		if err = oprot.WriteFieldBegin("base_url", thrift.STRING, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.BaseURL); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *GetPublicAPIConfigResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBaseResp() {
+		if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.BaseResp.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *GetPublicAPIConfigResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPublicAPIConfigResponse(%+v)", *p)
+
+}
+
+func (p *GetPublicAPIConfigResponse) DeepEqual(ano *GetPublicAPIConfigResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.BaseURL) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *GetPublicAPIConfigResponse) Field1DeepEqual(src *string) bool {
+
+	if p.BaseURL == src {
+		return true
+	} else if p.BaseURL == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.BaseURL, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *GetPublicAPIConfigResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
 type AuthNService interface {
 	// OpenAPI PAT管理
 	CreatePersonalAccessToken(ctx context.Context, req *CreatePersonalAccessTokenRequest) (r *CreatePersonalAccessTokenResponse, err error)
@@ -3307,6 +3732,8 @@ type AuthNService interface {
 	GetPersonalAccessToken(ctx context.Context, req *GetPersonalAccessTokenRequest) (r *GetPersonalAccessTokenResponse, err error)
 
 	ListPersonalAccessToken(ctx context.Context, req *ListPersonalAccessTokenRequest) (r *ListPersonalAccessTokenResponse, err error)
+
+	GetPublicAPIConfig(ctx context.Context, req *GetPublicAPIConfigRequest) (r *GetPublicAPIConfigResponse, err error)
 	// 验证token是否有效
 	VerifyToken(ctx context.Context, req *VerifyTokenRequest) (r *VerifyTokenResponse, err error)
 }
@@ -3382,6 +3809,15 @@ func (p *AuthNServiceClient) ListPersonalAccessToken(ctx context.Context, req *L
 	}
 	return _result.GetSuccess(), nil
 }
+func (p *AuthNServiceClient) GetPublicAPIConfig(ctx context.Context, req *GetPublicAPIConfigRequest) (r *GetPublicAPIConfigResponse, err error) {
+	var _args AuthNServiceGetPublicAPIConfigArgs
+	_args.Req = req
+	var _result AuthNServiceGetPublicAPIConfigResult
+	if err = p.Client_().Call(ctx, "GetPublicAPIConfig", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
 func (p *AuthNServiceClient) VerifyToken(ctx context.Context, req *VerifyTokenRequest) (r *VerifyTokenResponse, err error) {
 	var _args AuthNServiceVerifyTokenArgs
 	_args.Req = req
@@ -3417,6 +3853,7 @@ func NewAuthNServiceProcessor(handler AuthNService) *AuthNServiceProcessor {
 	self.AddToProcessorMap("UpdatePersonalAccessToken", &authNServiceProcessorUpdatePersonalAccessToken{handler: handler})
 	self.AddToProcessorMap("GetPersonalAccessToken", &authNServiceProcessorGetPersonalAccessToken{handler: handler})
 	self.AddToProcessorMap("ListPersonalAccessToken", &authNServiceProcessorListPersonalAccessToken{handler: handler})
+	self.AddToProcessorMap("GetPublicAPIConfig", &authNServiceProcessorGetPublicAPIConfig{handler: handler})
 	self.AddToProcessorMap("VerifyToken", &authNServiceProcessorVerifyToken{handler: handler})
 	return self
 }
@@ -3661,6 +4098,54 @@ func (p *authNServiceProcessorListPersonalAccessToken) Process(ctx context.Conte
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("ListPersonalAccessToken", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type authNServiceProcessorGetPublicAPIConfig struct {
+	handler AuthNService
+}
+
+func (p *authNServiceProcessorGetPublicAPIConfig) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := AuthNServiceGetPublicAPIConfigArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("GetPublicAPIConfig", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := AuthNServiceGetPublicAPIConfigResult{}
+	var retval *GetPublicAPIConfigResponse
+	if retval, err2 = p.handler.GetPublicAPIConfig(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetPublicAPIConfig: "+err2.Error())
+		oprot.WriteMessageBegin("GetPublicAPIConfig", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("GetPublicAPIConfig", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -5439,6 +5924,350 @@ func (p *AuthNServiceListPersonalAccessTokenResult) DeepEqual(ano *AuthNServiceL
 }
 
 func (p *AuthNServiceListPersonalAccessTokenResult) Field0DeepEqual(src *ListPersonalAccessTokenResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type AuthNServiceGetPublicAPIConfigArgs struct {
+	Req *GetPublicAPIConfigRequest `thrift:"req,1" frugal:"1,default,GetPublicAPIConfigRequest"`
+}
+
+func NewAuthNServiceGetPublicAPIConfigArgs() *AuthNServiceGetPublicAPIConfigArgs {
+	return &AuthNServiceGetPublicAPIConfigArgs{}
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) InitDefault() {
+}
+
+var AuthNServiceGetPublicAPIConfigArgs_Req_DEFAULT *GetPublicAPIConfigRequest
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) GetReq() (v *GetPublicAPIConfigRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return AuthNServiceGetPublicAPIConfigArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *AuthNServiceGetPublicAPIConfigArgs) SetReq(val *GetPublicAPIConfigRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_AuthNServiceGetPublicAPIConfigArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_AuthNServiceGetPublicAPIConfigArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewGetPublicAPIConfigRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPublicAPIConfig_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("AuthNServiceGetPublicAPIConfigArgs(%+v)", *p)
+
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) DeepEqual(ano *AuthNServiceGetPublicAPIConfigArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *AuthNServiceGetPublicAPIConfigArgs) Field1DeepEqual(src *GetPublicAPIConfigRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type AuthNServiceGetPublicAPIConfigResult struct {
+	Success *GetPublicAPIConfigResponse `thrift:"success,0,optional" frugal:"0,optional,GetPublicAPIConfigResponse"`
+}
+
+func NewAuthNServiceGetPublicAPIConfigResult() *AuthNServiceGetPublicAPIConfigResult {
+	return &AuthNServiceGetPublicAPIConfigResult{}
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) InitDefault() {
+}
+
+var AuthNServiceGetPublicAPIConfigResult_Success_DEFAULT *GetPublicAPIConfigResponse
+
+func (p *AuthNServiceGetPublicAPIConfigResult) GetSuccess() (v *GetPublicAPIConfigResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return AuthNServiceGetPublicAPIConfigResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *AuthNServiceGetPublicAPIConfigResult) SetSuccess(x interface{}) {
+	p.Success = x.(*GetPublicAPIConfigResponse)
+}
+
+var fieldIDToName_AuthNServiceGetPublicAPIConfigResult = map[int16]string{
+	0: "success",
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_AuthNServiceGetPublicAPIConfigResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewGetPublicAPIConfigResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPublicAPIConfig_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("AuthNServiceGetPublicAPIConfigResult(%+v)", *p)
+
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) DeepEqual(ano *AuthNServiceGetPublicAPIConfigResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *AuthNServiceGetPublicAPIConfigResult) Field0DeepEqual(src *GetPublicAPIConfigResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

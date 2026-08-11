@@ -45,6 +45,11 @@ import (
 	"github.com/coze-dev/coze-loop/backend/pkg/traceutil"
 )
 
+const (
+	promptStreamingResultBufferSize      = 16
+	promptStreamingWorkerShutdownTimeout = time.Second
+)
+
 func NewPromptOpenAPIApplication(
 	promptService service.IPromptService,
 	promptManageRepo repo.IManageRepo,
@@ -622,6 +627,19 @@ func (p *PromptOpenAPIApplicationImpl) promptHubAllowBySpace(ctx context.Context
 func (p *PromptOpenAPIApplicationImpl) Execute(ctx context.Context, req *openapi.ExecuteRequest) (r *openapi.ExecuteResponse, err error) {
 	ctx = promptmetrics.NewPaasMetricsCtx(ctx)
 	req = normalizeExecuteRequest(req)
+	r = openapi.NewExecuteResponse()
+	err = validateExecuteRequest(req)
+	if err != nil {
+		return r, err
+	}
+	// Authenticate the caller against the requested workspace before using the
+	// caller-controlled workspace ID in rate-limit keys, Trace storage or tenant
+	// invocation statistics. Prompt-level execute permission is still checked
+	// after the immutable Prompt version has been resolved.
+	if err = p.auth.CheckSpacePermissionForOpenAPI(ctx, req.GetWorkspaceID(), consts.ActionLoopPromptExecute); err != nil {
+		return r, err
+	}
+
 	var promptDO *entity.Prompt
 	var reply *entity.Reply
 	startTime := time.Now()
@@ -636,10 +654,7 @@ func (p *PromptOpenAPIApplicationImpl) Execute(ctx context.Context, req *openapi
 			}
 		}
 		var intputTokens, outputTokens int64
-		var version string
-		if promptDO != nil {
-			version = promptDO.GetVersion()
-		}
+		version := getInvocationStatisticsVersion(req, promptDO)
 		intputTokens, outputTokens = getReplyTokenUsage(reply)
 		p.emitExecuteMetrics(ctx, req, promptDO, reply, err, "Execute")
 		p.collector.CollectPTaaSEvent(ctx, &collector.ExecuteLog{
@@ -659,11 +674,6 @@ func (p *PromptOpenAPIApplicationImpl) Execute(ctx context.Context, req *openapi
 			StatusCode:    errCode,
 		})
 	}()
-	r = openapi.NewExecuteResponse()
-	err = validateExecuteRequest(req)
-	if err != nil {
-		return r, err
-	}
 	var span cozeloop.Span
 	ctx, span = p.startPromptExecutorSpan(ctx, ptaasStartPromptExecutorSpanParam{
 		workspaceID:      req.GetWorkspaceID(),
@@ -674,6 +684,7 @@ func (p *PromptOpenAPIApplicationImpl) Execute(ctx context.Context, req *openapi
 		messages:         convertor.OpenAPIBatchMessageDTO2DO(req.Messages),
 		variableVals:     convertor.OpenAPIBatchVariableValDTO2DO(req.VariableVals),
 	})
+	traceID := getPromptExecutorTraceID(span)
 	defer func() {
 		p.finishPromptExecutorSpan(ctx, span, promptDO, reply, err)
 	}()
@@ -682,13 +693,18 @@ func (p *PromptOpenAPIApplicationImpl) Execute(ctx context.Context, req *openapi
 	if err != nil {
 		return r, err
 	}
+	// Trace and resolved Prompt metadata are available for every successful
+	// invocation, even if an upstream provider returns no reply item.
+	r.Data = &domainopenapi.ExecuteData{
+		TraceID:         traceID,
+		PromptKey:       ptr.Of(promptDO.PromptKey),
+		ResolvedVersion: ptr.Of(promptDO.GetVersion()),
+	}
 	// 构建返回结果
 	if reply != nil && reply.Item != nil {
-		r.Data = &domainopenapi.ExecuteData{
-			Message:      convertor.OpenAPIMessageDO2DTO(reply.Item.Message),
-			FinishReason: &reply.Item.FinishReason,
-			Usage:        convertor.OpenAPITokenUsageDO2DTO(reply.Item.TokenUsage),
-		}
+		r.Data.Message = convertor.OpenAPIMessageDO2DTO(reply.Item.Message)
+		r.Data.FinishReason = &reply.Item.FinishReason
+		r.Data.Usage = convertor.OpenAPITokenUsageDO2DTO(reply.Item.TokenUsage)
 	}
 
 	// 记录使用数据
@@ -749,6 +765,17 @@ func (p *PromptOpenAPIApplicationImpl) doExecute(ctx context.Context, req *opena
 func (p *PromptOpenAPIApplicationImpl) ExecuteStreaming(ctx context.Context, req *openapi.ExecuteRequest, stream openapi.PromptOpenAPIService_ExecuteStreamingServer) (err error) {
 	ctx = promptmetrics.NewPaasMetricsCtx(ctx)
 	req = normalizeExecuteRequest(req)
+	err = validateExecuteRequest(req)
+	if err != nil {
+		return err
+	}
+	// Keep untrusted workspace IDs out of workspace-scoped throttling,
+	// observability and invocation statistics. The resolved Prompt is checked
+	// separately below using the existing prompt-level execute permission.
+	if err = p.auth.CheckSpacePermissionForOpenAPI(ctx, req.GetWorkspaceID(), consts.ActionLoopPromptExecute); err != nil {
+		return err
+	}
+
 	var promptDO *entity.Prompt
 	var aggregatedReply *entity.Reply
 	startTime := time.Now()
@@ -763,10 +790,7 @@ func (p *PromptOpenAPIApplicationImpl) ExecuteStreaming(ctx context.Context, req
 			}
 		}
 		var intputTokens, outputTokens int64
-		var version string
-		if promptDO != nil {
-			version = promptDO.GetVersion()
-		}
+		version := getInvocationStatisticsVersion(req, promptDO)
 		intputTokens, outputTokens = getReplyTokenUsage(aggregatedReply)
 		p.emitExecuteMetrics(ctx, req, promptDO, aggregatedReply, err, "StreamingExecute")
 		p.collector.CollectPTaaSEvent(ctx, &collector.ExecuteLog{
@@ -786,10 +810,6 @@ func (p *PromptOpenAPIApplicationImpl) ExecuteStreaming(ctx context.Context, req
 			StatusCode:    errCode,
 		})
 	}()
-	err = validateExecuteRequest(req)
-	if err != nil {
-		return err
-	}
 	var span cozeloop.Span
 	ctx, span = p.startPromptExecutorSpan(ctx, ptaasStartPromptExecutorSpanParam{
 		workspaceID:      req.GetWorkspaceID(),
@@ -800,15 +820,16 @@ func (p *PromptOpenAPIApplicationImpl) ExecuteStreaming(ctx context.Context, req
 		messages:         convertor.OpenAPIBatchMessageDTO2DO(req.Messages),
 		variableVals:     convertor.OpenAPIBatchVariableValDTO2DO(req.VariableVals),
 	})
+	traceID := getPromptExecutorTraceID(span)
 	defer func() {
 		p.finishPromptExecutorSpan(ctx, span, promptDO, aggregatedReply, err)
 	}()
-	promptDO, aggregatedReply, err = p.doExecuteStreaming(ctx, req, stream)
+	promptDO, aggregatedReply, err = p.doExecuteStreaming(ctx, req, stream, traceID)
 	// 记录使用数据
 	return err
 }
 
-func (p *PromptOpenAPIApplicationImpl) doExecuteStreaming(ctx context.Context, req *openapi.ExecuteRequest, stream openapi.PromptOpenAPIService_ExecuteStreamingServer) (promptDO *entity.Prompt, aggregatedReply *entity.Reply, err error) {
+func (p *PromptOpenAPIApplicationImpl) doExecuteStreaming(ctx context.Context, req *openapi.ExecuteRequest, stream openapi.PromptOpenAPIService_ExecuteStreamingServer, traceID *string) (promptDO *entity.Prompt, aggregatedReply *entity.Reply, err error) {
 	// 按prompt_key限流检查
 	if !p.ptaasAllowByPromptKey(ctx, req.GetWorkspaceID(), req.GetPromptIdentifier().GetPromptKey()) {
 		return promptDO, nil, errorx.NewByCode(prompterr.PTaaSQPSLimitCode, errorx.WithExtraMsg("qps limit exceeded"))
@@ -837,15 +858,21 @@ func (p *PromptOpenAPIApplicationImpl) doExecuteStreaming(ctx context.Context, r
 	}
 
 	// 执行prompt流式调用
-	resultStream := make(chan *entity.Reply)
+	executeCtx, cancelExecute := context.WithCancel(ctx)
+	resultStream := make(chan *entity.Reply, promptStreamingResultBufferSize)
+	workerDone := make(chan struct{})
+	defer func() {
+		cancelExecute()
+		waitPromptStreamingWorker(ctx, workerDone, resultStream)
+	}()
 	receivedFirstToken := false
 	var latestInputTokens, latestOutputTokens int64
 	type replyResult struct {
 		Reply *entity.Reply
 		Err   error
 	}
-	replyResultChan := make(chan replyResult) // 用于接收aggregatedReply, error，避免数据竞争
-	goroutine.GoSafe(ctx, func() {
+	replyResultChan := make(chan replyResult, 1) // 用于接收aggregatedReply, error，避免数据竞争和调用方提前退出时阻塞
+	goroutine.GoSafe(executeCtx, func() {
 		var executeErr error
 		var localAggregatedReply *entity.Reply
 		defer func() {
@@ -860,9 +887,10 @@ func (p *PromptOpenAPIApplicationImpl) doExecuteStreaming(ctx context.Context, r
 				Err:   executeErr,
 			}
 			close(replyResultChan)
+			close(workerDone)
 		}()
 
-		localAggregatedReply, executeErr = p.promptService.ExecuteStreaming(ctx, service.ExecuteStreamingParam{
+		localAggregatedReply, executeErr = p.promptService.ExecuteStreaming(executeCtx, service.ExecuteStreamingParam{
 			ExecuteParam: service.ExecuteParam{
 				Prompt:            promptDO,
 				Messages:          convertor.OpenAPIBatchMessageDTO2DO(req.Messages),
@@ -898,19 +926,20 @@ func (p *PromptOpenAPIApplicationImpl) doExecuteStreaming(ctx context.Context, r
 		}
 		chunk := &openapi.ExecuteStreamingResponse{
 			Data: &domainopenapi.ExecuteStreamingData{
-				Message:      convertor.OpenAPIMessageDO2DTO(reply.Item.Message),
-				FinishReason: ptr.Of(reply.Item.FinishReason),
-				Usage:        convertor.OpenAPITokenUsageDO2DTO(reply.Item.TokenUsage),
+				Message:         convertor.OpenAPIMessageDO2DTO(reply.Item.Message),
+				FinishReason:    ptr.Of(reply.Item.FinishReason),
+				Usage:           convertor.OpenAPITokenUsageDO2DTO(reply.Item.TokenUsage),
+				TraceID:         traceID,
+				PromptKey:       ptr.Of(promptDO.PromptKey),
+				ResolvedVersion: ptr.Of(promptDO.GetVersion()),
 			},
 		}
 		err = stream.Send(ctx, chunk)
 		if err != nil {
 			if st, ok := status.FromError(err); (ok && st.Code() == codes.Canceled) || errors.Is(err, context.Canceled) {
-				err = nil
 				logs.CtxWarn(ctx, "execute streaming canceled")
 				return promptDO, buildTokenUsageReply(latestInputTokens, latestOutputTokens), err
-			} else if errors.Is(err, context.DeadlineExceeded) {
-				err = nil
+			} else if st, ok := status.FromError(err); (ok && st.Code() == codes.DeadlineExceeded) || errors.Is(err, context.DeadlineExceeded) {
 				logs.CtxWarn(ctx, "execute streaming ctx deadline exceeded")
 				return promptDO, buildTokenUsageReply(latestInputTokens, latestOutputTokens), err
 			} else {
@@ -927,12 +956,31 @@ func (p *PromptOpenAPIApplicationImpl) doExecuteStreaming(ctx context.Context, r
 		} else {
 			if st, ok := status.FromError(result.Err); (ok && st.Code() == codes.Canceled) || errors.Is(result.Err, context.Canceled) {
 				logs.CtxWarn(ctx, "execute streaming canceled")
-			} else if errors.Is(result.Err, context.DeadlineExceeded) {
+			} else if st, ok := status.FromError(result.Err); (ok && st.Code() == codes.DeadlineExceeded) || errors.Is(result.Err, context.DeadlineExceeded) {
 				logs.CtxWarn(ctx, "execute streaming ctx deadline exceeded")
 			} else {
 				logs.CtxError(ctx, "execute streaming failed, err=%v", result.Err)
 			}
 			return promptDO, nil, result.Err
+		}
+	}
+}
+
+func waitPromptStreamingWorker(ctx context.Context, workerDone <-chan struct{}, resultStream <-chan *entity.Reply) {
+	timer := time.NewTimer(promptStreamingWorkerShutdownTimeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-workerDone:
+			return
+		case _, ok := <-resultStream:
+			if !ok {
+				resultStream = nil
+			}
+		case <-timer.C:
+			logs.CtxWarn(ctx, "timed out waiting for prompt streaming worker to stop")
+			return
 		}
 	}
 }
@@ -1056,9 +1104,14 @@ func (p *PromptOpenAPIApplicationImpl) startPromptExecutorSpan(ctx context.Conte
 }
 
 func (p *PromptOpenAPIApplicationImpl) finishPromptExecutorSpan(ctx context.Context, span cozeloop.Span, prompt *entity.Prompt, reply *entity.Reply, err error) {
-	if span == nil || prompt == nil {
+	if span == nil {
 		return
 	}
+	// The executor span is started before loading the published prompt. Prompt
+	// lookup failures therefore have no prompt entity to attach, but the span
+	// still needs to be finished so the failed HTTP invocation is observable.
+	defer span.Finish(ctx)
+
 	var debugID int64
 	var replyItem *entity.ReplyItem
 	if reply != nil {
@@ -1070,7 +1123,9 @@ func (p *PromptOpenAPIApplicationImpl) finishPromptExecutorSpan(ctx context.Cont
 		inputTokens = replyItem.TokenUsage.InputTokens
 		outputTokens = replyItem.TokenUsage.OutputTokens
 	}
-	span.SetPrompt(ctx, loopentity.Prompt{PromptKey: prompt.PromptKey, Version: prompt.GetVersion()})
+	if prompt != nil {
+		span.SetPrompt(ctx, loopentity.Prompt{PromptKey: prompt.PromptKey, Version: prompt.GetVersion()})
+	}
 	span.SetOutput(ctx, json.Jsonify(trace.ReplyItemToSpanOutput(replyItem)))
 	span.SetInputTokens(ctx, int(inputTokens))
 	span.SetOutputTokens(ctx, int(outputTokens))
@@ -1081,7 +1136,17 @@ func (p *PromptOpenAPIApplicationImpl) finishPromptExecutorSpan(ctx context.Cont
 		span.SetStatusCode(ctx, int(traceutil.GetTraceStatusCode(err)))
 		span.SetError(ctx, errors.New(errorx.ErrorWithoutStack(err)))
 	}
-	span.Finish(ctx)
+}
+
+func getPromptExecutorTraceID(span cozeloop.Span) *string {
+	if span == nil {
+		return nil
+	}
+	traceID := span.GetTraceID()
+	if traceID == "" {
+		return nil
+	}
+	return ptr.Of(traceID)
 }
 
 func normalizeExecuteRequest(req *openapi.ExecuteRequest) *openapi.ExecuteRequest {
@@ -1182,6 +1247,9 @@ func (p *PromptOpenAPIApplicationImpl) emitExecuteMetrics(
 	}
 	promptmetrics.WithPaaSAccountMode(ctx, getRequestAccountMode(req))
 	promptmetrics.WithPaasUsageScenario(ctx, getRequestUsageScenario(req))
+	if version := getInvocationStatisticsVersion(req, promptDO); version != "" {
+		promptmetrics.WithPaasVersion(ctx, version)
+	}
 
 	// OpenAPI 使用 messages 承载上下文与当前提问，兼容 legacy tags 语义
 	hasMessage := len(req.Messages) > 0
@@ -1191,7 +1259,6 @@ func (p *PromptOpenAPIApplicationImpl) emitExecuteMetrics(
 
 	if promptDO != nil {
 		promptmetrics.WithPaasPromptKey(ctx, promptDO.PromptKey)
-		promptmetrics.WithPaasVersion(ctx, promptDO.GetVersion())
 		promptmetrics.WithPaasSpace(ctx, promptDO.SpaceID)
 		if promptDO.PromptBasic != nil {
 			promptmetrics.WithPaasPromptType(ctx, promptTypeToMetricValue(promptDO.PromptBasic.PromptType))
@@ -1213,6 +1280,21 @@ func (p *PromptOpenAPIApplicationImpl) emitExecuteMetrics(
 	promptmetrics.EmitPaasMetric(ctx)
 }
 
+// getInvocationStatisticsVersion prefers the version actually resolved by the
+// server. If resolution failed before a Prompt entity was available, an
+// explicitly requested immutable version is still safe to use for attempted
+// invocation statistics. Labels and implicit latest requests deliberately do
+// not masquerade as resolved versions.
+func getInvocationStatisticsVersion(req *openapi.ExecuteRequest, promptDO *entity.Prompt) string {
+	if promptDO != nil {
+		return promptDO.GetVersion()
+	}
+	if req == nil || req.GetPromptIdentifier() == nil {
+		return ""
+	}
+	return req.GetPromptIdentifier().GetVersion()
+}
+
 func promptTypeToMetricValue(promptType entity.PromptType) int64 {
 	switch promptType {
 	case entity.PromptTypeNormal:
@@ -1225,15 +1307,18 @@ func promptTypeToMetricValue(promptType entity.PromptType) int64 {
 }
 
 func validateExecuteRequest(req *openapi.ExecuteRequest) error {
-	err := req.IsValid()
-	if err != nil {
-		return err
-	}
-	if req.GetWorkspaceID() == 0 {
+	// Keep public API validation failures in the service's structured business
+	// error format. Generated vt validators intentionally remain a second line
+	// of defense for the rest of the request schema.
+	if req == nil || req.GetWorkspaceID() <= 0 {
 		return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtra(map[string]string{"invalid_param": "workspace_id参数为空"}))
 	}
 	if req.GetPromptIdentifier() == nil || req.GetPromptIdentifier().GetPromptKey() == "" {
 		return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtra(map[string]string{"invalid_param": "prompt_key参数为空"}))
+	}
+	err := req.IsValid()
+	if err != nil {
+		return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(err.Error()))
 	}
 	validateParts := func(parts []*domainopenapi.ContentPart) error {
 		for _, part := range parts {
