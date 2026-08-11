@@ -163,9 +163,9 @@ func (mr *MockIPromptBasicDAOMockRecorder) MGetByPromptKey(ctx, spaceID, promptK
 }
 
 // Update mocks base method.
-func (m *MockIPromptBasicDAO) Update(ctx context.Context, promptID int64, updateFields map[string]any, opts ...db.Option) error {
+func (m *MockIPromptBasicDAO) Update(ctx context.Context, promptID int64, spaceID int64, updateFields map[string]any, opts ...db.Option) error {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, promptID, updateFields}
+	varargs := []any{ctx, promptID, spaceID, updateFields}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -175,8 +175,8 @@ func (m *MockIPromptBasicDAO) Update(ctx context.Context, promptID int64, update
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockIPromptBasicDAOMockRecorder) Update(ctx, promptID, updateFields any, opts ...any) *gomock.Call {
+func (mr *MockIPromptBasicDAOMockRecorder) Update(ctx, promptID, spaceID, updateFields any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, promptID, updateFields}, opts...)
+	varargs := append([]any{ctx, promptID, spaceID, updateFields}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockIPromptBasicDAO)(nil).Update), varargs...)
 }

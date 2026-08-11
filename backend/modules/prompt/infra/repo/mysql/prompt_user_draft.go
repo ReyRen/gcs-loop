@@ -23,7 +23,7 @@ import (
 //go:generate mockgen -destination=mocks/prompt_user_draft_dao.go -package=mocks . IPromptUserDraftDAO
 type IPromptUserDraftDAO interface {
 	Create(ctx context.Context, promptDraftPO *model.PromptUserDraft, opts ...db.Option) (err error)
-	Delete(ctx context.Context, draftID int64, opts ...db.Option) (err error)
+	Delete(ctx context.Context, promptDraftPO *model.PromptUserDraft, opts ...db.Option) (err error)
 	Get(ctx context.Context, promptID int64, userID string, opts ...db.Option) (promptDraftPO *model.PromptUserDraft, err error)
 	GetByID(ctx context.Context, draftID int64, opts ...db.Option) (promptDraftPO *model.PromptUserDraft, err error)
 	MGet(ctx context.Context, pairs []PromptIDUserIDPair, opts ...db.Option) (pairDraftPOMap map[PromptIDUserIDPair]*model.PromptUserDraft, err error)
@@ -53,7 +53,7 @@ func (d *PromptUserDraftDAOImpl) Create(ctx context.Context, promptDraftPO *mode
 	if promptDraftPO == nil {
 		return errorx.New("promptDraftPO is empty")
 	}
-	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptDraft, promptDraftPO.ID, platestwrite.SetWithSearchParam(fmt.Sprintf("%d:%s", promptDraftPO.ID, promptDraftPO.UserID)))
+	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptDraft, promptDraftPO.ID, platestwrite.SetWithSearchParam(promptDraftSearchParam(promptDraftPO.PromptID, promptDraftPO.UserID)))
 
 	q := query.Use(d.db.NewSession(ctx, opts...)).WithContext(ctx)
 	promptDraftPO.CreatedAt = time.Time{}
@@ -74,7 +74,7 @@ func (d *PromptUserDraftDAOImpl) Get(ctx context.Context, promptID int64, userID
 	if promptID <= 0 || lo.IsEmpty(userID) {
 		return nil, errorx.New("promptID or userID is invalid param, promptID = %d, userID = %s", promptID, userID)
 	}
-	if d.writeTracker.CheckWriteFlagBySearchParam(ctx, platestwrite.ResourceTypePromptDraft, fmt.Sprintf("%d:%s", promptID, userID)) {
+	if d.writeTracker.CheckWriteFlagBySearchParam(ctx, platestwrite.ResourceTypePromptDraft, promptDraftSearchParam(promptID, userID)) {
 		opts = append(opts, db.WithMaster())
 	}
 
@@ -119,6 +119,12 @@ func (d *PromptUserDraftDAOImpl) GetByID(ctx context.Context, draftID int64, opt
 func (d *PromptUserDraftDAOImpl) MGet(ctx context.Context, pairs []PromptIDUserIDPair, opts ...db.Option) (pairDraftPOMap map[PromptIDUserIDPair]*model.PromptUserDraft, err error) {
 	if len(pairs) <= 0 {
 		return nil, errorx.WrapByCode(err, prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("PromptUserDraftDAOImpl.MGet invalid param"))
+	}
+	for _, pair := range pairs {
+		if d.writeTracker.CheckWriteFlagBySearchParam(ctx, platestwrite.ResourceTypePromptDraft, promptDraftSearchParam(pair.PromptID, pair.UserID)) {
+			opts = append(opts, db.WithMaster())
+			break
+		}
 	}
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	tx := q.WithContext(ctx).PromptUserDraft
@@ -167,38 +173,49 @@ func (d *PromptUserDraftDAOImpl) Update(ctx context.Context, promptDraftPO *mode
 
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	_, err = q.PromptUserDraft.WithContext(ctx).Where(q.PromptUserDraft.ID.Eq(promptDraftPO.ID)).
-		Updates(map[string]interface{}{
-			q.PromptUserDraft.Messages.ColumnName().String():        promptDraftPO.Messages,
-			q.PromptUserDraft.ModelConfig.ColumnName().String():     promptDraftPO.ModelConfig,
-			q.PromptUserDraft.BaseVersion.ColumnName().String():     promptDraftPO.BaseVersion,
-			q.PromptUserDraft.Tools.ColumnName().String():           promptDraftPO.Tools,
-			q.PromptUserDraft.ToolCallConfig.ColumnName().String():  promptDraftPO.ToolCallConfig,
-			q.PromptUserDraft.TemplateType.ColumnName().String():    promptDraftPO.TemplateType,
-			q.PromptUserDraft.VariableDefs.ColumnName().String():    promptDraftPO.VariableDefs,
-			q.PromptUserDraft.Metadata.ColumnName().String():        promptDraftPO.Metadata,
-			q.PromptUserDraft.McpConfig.ColumnName().String():       promptDraftPO.McpConfig,
-			q.PromptUserDraft.IsDraftEdited.ColumnName().String():   promptDraftPO.IsDraftEdited,
-			q.PromptUserDraft.HasSnippets.ColumnName().String():     promptDraftPO.HasSnippets,
-			q.PromptUserDraft.EncryptMessages.ColumnName().String(): promptDraftPO.EncryptMessages,
-		})
+		Updates(promptUserDraftUpdateFields(promptDraftPO))
 	if err != nil {
 		return errorx.WrapByCode(err, prompterr.CommonMySqlErrorCode)
 	}
-	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptDraft, promptDraftPO.ID, platestwrite.SetWithSearchParam(fmt.Sprintf("%d:%s", promptDraftPO.ID, promptDraftPO.UserID)))
+	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptDraft, promptDraftPO.ID, platestwrite.SetWithSearchParam(promptDraftSearchParam(promptDraftPO.PromptID, promptDraftPO.UserID)))
 	return nil
 }
 
-func (d *PromptUserDraftDAOImpl) Delete(ctx context.Context, draftID int64, opts ...db.Option) (err error) {
-	if draftID <= 0 {
-		return errorx.New("draftID is invalid, draftID = %d", draftID)
+func promptDraftSearchParam(promptID int64, userID string) string {
+	return fmt.Sprintf("%d:%s", promptID, userID)
+}
+
+func promptUserDraftUpdateFields(promptDraftPO *model.PromptUserDraft) map[string]interface{} {
+	return map[string]interface{}{
+		"messages":                promptDraftPO.Messages,
+		"model_config":            promptDraftPO.ModelConfig,
+		"base_version":            promptDraftPO.BaseVersion,
+		"expected_latest_version": promptDraftPO.ExpectedLatestVersion,
+		"tools":                   promptDraftPO.Tools,
+		"tool_call_config":        promptDraftPO.ToolCallConfig,
+		"template_type":           promptDraftPO.TemplateType,
+		"variable_defs":           promptDraftPO.VariableDefs,
+		"metadata":                promptDraftPO.Metadata,
+		"mcp_config":              promptDraftPO.McpConfig,
+		"ext_info":                promptDraftPO.ExtInfo,
+		"is_draft_edited":         promptDraftPO.IsDraftEdited,
+		"has_snippets":            promptDraftPO.HasSnippets,
+		"encrypt_messages":        promptDraftPO.EncryptMessages,
+	}
+}
+
+func (d *PromptUserDraftDAOImpl) Delete(ctx context.Context, promptDraftPO *model.PromptUserDraft, opts ...db.Option) (err error) {
+	if promptDraftPO == nil || promptDraftPO.ID <= 0 || promptDraftPO.PromptID <= 0 || lo.IsEmpty(promptDraftPO.UserID) {
+		return errorx.New("promptDraftPO is invalid")
 	}
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	tx := q.WithContext(ctx).PromptUserDraft
-	tx = tx.Where(q.PromptUserDraft.ID.Eq(draftID))
+	tx = tx.Where(q.PromptUserDraft.ID.Eq(promptDraftPO.ID))
 	_, err = tx.Delete(&model.PromptUserDraft{})
 	if err != nil {
 		return errorx.WrapByCode(err, prompterr.CommonMySqlErrorCode)
 	}
-	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptDraft, draftID)
+	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptDraft, promptDraftPO.ID,
+		platestwrite.SetWithSearchParam(promptDraftSearchParam(promptDraftPO.PromptID, promptDraftPO.UserID)))
 	return nil
 }

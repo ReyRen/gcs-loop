@@ -35,7 +35,7 @@ type IPromptBasicDAO interface {
 	MGetByPromptKey(ctx context.Context, spaceID int64, promptKeys []string, opts ...db.Option) (promptPOs []*model.PromptBasic, err error)
 	List(ctx context.Context, param ListPromptBasicParam, opts ...db.Option) (basicPOs []*model.PromptBasic, total int64, err error)
 
-	Update(ctx context.Context, promptID int64, updateFields map[string]interface{}, opts ...db.Option) (err error)
+	Update(ctx context.Context, promptID int64, spaceID int64, updateFields map[string]interface{}, opts ...db.Option) (err error)
 }
 
 type ListPromptBasicParam struct {
@@ -129,6 +129,12 @@ func (d *PromptBasicDAOImpl) MGet(ctx context.Context, promptIDs []int64, opts .
 	if len(promptIDs) <= 0 {
 		return nil, errorx.WrapByCode(err, prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("PromptBasicDAOImpl.MGet invalid param"))
 	}
+	for _, promptID := range promptIDs {
+		if d.writeTracker.CheckWriteFlagByID(ctx, platestwrite.ResourceTypePromptBasic, promptID) {
+			opts = append(opts, db.WithMaster())
+			break
+		}
+	}
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	tx := q.WithContext(ctx).PromptBasic
 	tx = tx.Where(q.PromptBasic.ID.In(promptIDs...))
@@ -152,6 +158,9 @@ func (d *PromptBasicDAOImpl) MGet(ctx context.Context, promptIDs []int64, opts .
 func (d *PromptBasicDAOImpl) MGetByPromptKey(ctx context.Context, spaceID int64, promptKeys []string, opts ...db.Option) (promptPOs []*model.PromptBasic, err error) {
 	if len(promptKeys) <= 0 {
 		return nil, errorx.WrapByCode(err, prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("PromptBasicDAOImpl.MGetByPromptKey invalid param"))
+	}
+	if d.writeTracker.CheckWriteFlagBySearchParam(ctx, platestwrite.ResourceTypePromptBasic, strconv.FormatInt(spaceID, 10)) {
+		opts = append(opts, db.WithMaster())
 	}
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	tx := q.WithContext(ctx).PromptBasic
@@ -209,9 +218,9 @@ func (d *PromptBasicDAOImpl) List(ctx context.Context, param ListPromptBasicPara
 	return basicPOs, total, nil
 }
 
-func (d *PromptBasicDAOImpl) Update(ctx context.Context, promptID int64, updateFields map[string]interface{}, opts ...db.Option) (err error) {
-	if promptID <= 0 {
-		return errorx.New("promptID is invalid, promptID = %d", promptID)
+func (d *PromptBasicDAOImpl) Update(ctx context.Context, promptID int64, spaceID int64, updateFields map[string]interface{}, opts ...db.Option) (err error) {
+	if promptID <= 0 || spaceID <= 0 {
+		return errorx.New("promptID or spaceID is invalid, promptID = %d, spaceID = %d", promptID, spaceID)
 	}
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	tx := q.WithContext(ctx).PromptBasic
@@ -220,7 +229,8 @@ func (d *PromptBasicDAOImpl) Update(ctx context.Context, promptID int64, updateF
 	if err != nil {
 		return errorx.WrapByCode(err, prompterr.CommonMySqlErrorCode)
 	}
-	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptBasic, promptID)
+	d.writeTracker.SetWriteFlag(ctx, platestwrite.ResourceTypePromptBasic, promptID,
+		platestwrite.SetWithSearchParam(strconv.FormatInt(spaceID, 10)))
 	return nil
 }
 

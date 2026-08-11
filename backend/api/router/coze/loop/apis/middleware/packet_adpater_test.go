@@ -39,6 +39,23 @@ func TestParseErrPacket(t *testing.T) {
 			},
 		},
 		{
+			name: "business error with custom extra",
+			errors: []error{
+				kerrors.NewBizStatusErrorWithExtra(600501011, "draft conflict", map[string]string{
+					baseRespExtraAffectStableKey: "0",
+					baseRespExtraCustomKey:       `{"conflict_type":"latest_version_changed","latest_version":"2.0.0"}`,
+				}),
+			},
+			expected: &errPacket{
+				Code:    600501011,
+				Message: "draft conflict",
+				Extra: map[string]string{
+					"conflict_type":  "latest_version_changed",
+					"latest_version": "2.0.0",
+				},
+			},
+		},
+		{
 			name: "internal error",
 			errors: []error{
 				assert.AnError,
@@ -62,6 +79,14 @@ func TestParseErrPacket(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 		})
 	}
+}
+
+func TestExtractErrorExtra_IgnoresUnwrappedExtra(t *testing.T) {
+	assert.Nil(t, extractErrorExtra(map[string]string{
+		baseRespExtraAffectStableKey: "0",
+		"conflict_type":              "draft_changed",
+		"latest_version":             "2.0.0",
+	}))
 }
 
 func TestBaseResp_IsSuccessStatus(t *testing.T) {

@@ -1306,7 +1306,7 @@ func TestManageRepoImpl_ListCommitInfo(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: errorx.New("Param(PromptID or PageSize) is invalid, param = {\"PromptID\":0,\"PageSize\":10,\"PageToken\":null,\"Asc\":false}"),
+			wantErr: errorx.New("Param(PromptID or PageSize) is invalid, param = {\"PromptID\":0,\"PageSize\":10,\"Cursor\":null,\"Asc\":false}"),
 		},
 		{
 			name: "invalid page size",
@@ -1321,7 +1321,7 @@ func TestManageRepoImpl_ListCommitInfo(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: errorx.New("Param(PromptID or PageSize) is invalid, param = {\"PromptID\":1,\"PageSize\":0,\"PageToken\":null,\"Asc\":false}"),
+			wantErr: errorx.New("Param(PromptID or PageSize) is invalid, param = {\"PromptID\":1,\"PageSize\":0,\"Cursor\":null,\"Asc\":false}"),
 		},
 		{
 			name: "empty result",
@@ -1518,7 +1518,11 @@ func TestManageRepoImpl_ListCommitInfo(t *testing.T) {
 						CommittedAt: time.Unix(2000, 0),
 					},
 				},
-				NextPageToken: 3000,
+				NextCursor: &repo.ListCommitCursor{
+					CreatedAt: time.Unix(2000, 0),
+					ID:        2,
+				},
+				HasMore: true,
 				CommitDOs: []*entity.PromptCommit{
 					{
 						CommitInfo: &entity.CommitInfo{
@@ -1554,9 +1558,12 @@ func TestManageRepoImpl_ListCommitInfo(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().List(gomock.Any(), mysql.ListCommitParam{
 					PromptID: 1,
-					Cursor:   ptr.Of(int64(2)),
-					Limit:    11,
-					Asc:      true,
+					Cursor: &mysql.ListCommitCursor{
+						CreatedAt: time.Unix(2, 0),
+						Legacy:    true,
+					},
+					Limit: 11,
+					Asc:   true,
 				}).Return([]*model.PromptCommit{
 					{
 						ID:          3,
@@ -1583,10 +1590,13 @@ func TestManageRepoImpl_ListCommitInfo(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				param: repo.ListCommitInfoParam{
-					PromptID:  1,
-					PageSize:  10,
-					PageToken: ptr.Of(int64(2)),
-					Asc:       true,
+					PromptID: 1,
+					PageSize: 10,
+					Cursor: &repo.ListCommitCursor{
+						CreatedAt: time.Unix(2, 0),
+						Legacy:    true,
+					},
+					Asc: true,
 				},
 			},
 			want: &repo.ListCommitResult{
@@ -1674,6 +1684,7 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 		name         string
 		fieldsGetter func(ctrl *gomock.Controller) fields
 		args         args
+		checkResult  func(t *testing.T, got *entity.DraftInfo)
 		wantErr      error
 	}{
 		{
@@ -1777,16 +1788,18 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 
 				mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
 				mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
-					ID:      1,
-					SpaceID: 100,
+					ID:            1,
+					SpaceID:       100,
+					LatestVersion: "1.2.3",
 				}, nil)
 
 				mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
 				mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "test_user", gomock.Any()).Return(nil, nil)
 				mockDraftDAO.EXPECT().GetByID(gomock.Any(), int64(1001), gomock.Any()).Return(&model.PromptUserDraft{
-					ID:          1001,
-					UserID:      "test_user",
-					BaseVersion: "",
+					ID:                    1001,
+					UserID:                "test_user",
+					BaseVersion:           "",
+					ExpectedLatestVersion: "1.2.3",
 				}, nil)
 
 				mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
@@ -1796,6 +1809,7 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 					assert.Equal(t, int64(1001), draft.ID)
 					assert.Equal(t, int64(100), draft.SpaceID)
 					assert.Equal(t, int32(1), draft.IsDraftEdited)
+					assert.Equal(t, "1.2.3", draft.ExpectedLatestVersion)
 					return nil
 				})
 
@@ -2065,9 +2079,15 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 				}, nil)
 
 				mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+				createdAt := time.Unix(100, 0)
+				updatedAt := time.Unix(200, 0)
 				mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "test_user", gomock.Any()).Return(&model.PromptUserDraft{
-					ID:          1001,
-					BaseVersion: "1.0.0",
+					ID:            1001,
+					UserID:        "test_user",
+					BaseVersion:   "1.0.0",
+					IsDraftEdited: 1,
+					CreatedAt:     createdAt,
+					UpdatedAt:     updatedAt,
 				}, nil)
 
 				return fields{
@@ -2093,10 +2113,19 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 					},
 				},
 			},
+			checkResult: func(t *testing.T, got *entity.DraftInfo) {
+				assert.Equal(t, &entity.DraftInfo{
+					UserID:      "test_user",
+					BaseVersion: "1.0.0",
+					IsModified:  true,
+					CreatedAt:   time.Unix(100, 0),
+					UpdatedAt:   time.Unix(200, 0),
+				}, got)
+			},
 			wantErr: nil,
 		},
 		{
-			name: "update draft with changes",
+			name: "update draft with changes and omitted base preserves baseline",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockDB := dbmocks.NewMockProvider(ctrl)
 				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fc func(*gorm.DB) error, opts ...db.Option) error {
@@ -2105,8 +2134,9 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 
 				mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
 				mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
-					ID:      1,
-					SpaceID: 100,
+					ID:            1,
+					SpaceID:       100,
+					LatestVersion: "2.0.0",
 				}, nil)
 
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
@@ -2116,8 +2146,9 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 
 				mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
 				mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "test_user", gomock.Any()).Return(&model.PromptUserDraft{
-					ID:          1001,
-					BaseVersion: "1.0.0",
+					ID:                    1001,
+					BaseVersion:           "1.0.0",
+					ExpectedLatestVersion: "1.0.0",
 				}, nil)
 				mockDraftDAO.EXPECT().GetByID(gomock.Any(), int64(1001), gomock.Any()).Return(&model.PromptUserDraft{
 					ID:          1001,
@@ -2128,6 +2159,8 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 				mockDraftDAO.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, draft *model.PromptUserDraft, opts ...db.Option) error {
 					assert.Equal(t, int64(1001), draft.ID)
 					assert.Equal(t, int32(1), draft.IsDraftEdited)
+					assert.Equal(t, "1.0.0", draft.BaseVersion)
+					assert.Equal(t, "1.0.0", draft.ExpectedLatestVersion)
 					return nil
 				})
 
@@ -2149,8 +2182,7 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 					ID: 1,
 					PromptDraft: &entity.PromptDraft{
 						DraftInfo: &entity.DraftInfo{
-							UserID:      "test_user",
-							BaseVersion: "1.0.0",
+							UserID: "test_user",
 						},
 						PromptDetail: &entity.PromptDetail{
 							PromptTemplate: &entity.PromptTemplate{
@@ -2165,6 +2197,108 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 						},
 					},
 				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "rebase draft resets expected latest version",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				mockDB := dbmocks.NewMockProvider(ctrl)
+				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fc func(*gorm.DB) error, opts ...db.Option) error {
+					return fc(nil)
+				})
+
+				mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+				mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+					ID: 1, SpaceID: 100, LatestVersion: "2.0.0",
+				}, nil)
+				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
+				mockCommitDAO.EXPECT().Get(gomock.Any(), int64(1), "1.0.0", gomock.Any()).Return(&model.PromptCommit{
+					PromptID: 1, Version: "1.0.0",
+				}, nil)
+				mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+				mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "test_user", gomock.Any()).Return(&model.PromptUserDraft{
+					ID: 1001, PromptID: 1, UserID: "test_user", BaseVersion: "0.9.0", ExpectedLatestVersion: "1.0.0",
+				}, nil)
+				mockDraftDAO.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, draft *model.PromptUserDraft, opts ...db.Option) error {
+					assert.Equal(t, "1.0.0", draft.BaseVersion)
+					assert.Equal(t, "2.0.0", draft.ExpectedLatestVersion)
+					return nil
+				})
+				mockDraftDAO.EXPECT().GetByID(gomock.Any(), int64(1001), gomock.Any()).Return(&model.PromptUserDraft{
+					ID: 1001, PromptID: 1, UserID: "test_user", BaseVersion: "1.0.0", ExpectedLatestVersion: "2.0.0",
+				}, nil)
+				mockRelationDAO := daomocks.NewMockIPromptRelationDAO(ctrl)
+				mockRelationDAO.EXPECT().DeleteByMainPrompt(gomock.Any(), int64(1), "", "test_user", gomock.Any()).Return(nil)
+				return fields{
+					db: mockDB, promptBasicDAO: mockBasicDAO, promptCommitDAO: mockCommitDAO,
+					promptDraftDAO: mockDraftDAO, promptRelationDAO: mockRelationDAO,
+				}
+			},
+			args: args{
+				ctx: context.Background(),
+				promptDO: &entity.Prompt{
+					ID: 1,
+					PromptDraft: &entity.PromptDraft{
+						DraftInfo: &entity.DraftInfo{UserID: "test_user", BaseVersion: "1.0.0"},
+						PromptDetail: &entity.PromptDetail{PromptTemplate: &entity.PromptTemplate{
+							TemplateType: entity.TemplateTypeNormal,
+							Messages:     []*entity.Message{{Role: entity.RoleUser, Content: ptr.Of("rebased draft")}},
+						}},
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "explicit restore resets stale baseline when base is unchanged",
+			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				mockDB := dbmocks.NewMockProvider(ctrl)
+				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fc func(*gorm.DB) error, opts ...db.Option) error {
+					return fc(nil)
+				})
+
+				mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+				mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+					ID: 1, SpaceID: 100, LatestVersion: "2.0.0",
+				}, nil)
+				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
+				mockCommitDAO.EXPECT().Get(gomock.Any(), int64(1), "1.0.0", gomock.Any()).Return(&model.PromptCommit{
+					PromptID: 1, Version: "1.0.0",
+				}, nil)
+				mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+				mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "test_user", gomock.Any()).Return(&model.PromptUserDraft{
+					ID: 1001, PromptID: 1, UserID: "test_user", BaseVersion: "1.0.0", ExpectedLatestVersion: "1.0.0",
+				}, nil)
+				mockDraftDAO.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, draft *model.PromptUserDraft, opts ...db.Option) error {
+					assert.Equal(t, "1.0.0", draft.BaseVersion)
+					assert.Equal(t, "2.0.0", draft.ExpectedLatestVersion)
+					return nil
+				})
+				mockDraftDAO.EXPECT().GetByID(gomock.Any(), int64(1001), gomock.Any()).Return(&model.PromptUserDraft{
+					ID: 1001, PromptID: 1, UserID: "test_user", BaseVersion: "1.0.0", ExpectedLatestVersion: "2.0.0",
+				}, nil)
+				mockRelationDAO := daomocks.NewMockIPromptRelationDAO(ctrl)
+				mockRelationDAO.EXPECT().DeleteByMainPrompt(gomock.Any(), int64(1), "", "test_user", gomock.Any()).Return(nil)
+				return fields{
+					db: mockDB, promptBasicDAO: mockBasicDAO, promptCommitDAO: mockCommitDAO,
+					promptDraftDAO: mockDraftDAO, promptRelationDAO: mockRelationDAO,
+				}
+			},
+			args: args{
+				ctx: context.Background(),
+				promptDO: &entity.Prompt{
+					ID: 1,
+					PromptDraft: &entity.PromptDraft{
+						DraftInfo:             &entity.DraftInfo{UserID: "test_user", BaseVersion: "1.0.0"},
+						PromptDetail:          &entity.PromptDetail{PromptTemplate: &entity.PromptTemplate{}},
+						ResetBaselineToLatest: true,
+					},
+				},
+			},
+			checkResult: func(t *testing.T, got *entity.DraftInfo) {
+				assert.Equal(t, "1.0.0", got.BaseVersion)
+				assert.Equal(t, "2.0.0", got.ExpectedLatestVersion)
 			},
 			wantErr: nil,
 		},
@@ -2574,8 +2708,11 @@ func TestManageRepoImpl_SaveDraft(t *testing.T) {
 				idgen:             ttFields.idgen,
 			}
 
-			_, err := d.SaveDraft(tt.args.ctx, tt.args.promptDO)
+			got, err := d.SaveDraft(tt.args.ctx, tt.args.promptDO)
 			unittest.AssertErrorEqual(t, tt.wantErr, err)
+			if tt.checkResult != nil {
+				tt.checkResult(t, got)
+			}
 		})
 	}
 }
@@ -3331,7 +3468,7 @@ func TestManageRepoImpl_UpdatePrompt(t *testing.T) {
 					SpaceID:   100,
 					PromptKey: "prompt_key",
 				}, nil)
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any()).Return(errorx.New("update error"))
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), int64(100), gomock.Any()).Return(errorx.New("update error"))
 
 				return fields{
 					db:             mockDB,
@@ -3364,9 +3501,10 @@ func TestManageRepoImpl_UpdatePrompt(t *testing.T) {
 					SpaceID:   100,
 					PromptKey: "prompt_key",
 				}, nil)
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any()).DoAndReturn(
-					func(_ context.Context, promptID int64, updateFields map[string]interface{}, opts ...db.Option) error {
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), int64(100), gomock.Any()).DoAndReturn(
+					func(_ context.Context, promptID int64, spaceID int64, updateFields map[string]interface{}, opts ...db.Option) error {
 						assert.Equal(t, int64(1), promptID)
+						assert.Equal(t, int64(100), spaceID)
 						assert.Equal(t, "user", updateFields["updated_by"])
 						assert.Equal(t, "updated", updateFields["name"])
 						assert.Equal(t, "desc", updateFields["description"])
@@ -3570,7 +3708,6 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 			name: "commit version must be greater than latest version",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
-				mockIDGen.EXPECT().GenID(gomock.Any()).Return(int64(1001), nil)
 
 				mockDB := dbmocks.NewMockProvider(ctrl)
 				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fc func(*gorm.DB) error, opts ...db.Option) error {
@@ -3584,11 +3721,17 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 					PromptKey:     "test_key",
 					LatestVersion: "1.2.3",
 				}, nil)
+				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
+				mockCommitDAO.EXPECT().Get(gomock.Any(), int64(1), "1.2.3", gomock.Any()).Return(nil, nil)
+				mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+				mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "test_user", gomock.Any()).Return(nil, nil)
 
 				return fields{
-					db:             mockDB,
-					idgen:          mockIDGen,
-					promptBasicDAO: mockBasicDAO,
+					db:              mockDB,
+					idgen:           mockIDGen,
+					promptBasicDAO:  mockBasicDAO,
+					promptCommitDAO: mockCommitDAO,
+					promptDraftDAO:  mockDraftDAO,
 				}
 			},
 			args: args{
@@ -3606,7 +3749,6 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 			name: "db error",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
-				mockIDGen.EXPECT().GenID(gomock.Any()).Return(int64(1001), nil)
 
 				mockDB := dbmocks.NewMockProvider(ctrl)
 				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).Return(errorx.New("db error"))
@@ -3631,7 +3773,6 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 			name: "basic prompt not found",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
-				mockIDGen.EXPECT().GenID(gomock.Any()).Return(int64(1001), nil)
 
 				mockDB := dbmocks.NewMockProvider(ctrl)
 				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fc func(*gorm.DB) error, opts ...db.Option) error {
@@ -3661,7 +3802,6 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 			name: "draft not found",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
-				mockIDGen.EXPECT().GenID(gomock.Any()).Return(int64(1001), nil)
 
 				mockDB := dbmocks.NewMockProvider(ctrl)
 				mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fc func(*gorm.DB) error, opts ...db.Option) error {
@@ -3769,7 +3909,7 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(errorx.New("delete draft error"))
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(errorx.New("delete draft error"))
 
 				return fields{
 					db:              mockDB,
@@ -3819,9 +3959,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(errorx.New("update basic error"))
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(errorx.New("update basic error"))
 
 				return fields{
 					db:              mockDB,
@@ -3873,9 +4013,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockPromptBasicCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
 				mockPromptBasicCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "test_key").Return(errorx.New("cache delete error"))
@@ -3934,9 +4074,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockCommitLabelMappingDAO := daomocks.NewMockICommitLabelMappingDAO(ctrl)
 				mockCommitLabelMappingDAO.EXPECT().ListByPromptIDAndLabelKeys(gomock.Any(), int64(1), []string{"label1", "label2"}, gomock.Any()).Return(nil, errorx.New("query mapping error"))
@@ -3993,9 +4133,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockCommitLabelMappingDAO := daomocks.NewMockICommitLabelMappingDAO(ctrl)
 				mockCommitLabelMappingDAO.EXPECT().ListByPromptIDAndLabelKeys(gomock.Any(), int64(1), []string{"label1", "label2"}, gomock.Any()).Return(nil, nil)
@@ -4052,9 +4192,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockCommitLabelMappingDAO := daomocks.NewMockICommitLabelMappingDAO(ctrl)
 				mockCommitLabelMappingDAO.EXPECT().ListByPromptIDAndLabelKeys(gomock.Any(), int64(1), []string{"label1", "label2"}, gomock.Any()).Return(nil, nil)
@@ -4112,9 +4252,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockCommitLabelMappingDAO := daomocks.NewMockICommitLabelMappingDAO(ctrl)
 				// 返回一个已存在的映射
@@ -4189,9 +4329,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockPromptBasicCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
 				mockPromptBasicCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "test_key").Return(nil)
@@ -4252,9 +4392,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockPromptBasicCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
 				mockPromptBasicCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "test_key").Return(nil)
@@ -4328,9 +4468,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockPromptBasicCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
 				mockPromptBasicCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "test_key").Return(nil)
@@ -4420,9 +4560,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 				mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
 				mockCommitDAO.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockPromptBasicCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
 				mockPromptBasicCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "test_key").Return(nil)
@@ -4518,13 +4658,15 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 					assert.Equal(t, "2.0.0", commit.Version)
 					assert.Equal(t, "1.0.0", commit.BaseVersion)
 					assert.Equal(t, "test_user", commit.CommittedBy)
+					assert.NotNil(t, commit.CommitFingerprint)
 					return nil
 				})
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id int64, updates map[string]interface{}, opts ...db.Option) error {
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id int64, spaceID int64, updates map[string]interface{}, opts ...db.Option) error {
 					assert.Equal(t, int64(1), id)
+					assert.Equal(t, int64(100), spaceID)
 					assert.Equal(t, "2.0.0", updates["latest_version"])
 					return nil
 				})
@@ -4599,9 +4741,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 					return nil
 				})
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockPromptBasicCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
 				mockPromptBasicCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "test_key").Return(nil)
@@ -4692,9 +4834,9 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 					return nil
 				})
 
-				mockDraftDAO.EXPECT().Delete(gomock.Any(), int64(1001), gomock.Any()).Return(nil)
+				mockDraftDAO.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any()).Return(nil)
+				mockBasicDAO.EXPECT().Update(gomock.Any(), int64(1), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				mockPromptBasicCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
 				mockPromptBasicCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "test_key").Return(nil)
@@ -4752,6 +4894,258 @@ func TestManageRepoImpl_CommitDraft(t *testing.T) {
 			unittest.AssertErrorEqual(t, tt.wantErr, err)
 		})
 	}
+}
+
+func TestManageRepoImpl_CommitDraftRejectsStaleDraftBaseline(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+
+	mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
+	mockDB := dbmocks.NewMockProvider(ctrl)
+	mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(*gorm.DB) error, opts ...db.Option) error {
+		return fn(nil)
+	})
+	mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+	mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+		ID: 1, SpaceID: 100, PromptKey: "key", LatestVersion: "2.0.0",
+	}, nil)
+	mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+	mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "user", gomock.Any()).Return(&model.PromptUserDraft{
+		ID: 10, PromptID: 1, UserID: "user", BaseVersion: "1.0.0", ExpectedLatestVersion: "1.0.0",
+	}, nil)
+
+	d := &ManageRepoImpl{
+		db: mockDB, idgen: mockIDGen, promptBasicDAO: mockBasicDAO, promptDraftDAO: mockDraftDAO,
+	}
+	err := d.CommitDraft(context.Background(), repo.CommitDraftParam{
+		PromptID: 1, UserID: "user", CommitVersion: "3.0.0",
+	})
+	statusErr, ok := errorx.FromStatusError(err)
+	assert.True(t, ok)
+	assert.Equal(t, int32(errno.PromptDraftVersionConflictCode), statusErr.Code())
+	assert.Equal(t, "latest_version_changed", statusErr.Extra()["conflict_type"])
+	assert.Equal(t, "1.0.0", statusErr.Extra()["draft_expected_latest_version"])
+	assert.Equal(t, "2.0.0", statusErr.Extra()["latest_version"])
+}
+
+func TestManageRepoImpl_CommitDraftPrioritizesStaleDraftConflictOverVersionExists(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+
+	mockDB := dbmocks.NewMockProvider(ctrl)
+	mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(*gorm.DB) error, opts ...db.Option) error {
+		return fn(nil)
+	})
+	mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+	mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+		ID: 1, SpaceID: 100, PromptKey: "key", LatestVersion: "2.0.0",
+	}, nil)
+	mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+	mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "user", gomock.Any()).Return(&model.PromptUserDraft{
+		ID: 10, PromptID: 1, UserID: "user", BaseVersion: "1.0.0", ExpectedLatestVersion: "1.0.0",
+	}, nil)
+	mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
+	mockCommitDAO.EXPECT().Get(gomock.Any(), int64(1), "2.0.0", gomock.Any()).Return(&model.PromptCommit{
+		PromptID: 1, Version: "2.0.0", CommittedBy: "other-user",
+	}, nil)
+
+	d := &ManageRepoImpl{
+		db: mockDB, promptBasicDAO: mockBasicDAO, promptDraftDAO: mockDraftDAO, promptCommitDAO: mockCommitDAO,
+	}
+	err := d.CommitDraft(context.Background(), repo.CommitDraftParam{
+		PromptID: 1, UserID: "user", CommitVersion: "2.0.0",
+	})
+	statusErr, ok := errorx.FromStatusError(err)
+	assert.True(t, ok)
+	assert.Equal(t, int32(errno.PromptDraftVersionConflictCode), statusErr.Code())
+	assert.Equal(t, "latest_version_changed", statusErr.Extra()["conflict_type"])
+}
+
+func TestManageRepoImpl_CommitDraftIdempotentRetry(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+
+	fingerprint, err := entity.CommitRequestFingerprint("2.0.0", "release", []string{"prod", "stable"})
+	assert.NoError(t, err)
+	mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
+	mockDB := dbmocks.NewMockProvider(ctrl)
+	mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(*gorm.DB) error, opts ...db.Option) error {
+		return fn(nil)
+	})
+	mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+	mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+		ID: 1, SpaceID: 100, PromptKey: "key", LatestVersion: "2.0.0",
+	}, nil)
+	mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
+	mockCommitDAO.EXPECT().Get(gomock.Any(), int64(1), "2.0.0", gomock.Any()).Return(&model.PromptCommit{
+		PromptID: 1, Version: "2.0.0", CommittedBy: "user", CommitFingerprint: &fingerprint,
+	}, nil)
+	mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+	mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "user", gomock.Any()).Return(nil, nil)
+	mockCacheDAO := redismocks.NewMockIPromptBasicDAO(ctrl)
+	mockCacheDAO.EXPECT().DelByPromptKey(gomock.Any(), int64(100), "key").Return(nil)
+
+	d := &ManageRepoImpl{
+		db: mockDB, idgen: mockIDGen, promptBasicDAO: mockBasicDAO, promptCommitDAO: mockCommitDAO,
+		promptDraftDAO: mockDraftDAO, promptBasicCacheDAO: mockCacheDAO,
+	}
+	err = d.CommitDraft(context.Background(), repo.CommitDraftParam{
+		PromptID: 1, UserID: "user", CommitVersion: "2.0.0", CommitDescription: "release",
+		LabelKeys: []string{"stable", "prod", "stable"},
+	})
+	assert.NoError(t, err)
+}
+
+func TestManageRepoImpl_CommitDraftDoesNotReplayDifferentAuditedSnapshot(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+
+	requestFingerprint, err := entity.CommitRequestFingerprint("2.0.0", "release", []string{"prod"})
+	assert.NoError(t, err)
+	expectedDraftFingerprint, err := entity.PromptDraftFingerprint(&entity.PromptDraft{
+		DraftInfo: &entity.DraftInfo{BaseVersion: "1.0.0"},
+		PromptDetail: &entity.PromptDetail{
+			ExtInfos: map[string]string{"source": "audited"},
+		},
+	})
+	assert.NoError(t, err)
+	committedExtInfo := `{"source":"committed"}`
+
+	mockDB := dbmocks.NewMockProvider(ctrl)
+	mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(*gorm.DB) error, opts ...db.Option) error {
+		return fn(nil)
+	})
+	mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+	mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+		ID: 1, SpaceID: 100, PromptKey: "key", LatestVersion: "2.0.0",
+	}, nil)
+	mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
+	mockCommitDAO.EXPECT().Get(gomock.Any(), int64(1), "2.0.0", gomock.Any()).Return(&model.PromptCommit{
+		PromptID: 1, Version: "2.0.0", BaseVersion: "1.0.0", CommittedBy: "user",
+		CommitFingerprint: &requestFingerprint, ExtInfo: &committedExtInfo,
+	}, nil)
+	mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+	mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "user", gomock.Any()).Return(nil, nil)
+
+	d := &ManageRepoImpl{
+		db: mockDB, promptBasicDAO: mockBasicDAO, promptCommitDAO: mockCommitDAO,
+		promptDraftDAO: mockDraftDAO,
+	}
+	err = d.CommitDraft(context.Background(), repo.CommitDraftParam{
+		PromptID: 1, UserID: "user", CommitVersion: "2.0.0", CommitDescription: "release",
+		LabelKeys: []string{"prod"}, ExpectedDraftFingerprint: expectedDraftFingerprint,
+	})
+	statusErr, ok := errorx.FromStatusError(err)
+	assert.True(t, ok)
+	assert.Equal(t, int32(errno.PromptSubmitVersionExistCode), statusErr.Code())
+}
+
+func TestManageRepoImpl_CommitDraftDoesNotReplayOverNewDraft(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+
+	fingerprint, err := entity.CommitRequestFingerprint("2.0.0", "release", []string{"prod"})
+	assert.NoError(t, err)
+	mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
+	mockDB := dbmocks.NewMockProvider(ctrl)
+	mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(*gorm.DB) error, opts ...db.Option) error {
+		return fn(nil)
+	})
+	mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+	mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+		ID: 1, SpaceID: 100, PromptKey: "key", LatestVersion: "2.0.0",
+	}, nil)
+	mockCommitDAO := daomocks.NewMockIPromptCommitDAO(ctrl)
+	mockCommitDAO.EXPECT().Get(gomock.Any(), int64(1), "2.0.0", gomock.Any()).Return(&model.PromptCommit{
+		PromptID: 1, Version: "2.0.0", CommittedBy: "user", CommitFingerprint: &fingerprint,
+	}, nil)
+	mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+	mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "user", gomock.Any()).Return(&model.PromptUserDraft{
+		ID: 11, PromptID: 1, UserID: "user", BaseVersion: "2.0.0", ExpectedLatestVersion: "2.0.0",
+	}, nil)
+
+	d := &ManageRepoImpl{
+		db: mockDB, idgen: mockIDGen, promptBasicDAO: mockBasicDAO, promptCommitDAO: mockCommitDAO,
+		promptDraftDAO: mockDraftDAO,
+	}
+	err = d.CommitDraft(context.Background(), repo.CommitDraftParam{
+		PromptID: 1, UserID: "user", CommitVersion: "2.0.0", CommitDescription: "release",
+		LabelKeys: []string{"prod"},
+	})
+	statusErr, ok := errorx.FromStatusError(err)
+	assert.True(t, ok)
+	assert.Equal(t, int32(errno.PromptSubmitVersionExistCode), statusErr.Code())
+}
+
+func TestManageRepoImpl_CommitDraftRejectsDraftChangedAfterAudit(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+
+	expectedFingerprint, err := entity.PromptDraftFingerprint(&entity.PromptDraft{
+		DraftInfo: &entity.DraftInfo{BaseVersion: "1.0.0"},
+		PromptDetail: &entity.PromptDetail{
+			ExtInfos: map[string]string{"source": "audited"},
+		},
+	})
+	assert.NoError(t, err)
+	persistedExtInfo := `{"source":"persisted"}`
+	mockIDGen := idgenmocks.NewMockIIDGenerator(ctrl)
+	mockDB := dbmocks.NewMockProvider(ctrl)
+	mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(*gorm.DB) error, opts ...db.Option) error {
+		return fn(nil)
+	})
+	mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+	mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+		ID: 1, SpaceID: 100, PromptKey: "key", LatestVersion: "1.0.0",
+	}, nil)
+	mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+	mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "user", gomock.Any()).Return(&model.PromptUserDraft{
+		ID: 10, PromptID: 1, UserID: "user", BaseVersion: "1.0.0", ExpectedLatestVersion: "1.0.0", ExtInfo: &persistedExtInfo,
+	}, nil)
+
+	d := &ManageRepoImpl{
+		db: mockDB, idgen: mockIDGen, promptBasicDAO: mockBasicDAO, promptDraftDAO: mockDraftDAO,
+	}
+	err = d.CommitDraft(context.Background(), repo.CommitDraftParam{
+		PromptID: 1, UserID: "user", CommitVersion: "2.0.0", ExpectedDraftFingerprint: expectedFingerprint,
+	})
+	statusErr, ok := errorx.FromStatusError(err)
+	assert.True(t, ok)
+	assert.Equal(t, int32(errno.PromptDraftVersionConflictCode), statusErr.Code())
+	assert.Equal(t, "draft_changed", statusErr.Extra()["conflict_type"])
+}
+
+func TestManageRepoImpl_CommitDraftRejectsBaseVersionChangedAfterAudit(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+
+	expectedFingerprint, err := entity.PromptDraftFingerprint(&entity.PromptDraft{
+		DraftInfo:    &entity.DraftInfo{BaseVersion: "1.0.0"},
+		PromptDetail: &entity.PromptDetail{ExtInfos: map[string]string{"source": "same"}},
+	})
+	assert.NoError(t, err)
+	persistedExtInfo := `{"source":"same"}`
+	mockDB := dbmocks.NewMockProvider(ctrl)
+	mockDB.EXPECT().Transaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(*gorm.DB) error, opts ...db.Option) error {
+		return fn(nil)
+	})
+	mockBasicDAO := daomocks.NewMockIPromptBasicDAO(ctrl)
+	mockBasicDAO.EXPECT().Get(gomock.Any(), int64(1), gomock.Any()).Return(&model.PromptBasic{
+		ID: 1, SpaceID: 100, PromptKey: "key", LatestVersion: "1.0.0",
+	}, nil)
+	mockDraftDAO := daomocks.NewMockIPromptUserDraftDAO(ctrl)
+	mockDraftDAO.EXPECT().Get(gomock.Any(), int64(1), "user", gomock.Any()).Return(&model.PromptUserDraft{
+		ID: 10, PromptID: 1, UserID: "user", BaseVersion: "0.9.0", ExpectedLatestVersion: "1.0.0", ExtInfo: &persistedExtInfo,
+	}, nil)
+
+	d := &ManageRepoImpl{db: mockDB, promptBasicDAO: mockBasicDAO, promptDraftDAO: mockDraftDAO}
+	err = d.CommitDraft(context.Background(), repo.CommitDraftParam{
+		PromptID: 1, UserID: "user", CommitVersion: "2.0.0", ExpectedDraftFingerprint: expectedFingerprint,
+	})
+	statusErr, ok := errorx.FromStatusError(err)
+	assert.True(t, ok)
+	assert.Equal(t, int32(errno.PromptDraftVersionConflictCode), statusErr.Code())
+	assert.Equal(t, "draft_changed", statusErr.Extra()["conflict_type"])
 }
 
 func TestNewManageRepo(t *testing.T) {

@@ -19,8 +19,9 @@ type Prompt struct {
 }
 
 type PromptDraft struct {
-	PromptDetail *PromptDetail `json:"prompt_detail,omitempty"`
-	DraftInfo    *DraftInfo    `json:"draft_info,omitempty"`
+	PromptDetail          *PromptDetail `json:"prompt_detail,omitempty"`
+	DraftInfo             *DraftInfo    `json:"draft_info,omitempty"`
+	ResetBaselineToLatest bool          `json:"-"`
 }
 
 type PromptCommit struct {
@@ -29,11 +30,12 @@ type PromptCommit struct {
 }
 
 type DraftInfo struct {
-	UserID      string    `json:"user_id"`
-	BaseVersion string    `json:"base_version"`
-	IsModified  bool      `json:"is_modified"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	UserID                string    `json:"user_id"`
+	BaseVersion           string    `json:"base_version"`
+	IsModified            bool      `json:"is_modified"`
+	CreatedAt             time.Time `json:"created_at"`
+	UpdatedAt             time.Time `json:"updated_at"`
+	ExpectedLatestVersion string    `json:"-"`
 }
 
 type CommitInfo struct {

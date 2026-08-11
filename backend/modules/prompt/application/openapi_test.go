@@ -4430,7 +4430,15 @@ func TestPromptOpenAPIApplicationImpl_ListCommitOApi(t *testing.T) {
 					ID:      123,
 					SpaceID: 123456,
 				}, nil)
-				mockManageRepo.EXPECT().ListCommitInfo(gomock.Any(), gomock.Any()).Return(&repo.ListCommitResult{
+				mockManageRepo.EXPECT().ListCommitInfo(gomock.Any(), repo.ListCommitInfoParam{
+					PromptID: 123,
+					PageSize: 10,
+					Cursor: &repo.ListCommitCursor{
+						CreatedAt: time.Unix(50, 0),
+						Legacy:    true,
+					},
+					Asc: false,
+				}).Return(&repo.ListCommitResult{
 					CommitInfoDOs: []*entity.CommitInfo{
 						{
 							Version:     "2.0.0",
@@ -4438,7 +4446,11 @@ func TestPromptOpenAPIApplicationImpl_ListCommitOApi(t *testing.T) {
 							CommittedAt: startTime,
 						},
 					},
-					NextPageToken: 100,
+					NextCursor: &repo.ListCommitCursor{
+						CreatedAt: time.Unix(100, 0),
+						ID:        101,
+					},
+					HasMore: true,
 				}, nil)
 
 				mockAuth := rpcmocks.NewMockIAuthProvider(ctrl)

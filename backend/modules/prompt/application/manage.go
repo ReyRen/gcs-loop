@@ -174,7 +174,6 @@ func (app *PromptManageApplicationImpl) CreatePrompt(ctx context.Context, reques
 	}
 	promptDO := convertor.PromptDTO2DO(promptDTO)
 
-	// 审核
 	err = app.auditRPCProvider.AuditPrompt(ctx, promptDO)
 	if err != nil {
 		return r, err
@@ -286,7 +285,6 @@ func (app *PromptManageApplicationImpl) ClonePrompt(ctx context.Context, request
 	if !ok {
 		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found"))
 	}
-
 	// prompt
 	getPromptParam := repo.GetPromptParam{
 		PromptID:      request.GetPromptID(),
@@ -700,22 +698,31 @@ func (app *PromptManageApplicationImpl) CommitDraft(ctx context.Context, request
 		return r, err
 	}
 
-	// 审核
-	err = app.auditRPCProvider.AuditPrompt(ctx, promptDO)
-	if err != nil {
-		return r, err
-	}
-
-	// 验证label是否存在（如果有提供label）
-	var labelKeys []string
-	if len(request.GetLabelKeys()) > 0 {
-		// 使用labelService验证label是否存在
-		err = app.promptService.ValidateLabelsExist(ctx, promptDO.SpaceID, request.GetLabelKeys())
+	// Bind the repository transaction to the exact content and base version
+	// that were audited.
+	// A missing draft is allowed through this stage only so a lost successful
+	// response can be retried idempotently; the repository still rejects a new
+	// commit when no persisted draft exists.
+	var expectedDraftFingerprint string
+	if promptDO.PromptDraft != nil {
+		expectedDraftFingerprint, err = entity.PromptDraftFingerprint(promptDO.PromptDraft)
+		if err != nil {
+			return r, errorx.WrapByCode(err, prompterr.CommonInternalErrorCode)
+		}
+		err = app.auditRPCProvider.AuditPrompt(ctx, promptDO)
 		if err != nil {
 			return r, err
 		}
+	}
 
-		labelKeys = request.GetLabelKeys()
+	// 验证label是否存在（如果有提供label）
+	labelKeys := entity.NormalizeLabelKeys(request.GetLabelKeys())
+	if len(labelKeys) > 0 && promptDO.PromptDraft != nil {
+		// 使用labelService验证label是否存在
+		err = app.promptService.ValidateLabelsExist(ctx, promptDO.SpaceID, labelKeys)
+		if err != nil {
+			return r, err
+		}
 	}
 
 	// commit
@@ -724,9 +731,10 @@ func (app *PromptManageApplicationImpl) CommitDraft(ctx context.Context, request
 
 		UserID: userID,
 
-		CommitVersion:     request.GetCommitVersion(),
-		CommitDescription: request.GetCommitDescription(),
-		LabelKeys:         labelKeys,
+		CommitVersion:            request.GetCommitVersion(),
+		CommitDescription:        request.GetCommitDescription(),
+		LabelKeys:                labelKeys,
+		ExpectedDraftFingerprint: expectedDraftFingerprint,
 	}
 	return r, app.manageRepo.CommitDraft(ctx, commitDraftParam)
 }
@@ -738,6 +746,10 @@ func (app *PromptManageApplicationImpl) ListCommit(ctx context.Context, request 
 	_, ok := session.UserIDInCtx(ctx)
 	if !ok {
 		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found"))
+	}
+	if request.GetPageSize() > repo.MaxListCommitPageSize {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode,
+			errorx.WithExtraMsg(fmt.Sprintf("page_size must be between 1 and %d", repo.MaxListCommitPageSize)))
 	}
 
 	// prompt
@@ -756,23 +768,22 @@ func (app *PromptManageApplicationImpl) ListCommit(ctx context.Context, request 
 	}
 
 	// 校验
-	var pageTokenPtr *int64
+	var listCursor *repo.ListCommitCursor
 	if request.PageToken != nil {
-		pageToken, err := strconv.ParseInt(request.GetPageToken(), 10, 64)
+		listCursor, err = decodeListCommitPageToken(request.GetPageToken(), request.GetPromptID(), request.GetAsc())
 		if err != nil {
 			return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(
 				fmt.Sprintf("Page token is invalid, page token = %s", request.GetPageToken())))
 		}
-		pageTokenPtr = ptr.Of(pageToken)
 	}
 
 	// list commit
 	listCommitParam := repo.ListCommitInfoParam{
 		PromptID: request.GetPromptID(),
 
-		PageSize:  int(request.GetPageSize()),
-		PageToken: pageTokenPtr,
-		Asc:       request.GetAsc(),
+		PageSize: int(request.GetPageSize()),
+		Cursor:   listCursor,
+		Asc:      request.GetAsc(),
 	}
 	listCommitResult, err := app.manageRepo.ListCommitInfo(ctx, listCommitParam)
 	if err != nil {
@@ -781,8 +792,12 @@ func (app *PromptManageApplicationImpl) ListCommit(ctx context.Context, request 
 	if listCommitResult == nil {
 		return r, nil
 	}
-	if listCommitResult.NextPageToken > 0 {
-		r.NextPageToken = ptr.Of(strconv.FormatInt(listCommitResult.NextPageToken, 10))
+	if listCommitResult.HasMore {
+		nextPageToken, encodeErr := encodeListCommitPageToken(request.GetPromptID(), request.GetAsc(), listCommitResult.NextCursor)
+		if encodeErr != nil {
+			return r, encodeErr
+		}
+		r.NextPageToken = ptr.Of(nextPageToken)
 		r.HasMore = ptr.Of(true)
 	}
 	r.PromptCommitInfos = convertor.BatchCommitInfoDO2DTO(listCommitResult.CommitInfoDOs)
@@ -906,7 +921,8 @@ func (app *PromptManageApplicationImpl) RevertDraftFromCommit(ctx context.Contex
 			UserID:      userID,
 			BaseVersion: promptDO.PromptCommit.CommitInfo.Version,
 		},
-		PromptDetail: promptDO.PromptCommit.PromptDetail,
+		PromptDetail:          promptDO.PromptCommit.PromptDetail,
+		ResetBaselineToLatest: true,
 	}
 	_, err = app.promptService.SaveDraft(ctx, promptDO)
 	return r, err

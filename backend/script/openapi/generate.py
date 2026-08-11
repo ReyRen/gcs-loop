@@ -1031,6 +1031,17 @@ class OpenAPIGenerator:
                     },
                 )
                 properties.setdefault("msg", {"type": "string"})
+                properties.setdefault(
+                    "extra",
+                    {
+                        "type": "object",
+                        "additionalProperties": {"type": "string"},
+                        "description": (
+                            "Structured context returned for selected business errors. "
+                            "It is omitted on success and when an error has no public context."
+                        ),
+                    },
+                )
                 required.extend(name for name in ("code", "msg") if name not in required)
             schema = {"type": "object", "properties": properties}
             if required:

@@ -5,9 +5,12 @@ package repo
 
 import (
 	"context"
+	"time"
 
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/entity"
 )
+
+const MaxListCommitPageSize = 200
 
 //go:generate mockgen -destination=mocks/manage_repo.go -package=mocks . IManageRepo
 type IManageRepo interface {
@@ -74,20 +77,34 @@ type CommitDraftParam struct {
 	CommitVersion     string
 	CommitDescription string
 	LabelKeys         []string
+
+	// ExpectedDraftFingerprint binds the transaction to the exact draft detail
+	// and base version that passed application-layer content audit.
+	ExpectedDraftFingerprint string `json:"-"`
 }
 
 type ListCommitInfoParam struct {
 	PromptID int64
 
-	PageSize  int
-	PageToken *int64
-	Asc       bool
+	PageSize int
+	Cursor   *ListCommitCursor
+	Asc      bool
 }
 
 type ListCommitResult struct {
 	CommitInfoDOs []*entity.CommitInfo
 	CommitDOs     []*entity.PromptCommit
-	NextPageToken int64
+	NextCursor    *ListCommitCursor
+	HasMore       bool
+}
+
+// ListCommitCursor is the stable storage cursor for commit keyset pagination.
+// Legacy cursors contain only CreatedAt and use the old inclusive timestamp
+// boundary; new cursors also contain ID and use a strict tuple boundary.
+type ListCommitCursor struct {
+	CreatedAt time.Time
+	ID        int64
+	Legacy    bool
 }
 
 type ListParentPromptParam struct {

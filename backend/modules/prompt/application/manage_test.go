@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
@@ -2918,7 +2919,9 @@ func TestPromptManageApplicationImpl_CommitDraft(t *testing.T) {
 			name: "audit error",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				repoMock := repomocks.NewMockIManageRepo(ctrl)
-				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{ID: 4, SpaceID: 40}, nil)
+				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{
+					ID: 4, SpaceID: 40, PromptDraft: &entity.PromptDraft{PromptDetail: &entity.PromptDetail{}},
+				}, nil)
 				auth := mocks.NewMockIAuthProvider(ctrl)
 				auth.EXPECT().MCheckPromptPermission(gomock.Any(), int64(40), []int64{int64(4)}, consts.ActionLoopPromptEdit).Return(nil)
 				audit := mocks.NewMockIAuditProvider(ctrl)
@@ -2939,14 +2942,21 @@ func TestPromptManageApplicationImpl_CommitDraft(t *testing.T) {
 		{
 			name: "success",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
+				expectedFingerprint, err := entity.PromptDraftFingerprint(&entity.PromptDraft{
+					PromptDetail: &entity.PromptDetail{},
+				})
+				assert.NoError(t, err)
 				repoMock := repomocks.NewMockIManageRepo(ctrl)
-				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{ID: 4, SpaceID: 40}, nil)
+				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{
+					ID: 4, SpaceID: 40, PromptDraft: &entity.PromptDraft{PromptDetail: &entity.PromptDetail{}},
+				}, nil)
 				repoMock.EXPECT().CommitDraft(gomock.Any(), repo.CommitDraftParam{
-					PromptID:          4,
-					UserID:            "user",
-					CommitVersion:     "1.0.0",
-					CommitDescription: "desc",
-					LabelKeys:         []string{"label"},
+					PromptID:                 4,
+					UserID:                   "user",
+					CommitVersion:            "1.0.0",
+					CommitDescription:        "desc",
+					LabelKeys:                []string{"label"},
+					ExpectedDraftFingerprint: expectedFingerprint,
 				}).Return(nil)
 				auth := mocks.NewMockIAuthProvider(ctrl)
 				auth.EXPECT().MCheckPromptPermission(gomock.Any(), int64(40), []int64{int64(4)}, consts.ActionLoopPromptEdit).Return(nil)
@@ -3036,7 +3046,8 @@ func TestPromptManageApplicationImpl_ListCommit(t *testing.T) {
 				repoMock.EXPECT().ListCommitInfo(gomock.Any(), repo.ListCommitInfoParam{PromptID: 5, PageSize: 10, Asc: true}).Return(&repo.ListCommitResult{
 					CommitInfoDOs: []*entity.CommitInfo{{Version: "1.0.0", CommittedBy: "userA"}},
 					CommitDOs:     []*entity.PromptCommit{{CommitInfo: &entity.CommitInfo{Version: "1.0.0"}}},
-					NextPageToken: 77,
+					NextCursor:    &repo.ListCommitCursor{CreatedAt: time.Unix(77, 0), ID: 78},
+					HasMore:       true,
 				}, nil)
 				auth := mocks.NewMockIAuthProvider(ctrl)
 				auth.EXPECT().MCheckPromptPermission(gomock.Any(), int64(50), []int64{int64(5)}, consts.ActionLoopPromptRead).Return(nil)
@@ -3110,7 +3121,9 @@ func TestPromptManageApplicationImpl_ListCommit(t *testing.T) {
 				assert.Len(t, resp.PromptCommitInfos, 1)
 				switch caseData.name {
 				case "success":
-					assert.Equal(t, ptr.Of("77"), resp.NextPageToken)
+					expectedToken, encodeErr := encodeListCommitPageToken(5, true, &repo.ListCommitCursor{CreatedAt: time.Unix(77, 0), ID: 78})
+					assert.NoError(t, encodeErr)
+					assert.Equal(t, ptr.Of(expectedToken), resp.NextPageToken)
 					assert.Equal(t, ptr.Of(true), resp.HasMore)
 				case "snippet success":
 					assert.Nil(t, resp.NextPageToken)
@@ -3132,13 +3145,13 @@ func TestPromptManageApplicationImpl_RevertDraftFromCommit(t *testing.T) {
 	}
 	tests := []struct {
 		name         string
-		fieldsGetter func(ctrl *gomock.Controller) fields
+		fieldsGetter func(t *testing.T, ctrl *gomock.Controller) fields
 		args         args
 		wantErr      error
 	}{
 		{
 			name: "commit missing",
-			fieldsGetter: func(ctrl *gomock.Controller) fields {
+			fieldsGetter: func(t *testing.T, ctrl *gomock.Controller) fields {
 				repoMock := repomocks.NewMockIManageRepo(ctrl)
 				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 6, WithCommit: true, CommitVersion: "1.0.0"}).Return(&entity.Prompt{ID: 6, PromptCommit: nil}, nil)
 				return fields{manageRepo: repoMock}
@@ -3151,7 +3164,7 @@ func TestPromptManageApplicationImpl_RevertDraftFromCommit(t *testing.T) {
 		},
 		{
 			name: "success",
-			fieldsGetter: func(ctrl *gomock.Controller) fields {
+			fieldsGetter: func(t *testing.T, ctrl *gomock.Controller) fields {
 				repoMock := repomocks.NewMockIManageRepo(ctrl)
 				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 6, WithCommit: true, CommitVersion: "1.0.0"}).Return(&entity.Prompt{
 					ID:      6,
@@ -3164,7 +3177,12 @@ func TestPromptManageApplicationImpl_RevertDraftFromCommit(t *testing.T) {
 				auth := mocks.NewMockIAuthProvider(ctrl)
 				auth.EXPECT().MCheckPromptPermission(gomock.Any(), int64(60), []int64{int64(6)}, consts.ActionLoopPromptEdit).Return(nil)
 				promptSvc := servicemocks.NewMockIPromptService(ctrl)
-				promptSvc.EXPECT().SaveDraft(gomock.Any(), gomock.Any()).Return(&entity.DraftInfo{}, nil)
+				promptSvc.EXPECT().SaveDraft(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, promptDO *entity.Prompt) (*entity.DraftInfo, error) {
+					require.NotNil(t, promptDO.PromptDraft)
+					assert.True(t, promptDO.PromptDraft.ResetBaselineToLatest)
+					assert.Equal(t, "1.0.0", promptDO.PromptDraft.DraftInfo.BaseVersion)
+					return &entity.DraftInfo{}, nil
+				})
 				return fields{manageRepo: repoMock, authProvider: auth, promptService: promptSvc}
 			},
 			args: args{
@@ -3182,7 +3200,7 @@ func TestPromptManageApplicationImpl_RevertDraftFromCommit(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			tFields := caseData.fieldsGetter(ctrl)
+			tFields := caseData.fieldsGetter(t, ctrl)
 			app := &PromptManageApplicationImpl{
 				manageRepo:      tFields.manageRepo,
 				authRPCProvider: tFields.authProvider,
@@ -3469,7 +3487,9 @@ func TestPromptManageApplicationImpl_CommitDraft_ErrorBranches(t *testing.T) {
 			name: "permission error",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				repoMock := repomocks.NewMockIManageRepo(ctrl)
-				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{ID: 4, SpaceID: 40}, nil)
+				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{
+					ID: 4, SpaceID: 40, PromptDraft: &entity.PromptDraft{PromptDetail: &entity.PromptDetail{}},
+				}, nil)
 				auth := mocks.NewMockIAuthProvider(ctrl)
 				auth.EXPECT().MCheckPromptPermission(gomock.Any(), int64(40), []int64{int64(4)}, consts.ActionLoopPromptEdit).Return(errorx.New("permission denied"))
 				return fields{manageRepo: repoMock, authProvider: auth}
@@ -3484,7 +3504,9 @@ func TestPromptManageApplicationImpl_CommitDraft_ErrorBranches(t *testing.T) {
 			name: "validate labels error",
 			fieldsGetter: func(ctrl *gomock.Controller) fields {
 				repoMock := repomocks.NewMockIManageRepo(ctrl)
-				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{ID: 4, SpaceID: 40}, nil)
+				repoMock.EXPECT().GetPrompt(gomock.Any(), repo.GetPromptParam{PromptID: 4, WithDraft: true, UserID: "user"}).Return(&entity.Prompt{
+					ID: 4, SpaceID: 40, PromptDraft: &entity.PromptDraft{PromptDetail: &entity.PromptDetail{}},
+				}, nil)
 				auth := mocks.NewMockIAuthProvider(ctrl)
 				auth.EXPECT().MCheckPromptPermission(gomock.Any(), int64(40), []int64{int64(4)}, consts.ActionLoopPromptEdit).Return(nil)
 				audit := mocks.NewMockIAuditProvider(ctrl)
@@ -3779,6 +3801,19 @@ func TestPromptManageApplicationImpl_ListCommit_ErrorBranches(t *testing.T) {
 				request: &manage.ListCommitRequest{PromptID: ptr.Of(int64(1))},
 			},
 			wantErr: errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found")),
+		},
+		{
+			name:         "page size exceeds limit",
+			fieldsGetter: func(ctrl *gomock.Controller) fields { return fields{} },
+			args: args{
+				ctx: session.WithCtxUser(context.Background(), &session.User{ID: "user"}),
+				request: &manage.ListCommitRequest{
+					PromptID: ptr.Of(int64(1)),
+					PageSize: ptr.Of(int32(repo.MaxListCommitPageSize + 1)),
+				},
+			},
+			wantErr: errorx.NewByCode(prompterr.CommonInvalidParamCode,
+				errorx.WithExtraMsg("page_size must be between 1 and 200")),
 		},
 		{
 			name: "get prompt error",

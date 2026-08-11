@@ -287,6 +287,9 @@ func (p *ListCommitOApiRequest) IsValid() error {
 	if *p.PageSize <= int32(0) {
 		return fmt.Errorf("field PageSize gt rule failed, current value: %v", *p.PageSize)
 	}
+	if *p.PageSize > int32(200) {
+		return fmt.Errorf("field PageSize le rule failed, current value: %v", *p.PageSize)
+	}
 	if p.Extra != nil {
 		if err := p.Extra.IsValid(); err != nil {
 			return fmt.Errorf("field Extra not valid, %w", err)

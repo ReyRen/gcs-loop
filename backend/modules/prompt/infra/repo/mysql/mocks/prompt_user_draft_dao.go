@@ -63,9 +63,9 @@ func (mr *MockIPromptUserDraftDAOMockRecorder) Create(ctx, promptDraftPO any, op
 }
 
 // Delete mocks base method.
-func (m *MockIPromptUserDraftDAO) Delete(ctx context.Context, draftID int64, opts ...db.Option) error {
+func (m *MockIPromptUserDraftDAO) Delete(ctx context.Context, promptDraftPO *model.PromptUserDraft, opts ...db.Option) error {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, draftID}
+	varargs := []any{ctx, promptDraftPO}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -75,9 +75,9 @@ func (m *MockIPromptUserDraftDAO) Delete(ctx context.Context, draftID int64, opt
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockIPromptUserDraftDAOMockRecorder) Delete(ctx, draftID any, opts ...any) *gomock.Call {
+func (mr *MockIPromptUserDraftDAOMockRecorder) Delete(ctx, promptDraftPO any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, draftID}, opts...)
+	varargs := append([]any{ctx, promptDraftPO}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIPromptUserDraftDAO)(nil).Delete), varargs...)
 }
 

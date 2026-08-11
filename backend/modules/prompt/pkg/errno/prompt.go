@@ -88,6 +88,10 @@ const (
 	promptLabelExistMessage           = "prompt label already exist"
 	promptLabelExistNoAffectStability = true
 
+	PromptDraftVersionConflictCode              = 600501011
+	promptDraftVersionConflictMessage           = "prompt draft conflicts with the current version"
+	promptDraftVersionConflictNoAffectStability = true
+
 	PromptHubQPSLimitCode              = 600502001
 	promptHubQPSLimitMessage           = "request is limited, cause prompt hub qps of current space reached the upper limit"
 	promptHubQPSLimitNoAffectStability = true
@@ -221,6 +225,12 @@ func init() {
 		PromptLabelExistCode,
 		promptLabelExistMessage,
 		code.WithAffectStability(!promptLabelExistNoAffectStability),
+	)
+
+	code.Register(
+		PromptDraftVersionConflictCode,
+		promptDraftVersionConflictMessage,
+		code.WithAffectStability(!promptDraftVersionConflictNoAffectStability),
 	)
 
 	code.Register(

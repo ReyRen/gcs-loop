@@ -169,8 +169,8 @@ struct ListCommitOApiRequest {
     2: optional i64 workspace_id (api.body="workspace_id", api.js_conv='true', go.tag='json:"workspace_id"')
     3: optional bool with_commit_detail (api.query="with_commit_detail")
 
-    127: optional i32 page_size (api.body="page_size", vt.not_nil="true", vt.gt="0")
-    128: optional string page_token (api.body="page_token")
+    127: optional i32 page_size (api.body="page_size", vt.not_nil="true", vt.gt="0", vt.le="200") // 1..200
+    128: optional string page_token (api.body="page_token") // 第一页省略；后续原样回传 next_page_token，不得解析
 
     254: optional extra.Extra extra (agw.source="not_body_struct")
     255: optional base.Base Base
@@ -199,6 +199,7 @@ struct CommitDraftOApiRequest {
     255: optional base.Base Base
 }
 
+// 提交成功返回 code=0；非零 code 为业务错误，并可能在响应顶层携带结构化 extra。
 struct CommitDraftOApiResponse {
     1: optional i32 code
     2: optional string msg

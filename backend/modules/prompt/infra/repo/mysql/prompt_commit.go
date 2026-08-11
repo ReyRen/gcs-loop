@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/infra/repo/mysql/hooks"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 
 	"github.com/coze-dev/coze-loop/backend/infra/db"
@@ -34,9 +35,15 @@ type IPromptCommitDAO interface {
 type ListCommitParam struct {
 	PromptID int64
 
-	Cursor *int64
+	Cursor *ListCommitCursor
 	Limit  int
 	Asc    bool
+}
+
+type ListCommitCursor struct {
+	CreatedAt time.Time
+	ID        int64
+	Legacy    bool
 }
 
 type PromptCommitDAOImpl struct {
@@ -83,7 +90,9 @@ func (d *PromptCommitDAOImpl) Get(ctx context.Context, promptID int64, commitVer
 	if promptID <= 0 {
 		return nil, errorx.New("promptID is invalid, promptID = %d", promptID)
 	}
-	d.writeTracker.CheckWriteFlagBySearchParam(ctx, platestwrite.ResourceTypePromptCommit, fmt.Sprintf("%d:%s", promptID, commitVersion))
+	if d.writeTracker.CheckWriteFlagBySearchParam(ctx, platestwrite.ResourceTypePromptCommit, fmt.Sprintf("%d:%s", promptID, commitVersion)) {
+		opts = append(opts, db.WithMaster())
+	}
 
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	tx := q.WithContext(ctx).PromptCommit
@@ -105,6 +114,12 @@ func (d *PromptCommitDAOImpl) Get(ctx context.Context, promptID int64, commitVer
 func (d *PromptCommitDAOImpl) MGet(ctx context.Context, pairs []PromptIDCommitVersionPair, opts ...db.Option) (pairCommitPOMap map[PromptIDCommitVersionPair]*model.PromptCommit, err error) {
 	if len(pairs) <= 0 {
 		return nil, errorx.New("invalid param")
+	}
+	for _, pair := range pairs {
+		if d.writeTracker.CheckWriteFlagBySearchParam(ctx, platestwrite.ResourceTypePromptCommit, fmt.Sprintf("%d:%s", pair.PromptID, pair.CommitVersion)) {
+			opts = append(opts, db.WithMaster())
+			break
+		}
 	}
 	q := query.Use(d.db.NewSession(ctx, opts...).Debug())
 	tx := q.WithContext(ctx).PromptCommit
@@ -137,6 +152,9 @@ func (d *PromptCommitDAOImpl) List(ctx context.Context, param ListCommitParam, o
 	if param.PromptID <= 0 || param.Limit <= 0 {
 		return nil, errorx.New("Param(PromptID or List or Cursor) is invalid, param = %s", json.Jsonify(param))
 	}
+	if param.Cursor != nil && (param.Cursor.CreatedAt.IsZero() || (!param.Cursor.Legacy && param.Cursor.ID <= 0)) {
+		return nil, errorx.New("Param(Cursor) is invalid, param = %s", json.Jsonify(param))
+	}
 	if d.writeTracker.CheckWriteFlagByID(ctx, platestwrite.ResourceTypePromptCommit, param.PromptID) {
 		opts = append(opts, db.WithMaster())
 	}
@@ -144,18 +162,33 @@ func (d *PromptCommitDAOImpl) List(ctx context.Context, param ListCommitParam, o
 	q := query.Use(d.db.NewSession(ctx, opts...))
 	tx := q.WithContext(ctx).PromptCommit
 	tx = tx.Where(q.PromptCommit.PromptID.Eq(param.PromptID))
-	if param.Cursor == nil {
-		if param.Asc {
-			tx = tx.Order(q.PromptCommit.CreatedAt.Asc())
+	if param.Cursor != nil {
+		if param.Cursor.Legacy {
+			if param.Asc {
+				tx = tx.Where(q.PromptCommit.CreatedAt.Gte(param.Cursor.CreatedAt))
+			} else {
+				tx = tx.Where(q.PromptCommit.CreatedAt.Lte(param.Cursor.CreatedAt))
+			}
 		} else {
-			tx = tx.Order(q.PromptCommit.CreatedAt.Desc())
+			var timeCondition field.Expr
+			var idCondition field.Expr
+			if param.Asc {
+				timeCondition = q.PromptCommit.CreatedAt.Gt(param.Cursor.CreatedAt)
+				idCondition = q.PromptCommit.ID.Gt(param.Cursor.ID)
+			} else {
+				timeCondition = q.PromptCommit.CreatedAt.Lt(param.Cursor.CreatedAt)
+				idCondition = q.PromptCommit.ID.Lt(param.Cursor.ID)
+			}
+			tx = tx.Where(field.Or(
+				timeCondition,
+				field.And(q.PromptCommit.CreatedAt.Eq(param.Cursor.CreatedAt), idCondition),
+			))
 		}
+	}
+	if param.Asc {
+		tx = tx.Order(q.PromptCommit.CreatedAt.Asc(), q.PromptCommit.ID.Asc())
 	} else {
-		if param.Asc {
-			tx = tx.Where(q.PromptCommit.CreatedAt.Gte(time.Unix(*param.Cursor, 0))).Order(q.PromptCommit.CreatedAt.Asc())
-		} else {
-			tx = tx.Where(q.PromptCommit.CreatedAt.Lte(time.Unix(*param.Cursor, 0))).Order(q.PromptCommit.CreatedAt.Desc())
-		}
+		tx = tx.Order(q.PromptCommit.CreatedAt.Desc(), q.PromptCommit.ID.Desc())
 	}
 	tx = tx.Limit(param.Limit)
 	commitPOs, err = tx.Find()

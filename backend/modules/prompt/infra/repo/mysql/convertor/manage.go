@@ -257,6 +257,7 @@ func PromptDO2DraftPO(promptDO *entity.Prompt) *model.PromptUserDraft {
 		if infoDO != nil {
 			po.UserID = infoDO.UserID
 			po.BaseVersion = infoDO.BaseVersion
+			po.ExpectedLatestVersion = infoDO.ExpectedLatestVersion
 			po.IsDraftEdited = MarshalBool(infoDO.IsModified)
 		}
 	}
@@ -269,11 +270,12 @@ func DraftPO2DO(draftPO *model.PromptUserDraft) *entity.PromptDraft {
 	}
 	return &entity.PromptDraft{
 		DraftInfo: &entity.DraftInfo{
-			UserID:      draftPO.UserID,
-			BaseVersion: draftPO.BaseVersion,
-			IsModified:  UnmarshalBool(draftPO.IsDraftEdited),
-			CreatedAt:   draftPO.CreatedAt,
-			UpdatedAt:   draftPO.UpdatedAt,
+			UserID:                draftPO.UserID,
+			BaseVersion:           draftPO.BaseVersion,
+			IsModified:            UnmarshalBool(draftPO.IsDraftEdited),
+			CreatedAt:             draftPO.CreatedAt,
+			UpdatedAt:             draftPO.UpdatedAt,
+			ExpectedLatestVersion: draftPO.ExpectedLatestVersion,
 		},
 		PromptDetail: PromptUserDraftPO2PromptDetailDO(draftPO),
 	}

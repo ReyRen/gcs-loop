@@ -3,3 +3,4 @@ ALTER TABLE `prompt_user_draft` ADD COLUMN `metadata` text COLLATE utf8mb4_gener
 ALTER TABLE `prompt_user_draft` ADD COLUMN `has_snippets` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否包含prompt片段';
 ALTER TABLE `prompt_user_draft` ADD COLUMN `mcp_config` text COLLATE utf8mb4_general_ci COMMENT 'mcp config info';
 ALTER TABLE `prompt_user_draft` ADD COLUMN `encrypt_messages` longtext COLLATE utf8mb4_general_ci COMMENT 'encrypt message list';
+ALTER TABLE `prompt_user_draft` ADD COLUMN `expected_latest_version` varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Latest committed version observed when this draft baseline was established';

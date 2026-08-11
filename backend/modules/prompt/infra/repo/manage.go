@@ -520,7 +520,7 @@ func (d *ManageRepoImpl) UpdatePrompt(ctx context.Context, param repo.UpdateProm
 		q.PromptBasic.Description.ColumnName().String():   param.PromptDescription,
 		q.PromptBasic.SecurityLevel.ColumnName().String(): param.SecurityLevel,
 	}
-	err = d.promptBasicDAO.Update(ctx, param.PromptID, updateFields)
+	err = d.promptBasicDAO.Update(ctx, param.PromptID, basicPO.SpaceID, updateFields)
 	if err != nil {
 		return err
 	}
@@ -548,8 +548,9 @@ func (d *ManageRepoImpl) SaveDraft(ctx context.Context, promptDO *entity.Prompt)
 			return errorx.New("Prompt is not found, prompt id = %d", promptDO.ID)
 		}
 
-		var baseCommitPO *model.PromptCommit
+		userID := promptDO.PromptDraft.DraftInfo.UserID
 		savingBaseVersion := promptDO.PromptDraft.DraftInfo.BaseVersion
+		var baseCommitPO *model.PromptCommit
 		if !lo.IsEmpty(savingBaseVersion) {
 			baseCommitPO, err = d.promptCommitDAO.Get(ctx, promptDO.ID, savingBaseVersion, opt)
 			if err != nil {
@@ -561,15 +562,30 @@ func (d *ManageRepoImpl) SaveDraft(ctx context.Context, promptDO *entity.Prompt)
 		}
 
 		var originalDraftPO *model.PromptUserDraft
-		userID := promptDO.PromptDraft.DraftInfo.UserID
 		originalDraftPO, err = d.promptDraftDAO.Get(ctx, promptDO.ID, userID, opt)
 		if err != nil {
 			return err
 		}
 
+		// base_version is optional on the wire. Omitting it (or serializing an
+		// empty value) during ordinary auto-save must preserve the persisted
+		// base instead of being interpreted as an explicit rebase.
+		if originalDraftPO != nil && savingBaseVersion == "" && originalDraftPO.BaseVersion != "" {
+			savingBaseVersion = originalDraftPO.BaseVersion
+			promptDO.PromptDraft.DraftInfo.BaseVersion = savingBaseVersion
+			baseCommitPO, err = d.promptCommitDAO.Get(ctx, promptDO.ID, savingBaseVersion, opt)
+			if err != nil {
+				return err
+			}
+			if baseCommitPO == nil {
+				return errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg(fmt.Sprintf("Draft's base prompt commit is not found, prompt id = %d, base commit version = %s", promptDO.ID, savingBaseVersion)))
+			}
+		}
+
 		// 创建
 		if originalDraftPO == nil {
 			promptDO.PromptDraft.DraftInfo.IsModified = true
+			promptDO.PromptDraft.DraftInfo.ExpectedLatestVersion = basicPO.LatestVersion
 			creatingDraftPO := convertor.PromptDO2DraftPO(promptDO)
 			creatingDraftPO.ID, err = d.idgen.GenID(ctx)
 			creatingDraftPO.SpaceID = basicPO.SpaceID
@@ -600,9 +616,23 @@ func (d *ManageRepoImpl) SaveDraft(ctx context.Context, promptDO *entity.Prompt)
 		originalDraftDO := convertor.DraftPO2DO(originalDraftPO)
 		originalDraftDetailDO := originalDraftDO.PromptDetail
 		updatingDraftDetailDO := promptDO.PromptDraft.PromptDetail
+		baseVersionChanged := savingBaseVersion != originalDraftPO.BaseVersion
+		baselineResetRequired := promptDO.PromptDraft.ResetBaselineToLatest &&
+			expectedLatestVersionForDraft(originalDraftPO) != basicPO.LatestVersion
 		// 草稿无变化
-		if updatingDraftDetailDO.DeepEqual(originalDraftDetailDO) {
+		if !baseVersionChanged && !baselineResetRequired && updatingDraftDetailDO.DeepEqual(originalDraftDetailDO) {
+			draftInfo = originalDraftDO.DraftInfo
 			return nil
+		}
+		// Ordinary auto-save preserves the concurrency baseline. An explicit
+		// base-version change (rebase) or a user-confirmed history restore creates
+		// a new baseline against the latest version read under the prompt lock.
+		// Restore uses an explicit internal flag because its historical base may
+		// legitimately be identical to the draft's existing base version.
+		if baseVersionChanged || promptDO.PromptDraft.ResetBaselineToLatest {
+			promptDO.PromptDraft.DraftInfo.ExpectedLatestVersion = basicPO.LatestVersion
+		} else {
+			promptDO.PromptDraft.DraftInfo.ExpectedLatestVersion = originalDraftPO.ExpectedLatestVersion
 		}
 		// 草稿相对于base commit是否有变化
 		if baseCommitPO == nil {
@@ -771,10 +801,10 @@ func (d *ManageRepoImpl) CommitDraft(ctx context.Context, param repo.CommitDraft
 		return errorx.NewByCode(prompterr.CommonInvalidParamCode,
 			errorx.WithExtraMsg(fmt.Sprintf("commit description must not exceed %d characters", consts.MaxCommitDescriptionLength)))
 	}
-
-	commitID, err := d.idgen.GenID(ctx)
+	param.LabelKeys = entity.NormalizeLabelKeys(param.LabelKeys)
+	requestFingerprint, err := entity.CommitRequestFingerprint(param.CommitVersion, param.CommitDescription, param.LabelKeys)
 	if err != nil {
-		return err
+		return errorx.WrapByCode(err, prompterr.CommonInternalErrorCode)
 	}
 
 	var spaceID int64
@@ -792,20 +822,90 @@ func (d *ManageRepoImpl) CommitDraft(ctx context.Context, param repo.CommitDraft
 		}
 		spaceID = basicPO.SpaceID
 		promptKey = basicPO.PromptKey
-		if err = promptversion.ValidateNext(param.CommitVersion, basicPO.LatestVersion); err != nil {
-			return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(err.Error()))
-		}
 
 		var draftPO *model.PromptUserDraft
 		draftPO, err = d.promptDraftDAO.Get(ctx, param.PromptID, param.UserID, opt)
 		if err != nil {
 			return err
 		}
+
+		if versionErr := promptversion.ValidateNext(param.CommitVersion, basicPO.LatestVersion); versionErr != nil {
+			// commit_version is the natural idempotency key. A retry can arrive
+			// after the original transaction deleted its draft, so compare the
+			// persisted canonical request even when the current draft is gone.
+			existingCommitPO, getErr := d.promptCommitDAO.Get(ctx, param.PromptID, param.CommitVersion, opt)
+			if getErr != nil {
+				return getErr
+			}
+			if existingCommitPO != nil && existingCommitPO.CommittedBy == param.UserID &&
+				existingCommitPO.CommitFingerprint != nil && *existingCommitPO.CommitFingerprint == requestFingerprint {
+				matchesAuditedDraft := param.ExpectedDraftFingerprint == ""
+				if !matchesAuditedDraft {
+					existingCommitDO := convertor.CommitPO2DO(existingCommitPO)
+					committedDraftFingerprint, fingerprintErr := entity.PromptDraftFingerprint(&entity.PromptDraft{
+						PromptDetail: existingCommitDO.PromptDetail,
+						DraftInfo: &entity.DraftInfo{
+							BaseVersion: existingCommitDO.CommitInfo.BaseVersion,
+						},
+					})
+					if fingerprintErr != nil {
+						return errorx.WrapByCode(fingerprintErr, prompterr.CommonInternalErrorCode)
+					}
+					matchesAuditedDraft = committedDraftFingerprint == param.ExpectedDraftFingerprint
+				}
+				// A true lost-response retry has no draft because the successful
+				// transaction already deleted it. If this call audited a draft before
+				// entering the transaction, its exact content and base must also match
+				// the committed snapshot; metadata alone cannot prove idempotency.
+				// If the user has since created a new draft, reusing the same version
+				// and metadata must not silently treat that new work as committed.
+				if draftPO == nil && matchesAuditedDraft {
+					return nil
+				}
+			}
+			// A still-present draft may have become stale because another user
+			// committed the same candidate version. Surface the recoverable draft
+			// conflict before the less actionable version-exists error.
+			if draftPO != nil {
+				expectedLatestVersion := expectedLatestVersionForDraft(draftPO)
+				if expectedLatestVersion != basicPO.LatestVersion {
+					return newDraftConflictError("latest_version_changed", draftPO, expectedLatestVersion, basicPO.LatestVersion)
+				}
+			}
+			if existingCommitPO != nil {
+				return errorx.NewByCode(prompterr.PromptSubmitVersionExistCode,
+					errorx.WithExtra(map[string]string{"commit_version": param.CommitVersion}))
+			}
+			return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(versionErr.Error()))
+		}
+
 		if draftPO == nil {
 			return errorx.NewByCode(prompterr.ResourceNotFoundCode, errorx.WithExtraMsg(fmt.Sprintf("Prompt draft is not found, prompt id = %d, user id = %s", param.PromptID, param.UserID)))
 		}
 
+		expectedLatestVersion := expectedLatestVersionForDraft(draftPO)
+		if expectedLatestVersion != basicPO.LatestVersion {
+			return newDraftConflictError("latest_version_changed", draftPO, expectedLatestVersion, basicPO.LatestVersion)
+		}
+
 		draftDO := convertor.DraftPO2DO(draftPO)
+		if param.ExpectedDraftFingerprint != "" {
+			actualDraftFingerprint, fingerprintErr := entity.PromptDraftFingerprint(draftDO)
+			if fingerprintErr != nil {
+				return errorx.WrapByCode(fingerprintErr, prompterr.CommonInternalErrorCode)
+			}
+			if actualDraftFingerprint != param.ExpectedDraftFingerprint {
+				return newDraftConflictError("draft_changed", draftPO, expectedLatestVersion, basicPO.LatestVersion)
+			}
+		}
+		// Generate the tie-breaker only after acquiring the prompt row lock. In
+		// the single-ID-source Docker Compose deployment this also aligns IDs
+		// with commit order; in every deployment it avoids an ID dependency on
+		// idempotent replays and still provides a stable total pagination order.
+		commitID, idErr := d.idgen.GenID(ctx)
+		if idErr != nil {
+			return idErr
+		}
 		commitDO := &entity.PromptCommit{
 			CommitInfo: &entity.CommitInfo{
 				Version:     param.CommitVersion,
@@ -819,17 +919,18 @@ func (d *ManageRepoImpl) CommitDraft(ctx context.Context, param repo.CommitDraft
 		promptDO.PromptCommit = commitDO
 		commitPO := convertor.PromptDO2CommitPO(promptDO)
 		commitPO.ID = commitID
+		commitPO.CommitFingerprint = &requestFingerprint
 		timeNow := time.Now()
 		err = d.promptCommitDAO.Create(ctx, commitPO, timeNow, opt)
 		if err != nil {
 			return err
 		}
-		err = d.promptDraftDAO.Delete(ctx, draftPO.ID, opt)
+		err = d.promptDraftDAO.Delete(ctx, draftPO, opt)
 		if err != nil {
 			return err
 		}
 		q := query.Use(d.db.NewSession(ctx, opt))
-		err = d.promptBasicDAO.Update(ctx, basicPO.ID, map[string]interface{}{
+		err = d.promptBasicDAO.Update(ctx, basicPO.ID, basicPO.SpaceID, map[string]interface{}{
 			q.PromptBasic.LatestCommitTime.ColumnName().String(): timeNow,
 			q.PromptBasic.LatestVersion.ColumnName().String():    param.CommitVersion,
 			q.PromptBasic.UpdatedBy.ColumnName().String():        param.UserID,
@@ -957,7 +1058,6 @@ func (d *ManageRepoImpl) CommitDraft(ctx context.Context, param repo.CommitDraft
 	if err != nil {
 		return err
 	}
-
 	cacheErr := d.promptBasicCacheDAO.DelByPromptKey(ctx, spaceID, promptKey)
 	if cacheErr != nil {
 		logs.CtxError(ctx, "delete prompt basic from cache failed, err=%v", cacheErr)
@@ -965,15 +1065,47 @@ func (d *ManageRepoImpl) CommitDraft(ctx context.Context, param repo.CommitDraft
 	return nil
 }
 
+func newDraftConflictError(conflictType string, draftPO *model.PromptUserDraft, expectedLatestVersion, latestVersion string) error {
+	extra := map[string]string{
+		"conflict_type":                 conflictType,
+		"draft_base_version":            draftPO.BaseVersion,
+		"draft_expected_latest_version": expectedLatestVersion,
+		"latest_version":                latestVersion,
+	}
+	return errorx.NewByCode(prompterr.PromptDraftVersionConflictCode, errorx.WithExtra(extra))
+}
+
+func expectedLatestVersionForDraft(draftPO *model.PromptUserDraft) string {
+	if draftPO == nil {
+		return ""
+	}
+	if draftPO.ExpectedLatestVersion != "" || draftPO.BaseVersion == "" {
+		return draftPO.ExpectedLatestVersion
+	}
+	// Compatibility for rows created before expected_latest_version existed.
+	// Existing rows are deliberately not bulk-backfilled: an empty baseline is
+	// valid for a draft created before the first commit, and rewriting it during
+	// a later container restart could silently erase a real conflict.
+	return draftPO.BaseVersion
+}
+
 func (d *ManageRepoImpl) ListCommitInfo(ctx context.Context, param repo.ListCommitInfoParam) (result *repo.ListCommitResult, err error) {
-	if param.PromptID <= 0 || param.PageSize <= 0 {
+	if param.PromptID <= 0 || param.PageSize <= 0 || param.PageSize > repo.MaxListCommitPageSize {
 		return nil, errorx.New("Param(PromptID or PageSize) is invalid, param = %s", json.Jsonify(param))
 	}
 
+	var cursor *mysql.ListCommitCursor
+	if param.Cursor != nil {
+		cursor = &mysql.ListCommitCursor{
+			CreatedAt: param.Cursor.CreatedAt,
+			ID:        param.Cursor.ID,
+			Legacy:    param.Cursor.Legacy,
+		}
+	}
 	listCommitParam := mysql.ListCommitParam{
 		PromptID: param.PromptID,
 
-		Cursor: param.PageToken,
+		Cursor: cursor,
 		Limit:  param.PageSize + 1,
 		Asc:    param.Asc,
 	}
@@ -986,16 +1118,17 @@ func (d *ManageRepoImpl) ListCommitInfo(ctx context.Context, param repo.ListComm
 	}
 
 	result = &repo.ListCommitResult{}
-	commitDOs := convertor.BatchCommitPO2DO(commitPOs)
-	commitInfoDOs := convertor.BatchGetCommitInfoDOFromCommitDO(commitDOs)
-	if len(commitPOs) <= param.PageSize {
-		result.CommitInfoDOs = commitInfoDOs
-		result.CommitDOs = commitDOs
-		return result, nil
+	if len(commitPOs) > param.PageSize {
+		commitPOs = commitPOs[:param.PageSize]
+		lastCommitPO := commitPOs[len(commitPOs)-1]
+		result.HasMore = true
+		result.NextCursor = &repo.ListCommitCursor{
+			CreatedAt: lastCommitPO.CreatedAt,
+			ID:        lastCommitPO.ID,
+		}
 	}
-	result.NextPageToken = commitPOs[param.PageSize].CreatedAt.Unix()
-	result.CommitInfoDOs = commitInfoDOs[:len(commitPOs)-1]
-	result.CommitDOs = commitDOs[:len(commitPOs)-1]
+	result.CommitDOs = convertor.BatchCommitPO2DO(commitPOs)
+	result.CommitInfoDOs = convertor.BatchGetCommitInfoDOFromCommitDO(result.CommitDOs)
 	return result, nil
 }
 

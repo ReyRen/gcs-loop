@@ -40,6 +40,10 @@ error_code:
     code: 1010
     message: prompt label already exist
     no_affect_stability: true
+  - name: PromptDraftVersionConflict
+    code: 1011
+    message: prompt draft conflicts with the current version
+    no_affect_stability: true
   # 2xxx
   - name: PromptHubQPSLimit
     code: 2001

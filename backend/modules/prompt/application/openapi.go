@@ -293,6 +293,10 @@ func (p *PromptOpenAPIApplicationImpl) SaveDraftOApi(ctx context.Context, req *o
 
 func (p *PromptOpenAPIApplicationImpl) ListCommitOApi(ctx context.Context, req *openapi.ListCommitOApiRequest) (r *openapi.ListCommitOApiResponse, err error) {
 	r = openapi.NewListCommitOApiResponse()
+	if req.GetPageSize() > repo.MaxListCommitPageSize {
+		return r, errorx.NewByCode(prompterr.CommonInvalidParamCode,
+			errorx.WithExtraMsg(fmt.Sprintf("page_size must be between 1 and %d", repo.MaxListCommitPageSize)))
+	}
 
 	promptDO, err := p.promptManageRepo.GetPrompt(ctx, repo.GetPromptParam{PromptID: req.GetPromptID()})
 	if err != nil {
@@ -306,20 +310,19 @@ func (p *PromptOpenAPIApplicationImpl) ListCommitOApi(ctx context.Context, req *
 		return r, err
 	}
 
-	var pageTokenPtr *int64
+	var listCursor *repo.ListCommitCursor
 	if req.PageToken != nil {
-		pageToken, err := strconv.ParseInt(req.GetPageToken(), 10, 64)
+		listCursor, err = decodeListCommitPageToken(req.GetPageToken(), req.GetPromptID(), false)
 		if err != nil {
 			return r, errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg(fmt.Sprintf("Page token is invalid, page token = %s", req.GetPageToken())))
 		}
-		pageTokenPtr = ptr.Of(pageToken)
 	}
 
 	listCommitResult, err := p.promptManageRepo.ListCommitInfo(ctx, repo.ListCommitInfoParam{
-		PromptID:  req.GetPromptID(),
-		PageSize:  int(req.GetPageSize()),
-		PageToken: pageTokenPtr,
-		Asc:       false,
+		PromptID: req.GetPromptID(),
+		PageSize: int(req.GetPageSize()),
+		Cursor:   listCursor,
+		Asc:      false,
 	})
 	if err != nil {
 		return r, err
@@ -328,8 +331,12 @@ func (p *PromptOpenAPIApplicationImpl) ListCommitOApi(ctx context.Context, req *
 		return r, nil
 	}
 
-	if listCommitResult.NextPageToken > 0 {
-		r.NextPageToken = ptr.Of(strconv.FormatInt(listCommitResult.NextPageToken, 10))
+	if listCommitResult.HasMore {
+		nextPageToken, encodeErr := encodeListCommitPageToken(req.GetPromptID(), false, listCommitResult.NextCursor)
+		if encodeErr != nil {
+			return r, encodeErr
+		}
+		r.NextPageToken = ptr.Of(nextPageToken)
 		r.HasMore = ptr.Of(true)
 	}
 	r.PromptCommitInfos = convertor.OpenAPIBatchCommitInfoDO2DTO(listCommitResult.CommitInfoDOs)
@@ -376,11 +383,20 @@ func (p *PromptOpenAPIApplicationImpl) CommitDraftOApi(ctx context.Context, req 
 		return r, err
 	}
 
+	var expectedDraftFingerprint string
+	if promptDO.PromptDraft != nil {
+		expectedDraftFingerprint, err = entity.PromptDraftFingerprint(promptDO.PromptDraft)
+		if err != nil {
+			return r, errorx.WrapByCode(err, prompterr.CommonInternalErrorCode)
+		}
+	}
+
 	err = p.promptManageRepo.CommitDraft(ctx, repo.CommitDraftParam{
-		PromptID:          req.GetPromptID(),
-		UserID:            userID,
-		CommitVersion:     req.GetCommitVersion(),
-		CommitDescription: req.GetCommitDescription(),
+		PromptID:                 req.GetPromptID(),
+		UserID:                   userID,
+		CommitVersion:            req.GetCommitVersion(),
+		CommitDescription:        req.GetCommitDescription(),
+		ExpectedDraftFingerprint: expectedDraftFingerprint,
 	})
 	return r, err
 }

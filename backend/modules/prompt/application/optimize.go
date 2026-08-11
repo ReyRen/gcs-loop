@@ -28,11 +28,6 @@ import (
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
 
-const (
-	optimizedPromptStartTag = "<optimized_prompt>"
-	optimizedPromptEndTag   = "</optimized_prompt>"
-)
-
 const oneStepOptimizeSystemPrompt = `You are an expert prompt engineer. Rewrite the supplied prompt so it is clearer, more precise, more robust, and easier for a large language model to follow.
 
 Rules:
@@ -40,10 +35,21 @@ Rules:
 2. Preserve every template variable exactly as written, especially placeholders such as {{variable_name}}. Never rename, remove, translate, or invent variables.
 3. Resolve ambiguity by improving structure and wording, but do not add requirements that conflict with the original prompt.
 4. Keep useful examples, Markdown, XML, JSON, and code fences valid.
-5. Return only the optimized prompt text. Do not explain your changes and do not add wrapper tags.`
+5. Return only the optimized prompt text. Do not explain your changes and do not add wrapper tags.
+
+Mandatory output contract:
+- Start the response immediately with the first character of the rewritten prompt.
+- Do not output analysis, reasoning, critique, summaries, prefaces, acknowledgements, or change descriptions.
+- Do not add headings such as "Optimized prompt" or "优化后的 Prompt" unless that heading already belongs to the original prompt.
+- Do not repeat or quote the original prompt separately.
+- Do not wrap the result in XML tags, Markdown code fences, or quotation marks unless those wrappers already belong to the original prompt.
+- If no improvement is possible, return the original prompt unchanged.
+
+只输出优化后的 Prompt 正文；禁止输出分析过程、修改说明、开场白、总结或额外包装。`
 
 // GeneratePrompt implements the quick "优化" action above the first System Prompt.
-// It intentionally uses the model configuration stored in the current user's prompt draft.
+// It prefers the current user's draft model configuration and falls back to the
+// latest committed version after a successful commit removes that draft.
 func (p *PromptDebugApplicationImpl) GeneratePrompt(ctx context.Context, req *debug.GeneratePromptRequest, stream debug.PromptDebugService_GeneratePromptServer) (err error) {
 	if err = validateGeneratePromptRequest(req); err != nil {
 		return err
@@ -53,11 +59,7 @@ func (p *PromptDebugApplicationImpl) GeneratePrompt(ctx context.Context, req *de
 		return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("User not found"))
 	}
 
-	promptDO, err := p.promptService.GetPrompt(ctx, service.GetPromptParam{
-		PromptID:  req.GetPromptID(),
-		WithDraft: true,
-		UserID:    userID,
-	})
+	promptDO, err := p.getOptimizeSourcePrompt(ctx, req.GetPromptID(), userID)
 	if err != nil {
 		return err
 	}
@@ -73,7 +75,7 @@ func (p *PromptDebugApplicationImpl) GeneratePrompt(ctx context.Context, req *de
 
 	promptDetail := promptDO.GetPromptDetail()
 	if promptDetail == nil || promptDetail.ModelConfig == nil || promptDetail.ModelConfig.ModelID <= 0 {
-		return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("Prompt draft model config is required"))
+		return errorx.NewByCode(prompterr.CommonInvalidParamCode, errorx.WithExtraMsg("Prompt model config is required"))
 	}
 	originalMessage := convertor.MessageDTO2DO(req.GetOriginalPromptMessage())
 	originalPrompt := messageText(originalMessage)
@@ -105,11 +107,6 @@ func (p *PromptDebugApplicationImpl) GeneratePrompt(ctx context.Context, req *de
 			logs.CtxError(ctx, "finish prompt generate record failed, record_id=%d, err=%v", record.ID, finishErr)
 		}
 	}()
-
-	if err = sendGeneratePromptContent(ctx, stream, record.ID, optimizedPromptStartTag+"\n", nil); err != nil {
-		record.Status = streamResultStatus(err)
-		return normalizeGenerateStreamError(ctx, err)
-	}
 
 	resultStream := make(chan *entity.Reply)
 	replyChan := make(chan *entity.Reply, 1)
@@ -170,12 +167,56 @@ func (p *PromptDebugApplicationImpl) GeneratePrompt(ctx context.Context, req *de
 		record.OutputTokens = finalUsage.OutputTokens
 	}
 	record.GeneratedPrompt = strings.TrimSpace(optimized.String())
-	if err = sendGeneratePromptContent(ctx, stream, record.ID, "\n"+optimizedPromptEndTag, finalUsage); err != nil {
+	if err = sendGeneratePromptUsage(ctx, stream, record.ID, finalUsage); err != nil {
 		record.Status = streamResultStatus(err)
 		return normalizeGenerateStreamError(ctx, err)
 	}
 	record.Status = entity.GeneratePromptStatusSucceeded
 	return nil
+}
+
+func (p *PromptDebugApplicationImpl) getOptimizeSourcePrompt(ctx context.Context, promptID int64, userID string) (*entity.Prompt, error) {
+	promptDO, err := p.promptService.GetPrompt(ctx, service.GetPromptParam{
+		PromptID:  promptID,
+		WithDraft: true,
+		UserID:    userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if hasUsableOptimizeModelConfig(promptDO) {
+		return promptDO, nil
+	}
+
+	latestVersion := ""
+	if promptDO != nil && promptDO.PromptBasic != nil {
+		latestVersion = strings.TrimSpace(promptDO.PromptBasic.LatestVersion)
+	}
+	if latestVersion == "" {
+		return promptDO, nil
+	}
+
+	committedPrompt, err := p.promptService.GetPrompt(ctx, service.GetPromptParam{
+		PromptID:      promptID,
+		WithCommit:    true,
+		CommitVersion: latestVersion,
+		UserID:        userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if hasUsableOptimizeModelConfig(committedPrompt) {
+		return committedPrompt, nil
+	}
+	return promptDO, nil
+}
+
+func hasUsableOptimizeModelConfig(promptDO *entity.Prompt) bool {
+	if promptDO == nil {
+		return false
+	}
+	detail := promptDO.GetPromptDetail()
+	return detail != nil && detail.ModelConfig != nil && detail.ModelConfig.ModelID > 0
 }
 
 func (p *PromptDebugApplicationImpl) UpdateGenerateRecord(ctx context.Context, req *debug.UpdateGenerateRecordRequest) (*debug.UpdateGenerateRecordResponse, error) {
@@ -240,7 +281,7 @@ func (p *PromptDebugApplicationImpl) checkOptimizeBenefit(ctx context.Context, u
 
 func buildOneStepOptimizePrompt(source *entity.Prompt, req *debug.GeneratePromptRequest, originalPrompt string) (*entity.Prompt, []*entity.Message) {
 	detail := source.GetPromptDetail()
-	userContent := fmt.Sprintf("Prompt name: %s\nPrompt description: %s\n\nOriginal prompt:\n%s", req.GetPromptName(), req.GetPromptDesc(), originalPrompt)
+	userContent := fmt.Sprintf("Prompt name: %s\nPrompt description: %s\n\nOriginal prompt:\n%s\n\nOutput only the rewritten prompt body now.", req.GetPromptName(), req.GetPromptDesc(), originalPrompt)
 	if req.GetIsRetry() {
 		userContent += "\n\nThis is a retry. Produce a meaningfully different and better optimization."
 	}
@@ -284,15 +325,15 @@ func messageText(message *entity.Message) string {
 	return builder.String()
 }
 
-func sendGeneratePromptContent(ctx context.Context, stream debug.PromptDebugService_GeneratePromptServer, recordID int64, content string, usage *entity.TokenUsage) error {
-	return stream.Send(ctx, &debug.GeneratePromptResponse{
-		Delta: convertor.MessageDO2DTO(&entity.Message{
-			Role:    entity.RoleAssistant,
-			Content: ptr.Of(content),
-		}),
+func sendGeneratePromptUsage(ctx context.Context, stream debug.PromptDebugService_GeneratePromptServer, recordID int64, usage *entity.TokenUsage) error {
+	return stream.Send(ctx, buildGeneratePromptUsageResponse(recordID, usage))
+}
+
+func buildGeneratePromptUsageResponse(recordID int64, usage *entity.TokenUsage) *debug.GeneratePromptResponse {
+	return &debug.GeneratePromptResponse{
 		Usage:    convertor.TokenUsageDO2DTO(usage),
 		RecordID: ptr.Of(recordID),
-	})
+	}
 }
 
 func streamResultStatus(err error) string {

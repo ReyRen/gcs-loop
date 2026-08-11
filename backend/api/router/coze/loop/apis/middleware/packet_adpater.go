@@ -32,6 +32,7 @@ const (
 
 	camelCaseBodyMapKeyBaseResp  = "BaseResp"
 	baseRespExtraAffectStableKey = "biz_err_affect_stability"
+	baseRespExtraCustomKey       = "biz_err_custom_extra"
 	affectStableValue            = "1"
 )
 
@@ -71,6 +72,7 @@ func parseErrPacket(ctx context.Context, c *app.RequestContext) *errPacket {
 			return &errPacket{
 				Code:    berr.BizStatusCode(),
 				Message: berr.BizMessage(),
+				Extra:   extractErrorExtra(berr.BizExtra()),
 			}
 		}
 	}
@@ -126,8 +128,24 @@ func (b baseResp) AffectStability() bool {
 }
 
 type errPacket struct {
-	Code    int32  `json:"code"`
-	Message string `json:"msg"`
+	Code    int32             `json:"code"`
+	Message string            `json:"msg"`
+	Extra   map[string]string `json:"extra,omitempty"`
+}
+
+func extractErrorExtra(raw map[string]string) map[string]string {
+	if len(raw) == 0 {
+		return nil
+	}
+	custom, ok := raw[baseRespExtraCustomKey]
+	if !ok || custom == "" {
+		return nil
+	}
+	result := make(map[string]string)
+	if err := sonic.Unmarshal([]byte(custom), &result); err != nil || len(result) == 0 {
+		return nil
+	}
+	return result
 }
 
 func (e *errPacket) localizeMessage(ctx context.Context, locale string, translater i18n.ITranslater) *errPacket {
@@ -205,6 +223,7 @@ func (r *respPacketAdapter) wrapPacket(ctx context.Context, packet *respPacket) 
 	ep := &errPacket{
 		Code:    br.StatusCode,
 		Message: br.StatusMessage,
+		Extra:   extractErrorExtra(br.Extra),
 	}
 	return setPacketFn(ep.localizeMessage(ctx, string(r.ctx.Cookie(consts.CookieLanguageKey)), r.translater))
 }

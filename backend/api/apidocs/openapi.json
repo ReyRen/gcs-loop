@@ -22,6 +22,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -39,6 +46,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -55,6 +69,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "items": {
             "items": {
@@ -79,6 +100,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/coze.loop.data.domain.dataset.DatasetItem"
@@ -101,6 +129,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -131,6 +166,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -147,6 +189,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -169,6 +218,13 @@
             "pattern": "^-?\\d+$",
             "type": "string"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -185,6 +241,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "id": {
             "pattern": "^-?\\d+$",
@@ -207,6 +270,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -224,6 +294,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -240,6 +317,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "job": {
             "$ref": "#/components/schemas/coze.loop.data.domain.dataset_job.DatasetIOJob"
@@ -260,6 +344,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "item": {
             "$ref": "#/components/schemas/coze.loop.data.domain.dataset.DatasetItem"
@@ -284,6 +375,13 @@
           "dataset": {
             "$ref": "#/components/schemas/coze.loop.data.domain.dataset.Dataset"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -300,6 +398,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "fields": {
             "items": {
@@ -327,6 +432,13 @@
           "dataset": {
             "$ref": "#/components/schemas/coze.loop.data.domain.dataset.Dataset"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -346,6 +458,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "job_id": {
             "pattern": "^-?\\d+$",
@@ -367,6 +486,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "jobs": {
             "items": {
@@ -390,6 +516,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "filter_total": {
             "pattern": "^-?\\d+$",
@@ -426,6 +559,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "filter_total": {
             "pattern": "^-?\\d+$",
             "type": "string"
@@ -460,6 +600,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -498,6 +645,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -523,6 +677,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -540,6 +701,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -556,6 +724,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -2094,6 +2269,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -2110,6 +2292,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -2140,6 +2329,13 @@
             },
             "type": "object"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -2156,6 +2352,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -2177,6 +2380,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -2207,6 +2417,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "max_height": {
             "description": "最大高度",
@@ -2240,6 +2457,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -2269,6 +2493,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10066,6 +10297,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "failed_count": {
             "format": "int32",
             "type": "integer"
@@ -10111,6 +10349,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "item_outputs": {
             "items": {
               "$ref": "#/components/schemas/coze.loop.data.domain.dataset.CreateDatasetItemOutput"
@@ -10134,6 +10379,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10150,6 +10402,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "items": {
             "items": {
@@ -10174,6 +10433,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -10196,6 +10462,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10234,6 +10507,13 @@
             "pattern": "^-?\\d+$",
             "type": "string"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10250,6 +10530,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "id": {
             "pattern": "^-?\\d+$",
@@ -10276,6 +10563,13 @@
             "pattern": "^-?\\d+$",
             "type": "string"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "job_id": {
             "pattern": "^-?\\d+$",
             "type": "string"
@@ -10296,6 +10590,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10334,6 +10635,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "item_def": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_set.EvaluationItemDef"
           },
@@ -10354,6 +10662,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "field_data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_set.FieldData"
           },
@@ -10373,6 +10688,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10397,6 +10719,13 @@
           "evaluation_set": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_set.EvaluationSet"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10417,6 +10746,13 @@
           "evaluation_set": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_set.EvaluationSet"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -10436,6 +10772,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "item_defs": {
             "items": {
@@ -10467,6 +10810,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -10496,6 +10846,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "filter_total": {
             "format": "int64",
@@ -10530,6 +10887,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10567,6 +10931,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -10602,6 +10973,13 @@
               "$ref": "#/components/schemas/coze.loop.evaluation.eval_set.ConflictField"
             },
             "type": "array"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "field_schemas": {
             "description": "数据集字段约束",
@@ -10651,6 +11029,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10667,6 +11052,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10685,6 +11077,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10701,6 +11100,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10769,6 +11175,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10800,6 +11213,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "invoke_id": {
             "pattern": "^-?\\d+$",
             "type": "string"
@@ -10828,6 +11248,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10852,6 +11279,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10875,6 +11309,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -10897,6 +11338,13 @@
               "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_target.EvalTarget"
             },
             "type": "array"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -10969,6 +11417,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "id": {
             "pattern": "^-?\\d+$",
             "type": "string"
@@ -10997,6 +11452,13 @@
           "eval_target_record": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_target.EvalTargetRecord"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11017,6 +11479,13 @@
           "eval_target_record": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_target.EvalTargetRecord"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11034,6 +11503,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "field_contents": {
             "additionalProperties": {
@@ -11062,6 +11538,13 @@
           "eval_target_record": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_target.EvalTargetRecord"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11081,6 +11564,13 @@
           },
           "eval_target": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_target.EvalTarget"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11102,6 +11592,13 @@
           "eval_target_version": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_target.EvalTargetVersion"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11118,6 +11615,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "has_more": {
             "type": "boolean"
@@ -11154,6 +11658,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "has_more": {
             "type": "boolean"
           },
@@ -11179,6 +11690,13 @@
           },
           "eval_target": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.eval_target.EvalTarget"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "mock_output": {
             "additionalProperties": {
@@ -11209,6 +11727,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "has_more": {
             "type": "boolean"
           },
@@ -11232,6 +11757,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "invoke_id": {
             "pattern": "^-?\\d+$",
             "type": "string"
@@ -11252,6 +11784,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "invoke_id": {
             "pattern": "^-?\\d+$",
@@ -11281,6 +11820,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11297,6 +11843,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11328,6 +11881,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11351,6 +11911,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11367,6 +11934,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "message": {
             "type": "string"
@@ -11395,6 +11969,13 @@
             "pattern": "^-?\\d+$",
             "type": "string"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11415,6 +11996,13 @@
           "evaluator_template": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.EvaluatorTemplate"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11432,6 +12020,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11458,6 +12053,13 @@
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.EvaluatorOutputData",
             "description": "输出数据"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11474,6 +12076,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11492,6 +12101,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11508,6 +12124,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11533,6 +12156,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -11557,6 +12187,13 @@
           "evaluator": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.Evaluator"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11576,6 +12213,13 @@
           },
           "evaluator": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.Evaluator"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11597,6 +12241,13 @@
           "evaluator_content": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.EvaluatorContent"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11617,6 +12268,13 @@
           "evaluator_template": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.EvaluatorTemplate"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11633,6 +12291,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11667,6 +12332,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -11693,6 +12365,13 @@
               "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.Evaluator"
             },
             "type": "array"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11721,6 +12400,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11744,6 +12430,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -11764,6 +12457,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11789,6 +12489,13 @@
           "evaluator": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.Evaluator"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11809,6 +12516,13 @@
           "evaluator": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.Evaluator"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11825,6 +12539,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11847,6 +12568,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11866,6 +12594,13 @@
           },
           "evaluator_template": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.EvaluatorTemplate"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11891,6 +12626,13 @@
           "evaluator_output_data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.EvaluatorOutputData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -11915,6 +12657,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -11937,6 +12686,13 @@
               "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptAggregateResult"
             },
             "type": "array"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -11988,6 +12744,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "item_results": {
             "description": "item粒度实验结果详情",
             "items": {
@@ -12023,6 +12786,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12046,6 +12816,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12063,6 +12840,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12079,6 +12863,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "message": {
             "type": "string"
@@ -12103,6 +12894,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "is_available": {
             "type": "boolean"
           },
@@ -12125,6 +12923,13 @@
           },
           "experiment": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.Experiment"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12158,6 +12963,13 @@
           "experiment_template": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptTemplate"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12179,6 +12991,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12196,6 +13015,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12212,6 +13038,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12233,6 +13066,13 @@
           "export_id": {
             "pattern": "^-?\\d+$",
             "type": "string"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12297,6 +13137,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12313,6 +13160,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12347,6 +13201,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12366,6 +13227,13 @@
           },
           "expt_insight_analysis_record": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptInsightAnalysisRecord"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12387,6 +13255,13 @@
           "expt_result_export_records": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptResultExportRecord"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12403,6 +13278,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "insight_analysis_record_id": {
             "pattern": "^-?\\d+$",
@@ -12426,6 +13308,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12448,6 +13337,13 @@
               "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptTemplate"
             },
             "type": "array"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12476,6 +13372,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -12502,6 +13405,13 @@
               "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptInsightAnalysisFeedbackComment"
             },
             "type": "array"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12531,6 +13441,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -12559,6 +13476,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -12580,6 +13504,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12604,6 +13535,13 @@
           },
           "experiment": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.Experiment"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12633,6 +13571,13 @@
           "experiment": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.Experiment"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12649,6 +13594,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "meta": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptTemplateMeta"
@@ -12673,6 +13625,13 @@
           "experiment_template": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain.expt.ExptTemplate"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12689,6 +13648,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12708,6 +13674,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.AsyncDebugEvalTargetOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12740,6 +13713,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.AsyncRunEvaluatorOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12771,6 +13751,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.BatchCreateEvaluationSetItemsOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12805,6 +13792,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12823,6 +13817,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.BatchGetEvaluatorRecordsOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12854,6 +13855,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.BatchGetEvaluatorVersionsOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12883,6 +13891,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.BatchGetEvaluatorsOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12914,6 +13929,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.BatchGetExptTemplatesOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -12943,6 +13965,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.BatchUpdateEvaluationSetItemsOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -12980,6 +14009,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.CorrectEvaluatorRecordOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13006,6 +14042,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.CreateEvaluationSetOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13035,6 +14078,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.CreateEvaluationSetVersionOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13062,6 +14112,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.CreateEvaluatorOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13091,6 +14148,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.CreateExptTemplateOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13118,6 +14182,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.DeleteEvaluationSetOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13141,6 +14212,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.DeleteEvaluatorOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13163,6 +14241,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.DeleteExptTemplateOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13201,6 +14286,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ExportExperimentResultOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13228,6 +14320,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetEvalTargetOutputFieldContentOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13259,6 +14358,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetEvalTargetRecordOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13284,6 +14390,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "field_data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.domain_openapi.eval_set.FieldData"
           },
@@ -13306,6 +14419,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetEvaluationSetIOJobOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13334,6 +14454,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetEvaluationSetItemVersionOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13361,6 +14488,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetEvaluationSetOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13387,6 +14521,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetExperimentAggrResultOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13421,6 +14562,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetExperimentResultExportRecordOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13447,6 +14595,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.GetExperimentsOpenAPIDataData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13476,6 +14631,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ImportEvaluationSetOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13501,6 +14663,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13519,6 +14688,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListEvalTargetsOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13556,6 +14732,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListEvaluationSetItemVersionsOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13592,6 +14775,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListEvaluationSetVersionItemsOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13633,6 +14823,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListEvaluationSetVersionsOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13669,6 +14866,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListEvaluationSetsOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13711,6 +14915,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListEvaluatorVersionsOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13745,6 +14956,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListEvaluatorsOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13778,6 +14996,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListExperimentResultOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13834,6 +15059,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListExperimentsOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13868,6 +15100,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.ListExptTemplatesOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13900,6 +15139,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13917,6 +15163,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13933,6 +15186,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13952,6 +15212,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.RetryExperimentOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -13981,6 +15248,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.RunEvaluatorOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -13999,6 +15273,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.RunEvaluatorOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14026,6 +15307,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.SubmitEvaluatorVersionOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14154,6 +15442,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.SubmitExperimentOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -14180,6 +15475,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.SubmitExptFromTemplateOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14208,6 +15510,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.UpdateEvaluationSetOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -14228,6 +15537,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -14246,6 +15562,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.UpdateEvaluatorDraftOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14274,6 +15597,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.UpdateEvaluatorOpenAPIData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -14294,6 +15624,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -14312,6 +15649,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.UpdateExptTemplateMetaOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14339,6 +15683,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.evaluation.openapi.UpdateExptTemplateOpenAPIData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14579,6 +15930,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -14603,6 +15961,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -14619,6 +15984,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14639,6 +16011,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14662,6 +16041,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14840,6 +16226,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -14885,6 +16278,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.foundation.openapi.FileData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -14901,6 +16301,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14921,6 +16328,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -14951,6 +16365,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -14975,6 +16396,13 @@
             "format": "int64",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -14998,6 +16426,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -15014,6 +16449,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -15035,6 +16477,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -15055,6 +16504,13 @@
           "expire_time": {
             "format": "int64",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -15786,6 +17242,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "model": {
             "$ref": "#/components/schemas/coze.loop.llm.domain.manage.Model"
           },
@@ -15805,6 +17268,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "has_more": {
             "type": "boolean"
@@ -17575,6 +19045,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -17596,6 +19073,13 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/coze.loop.observability.domain.metric.Metric"
             },
+            "type": "object"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
             "type": "object"
           },
           "metrics": {
@@ -17621,6 +19105,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -17638,6 +19129,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -17653,6 +19151,13 @@
           "code": {
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -17670,6 +19175,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -17719,6 +19231,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.observability.openapi.ListSpansOApiData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -17751,6 +19270,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.observability.openapi.ListTracesData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -17785,6 +19311,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.observability.openapi.ListTrajectoryOApiData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -17808,6 +19341,13 @@
           },
           "content_type": {
             "type": "string"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -17851,6 +19391,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.observability.openapi.SearchTraceOApiData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -17869,6 +19416,13 @@
           },
           "data": {
             "$ref": "#/components/schemas/coze.loop.observability.openapi.SearchTraceOApiData"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -17893,6 +19447,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -17909,6 +19470,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -17931,6 +19499,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -17950,6 +19525,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -17977,6 +19559,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18017,6 +19606,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -18043,6 +19639,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18094,6 +19697,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18110,6 +19720,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "id": {
             "pattern": "^-?\\d+$",
@@ -18159,6 +19776,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18175,6 +19799,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18218,6 +19849,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -18239,6 +19877,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18308,6 +19953,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -18338,6 +19990,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18361,6 +20020,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18381,6 +20047,13 @@
           "duration": {
             "pattern": "^-?\\d+$",
             "type": "string"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18420,6 +20093,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "has_more": {
             "type": "boolean"
           },
@@ -18452,6 +20132,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "field_metas": {
             "additionalProperties": {
@@ -18486,6 +20173,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "filters": {
             "$ref": "#/components/schemas/coze.loop.observability.domain.filter.FilterFields"
           },
@@ -18512,6 +20206,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18536,6 +20237,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18553,6 +20261,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "metadataItemList": {
             "items": {
@@ -18578,6 +20293,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -18601,6 +20323,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "has_more": {
             "type": "boolean"
@@ -18634,6 +20363,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "has_more": {
             "type": "boolean"
           },
@@ -18665,6 +20401,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "has_more": {
             "type": "boolean"
@@ -18698,6 +20441,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -18720,6 +20470,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18744,6 +20501,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18807,6 +20571,13 @@
             },
             "type": "array"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "items": {
             "description": "预览数据",
             "items": {
@@ -18830,6 +20601,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18944,6 +20722,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18960,6 +20745,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -18978,6 +20770,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -18994,6 +20793,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -19051,6 +20857,13 @@
           "debug_context": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.DebugContext"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -19073,6 +20886,13 @@
               "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.DebugLog"
             },
             "type": "array"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "has_more": {
             "type": "boolean"
@@ -19097,6 +20917,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -19113,6 +20940,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21126,6 +22960,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "labels": {
             "items": {
               "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.Label"
@@ -21148,6 +22989,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21176,6 +23024,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21187,11 +23042,19 @@
         "type": "object"
       },
       "coze.loop.prompt.manage.CommitDraftResponse": {
+        "description": "提交成功返回 code=0。\ncode=600501011 表示草稿并发冲突；响应顶层 extra 可包含 conflict_type、\ndraft_base_version、draft_expected_latest_version、latest_version。",
         "properties": {
           "code": {
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21210,6 +23073,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21226,6 +23096,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21248,6 +23125,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21267,6 +23151,13 @@
           },
           "default_config": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.PromptDetail"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21292,6 +23183,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21320,6 +23218,13 @@
               },
               "type": "array"
             },
+            "type": "object"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
             "type": "object"
           },
           "has_more": {
@@ -21372,6 +23277,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "has_more": {
             "type": "boolean"
           },
@@ -21407,6 +23319,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -21433,6 +23352,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21472,6 +23398,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21546,6 +23479,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21566,6 +23506,13 @@
           "draft_info": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.DraftInfo"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21583,6 +23530,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21599,6 +23553,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21619,6 +23580,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain_openapi.prompt.PromptResultData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21630,10 +23598,18 @@
         "type": "object"
       },
       "coze.loop.prompt.openapi.CommitDraftOApiResponse": {
+        "description": "提交成功返回 code=0；非零 code 为业务错误，并可能在响应顶层携带结构化 extra。",
         "properties": {
           "code": {
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21650,6 +23626,13 @@
           "code": {
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21671,6 +23654,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21690,6 +23680,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain_openapi.prompt.ExecuteData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21705,6 +23702,13 @@
           "code": {
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21724,6 +23728,13 @@
           "code": {
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "has_more": {
             "type": "boolean"
@@ -21762,6 +23773,13 @@
           "data": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain_openapi.prompt.ListPromptBasicData"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21781,6 +23799,13 @@
           "draft_info": {
             "$ref": "#/components/schemas/coze.loop.prompt.domain_openapi.prompt.DraftInfo"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21797,6 +23822,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "items": {
             "items": {
@@ -21821,6 +23853,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           }
@@ -21837,6 +23876,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -21859,6 +23905,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -21878,6 +23931,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "has_more": {
             "type": "boolean"
@@ -21920,6 +23980,13 @@
             "format": "int32",
             "type": "integer"
           },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
           "msg": {
             "type": "string"
           },
@@ -21952,6 +24019,13 @@
             "description": "0 means success; non-zero means a business error.",
             "format": "int32",
             "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
           },
           "msg": {
             "type": "string"
@@ -36903,12 +38977,15 @@
                     "type": "boolean"
                   },
                   "page_size": {
+                    "description": "1..200",
                     "exclusiveMinimum": true,
                     "format": "int32",
+                    "maximum": 200,
                     "minimum": 0,
                     "type": "integer"
                   },
                   "page_token": {
+                    "description": "第一页省略；后续原样回传 next_page_token，不得解析",
                     "type": "string"
                   }
                 },
@@ -42743,12 +44820,15 @@
                     "$ref": "#/components/schemas/coze.loop.extra.Extra"
                   },
                   "page_size": {
+                    "description": "1..200",
                     "exclusiveMinimum": true,
                     "format": "int32",
+                    "maximum": 200,
                     "minimum": 0,
                     "type": "integer"
                   },
                   "page_token": {
+                    "description": "第一页省略；后续原样回传 next_page_token，不得解析",
                     "type": "string"
                   },
                   "workspace_id": {

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `prompt_user_draft`
     `metadata`         text COLLATE utf8mb4_general_ci COMMENT '模板元信息',
     `mcp_config`       text COLLATE utf8mb4_general_ci COMMENT 'mcp config info',
     `base_version`     varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '草稿关联版本',
+    `expected_latest_version` varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Latest committed version observed when this draft baseline was established',
     `is_draft_edited`  tinyint                                 NOT NULL DEFAULT '0' COMMENT '草稿内容是否基于BaseVersion有变更',
     `ext_info`         text COLLATE utf8mb4_general_ci COMMENT '扩展字段',
     `created_at`       datetime                                NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

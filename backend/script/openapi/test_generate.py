@@ -125,6 +125,21 @@ class OpenAPIGeneratorTest(unittest.TestCase):
         ]
         self.assertIn("code", response["properties"])
         self.assertIn("msg", response["properties"])
+        self.assertEqual(
+            response["properties"]["extra"]["additionalProperties"],
+            {"type": "string"},
+        )
+        self.assertNotIn("extra", response["required"])
+
+        list_commit = self.document["paths"][
+            "/api/prompt/v1/prompts/{prompt_id}/commits/list"
+        ]["post"]
+        list_commit_body = list_commit["requestBody"]["content"][
+            "application/json"
+        ]["schema"]
+        self.assertEqual(
+            list_commit_body["properties"]["page_size"]["maximum"], 200
+        )
 
         get_prompt = self.document["paths"]["/v1/loop/prompts/{prompt_id}"][
             "get"

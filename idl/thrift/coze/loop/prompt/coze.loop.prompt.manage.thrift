@@ -255,6 +255,9 @@ struct CommitDraftRequest {
 
     255: optional base.Base Base
 }
+// 提交成功返回 code=0。
+// code=600501011 表示草稿并发冲突；响应顶层 extra 可包含 conflict_type、
+// draft_base_version、draft_expected_latest_version、latest_version。
 struct CommitDraftResponse {
     255: optional base.BaseResp  BaseResp
 }
@@ -264,8 +267,8 @@ struct ListCommitRequest {
     1: optional i64 prompt_id (api.path='prompt_id', api.js_conv='true', vt.not_nil='true', vt.gt='0', go.tag='json:"prompt_id"')
     2: optional bool with_commit_detail (api.query="with_commit_detail") // 是否查询详情
 
-    127: optional i32 page_size (vt.not_nil="true", vt.gt="0")
-    128: optional string page_token
+    127: optional i32 page_size (vt.not_nil="true", vt.gt="0", vt.le="200") // 1..200
+    128: optional string page_token // 第一页省略；后续原样回传 next_page_token，不得解析
     129: optional bool asc
 
     255: optional base.Base Base

@@ -40,6 +40,7 @@ func newPromptUserDraft(db *gorm.DB, opts ...gen.DOOption) promptUserDraft {
 	_promptUserDraft.Metadata = field.NewString(tableName, "metadata")
 	_promptUserDraft.McpConfig = field.NewString(tableName, "mcp_config")
 	_promptUserDraft.BaseVersion = field.NewString(tableName, "base_version")
+	_promptUserDraft.ExpectedLatestVersion = field.NewString(tableName, "expected_latest_version")
 	_promptUserDraft.IsDraftEdited = field.NewInt32(tableName, "is_draft_edited")
 	_promptUserDraft.ExtInfo = field.NewString(tableName, "ext_info")
 	_promptUserDraft.CreatedAt = field.NewTime(tableName, "created_at")
@@ -57,27 +58,28 @@ func newPromptUserDraft(db *gorm.DB, opts ...gen.DOOption) promptUserDraft {
 type promptUserDraft struct {
 	promptUserDraftDo promptUserDraftDo
 
-	ALL             field.Asterisk
-	ID              field.Int64  // 主键ID
-	SpaceID         field.Int64  // 空间ID
-	PromptID        field.Int64  // Prompt ID
-	UserID          field.String // 用户ID
-	TemplateType    field.String // 模版类型
-	Messages        field.String // 托管消息列表
-	ModelConfig     field.String // 模型配置
-	VariableDefs    field.String // 变量定义
-	Tools           field.String // tools
-	ToolCallConfig  field.String // tool调用配置
-	Metadata        field.String // 模板元信息
-	McpConfig       field.String // mcp config info
-	BaseVersion     field.String // 草稿关联版本
-	IsDraftEdited   field.Int32  // 草稿内容是否基于BaseVersion有变更
-	ExtInfo         field.String // 扩展字段
-	CreatedAt       field.Time   // 创建时间
-	UpdatedAt       field.Time   // 更新时间
-	DeletedAt       field.Field  // 删除时间
-	HasSnippets     field.Bool   // 是否包含prompt片段
-	EncryptMessages field.String // encrypt message list
+	ALL                   field.Asterisk
+	ID                    field.Int64  // 主键ID
+	SpaceID               field.Int64  // 空间ID
+	PromptID              field.Int64  // Prompt ID
+	UserID                field.String // 用户ID
+	TemplateType          field.String // 模版类型
+	Messages              field.String // 托管消息列表
+	ModelConfig           field.String // 模型配置
+	VariableDefs          field.String // 变量定义
+	Tools                 field.String // tools
+	ToolCallConfig        field.String // tool调用配置
+	Metadata              field.String // 模板元信息
+	McpConfig             field.String // mcp config info
+	BaseVersion           field.String // 草稿关联版本
+	ExpectedLatestVersion field.String // Latest committed version observed when this draft baseline was established
+	IsDraftEdited         field.Int32  // 草稿内容是否基于BaseVersion有变更
+	ExtInfo               field.String // 扩展字段
+	CreatedAt             field.Time   // 创建时间
+	UpdatedAt             field.Time   // 更新时间
+	DeletedAt             field.Field  // 删除时间
+	HasSnippets           field.Bool   // 是否包含prompt片段
+	EncryptMessages       field.String // encrypt message list
 
 	fieldMap map[string]field.Expr
 }
@@ -107,6 +109,7 @@ func (p *promptUserDraft) updateTableName(table string) *promptUserDraft {
 	p.Metadata = field.NewString(table, "metadata")
 	p.McpConfig = field.NewString(table, "mcp_config")
 	p.BaseVersion = field.NewString(table, "base_version")
+	p.ExpectedLatestVersion = field.NewString(table, "expected_latest_version")
 	p.IsDraftEdited = field.NewInt32(table, "is_draft_edited")
 	p.ExtInfo = field.NewString(table, "ext_info")
 	p.CreatedAt = field.NewTime(table, "created_at")
@@ -142,7 +145,7 @@ func (p *promptUserDraft) GetFieldByName(fieldName string) (field.OrderExpr, boo
 }
 
 func (p *promptUserDraft) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 20)
+	p.fieldMap = make(map[string]field.Expr, 21)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["space_id"] = p.SpaceID
 	p.fieldMap["prompt_id"] = p.PromptID
@@ -156,6 +159,7 @@ func (p *promptUserDraft) fillFieldMap() {
 	p.fieldMap["metadata"] = p.Metadata
 	p.fieldMap["mcp_config"] = p.McpConfig
 	p.fieldMap["base_version"] = p.BaseVersion
+	p.fieldMap["expected_latest_version"] = p.ExpectedLatestVersion
 	p.fieldMap["is_draft_edited"] = p.IsDraftEdited
 	p.fieldMap["ext_info"] = p.ExtInfo
 	p.fieldMap["created_at"] = p.CreatedAt
