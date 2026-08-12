@@ -79,6 +79,9 @@
       "path": "../../packages/loop-config/tailwind-config/tsconfig.build.json"
     },
     {
+      "path": "../../packages/loop-pages/api-pages/tsconfig.build.json"
+    },
+    {
       "path": "../../packages/loop-pages/auth-pages/tsconfig.build.json"
     },
     {

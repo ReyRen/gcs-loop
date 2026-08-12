@@ -55,6 +55,9 @@ importers:
       '@cozeloop/account':
         specifier: workspace:*
         version: link:../../packages/loop-base/account
+      '@cozeloop/api-pages':
+        specifier: workspace:*
+        version: link:../../packages/loop-pages/api-pages
       '@cozeloop/api-schema':
         specifier: workspace:*
         version: link:../../packages/loop-base/api-schema
@@ -2822,9 +2825,6 @@ importers:
       '@codemirror/view':
         specifier: ^6.34.1
         version: 6.40.0
-      '@coze-arch/bot-md-box-adapter':
-        specifier: workspace:*
-        version: link:../../loop-base/bot-md-box-adapter
       '@coze-arch/coze-design':
         specifier: 0.0.7-alpha.5f0418
         version: 0.0.7-alpha.5f0418(@floating-ui/dom@1.7.6)(@tiptap/suggestion@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))(@types/react-dom@18.2.15)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -3426,6 +3426,61 @@ importers:
       stylelint:
         specifier: ^15.11.0
         version: 15.11.0(typescript@5.8.2)
+      vitest:
+        specifier: ~3.0.5
+        version: 3.0.9(@types/debug@4.1.13)(@types/node@24.12.0)(happy-dom@20.8.9)(jiti@2.6.1)(jsdom@26.1.0)(less@4.6.4)(sass-embedded@1.98.0)(sass@1.98.0)(sugarss@2.0.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
+
+  ../../../frontend/packages/loop-pages/api-pages:
+    dependencies:
+      '@coze-arch/coze-design':
+        specifier: 0.0.7-alpha.5f0418
+        version: 0.0.7-alpha.5f0418(@floating-ui/dom@1.7.6)(@tiptap/suggestion@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))(@types/react-dom@18.2.15)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@cozeloop/api-schema':
+        specifier: workspace:*
+        version: link:../../loop-base/api-schema
+      '@cozeloop/components':
+        specifier: workspace:*
+        version: link:../../loop-base/components
+      '@cozeloop/hooks':
+        specifier: workspace:*
+        version: link:../../loop-base/base-hooks
+      '@cozeloop/i18n-adapter':
+        specifier: workspace:*
+        version: link:../../loop-base/i18n
+      '@cozeloop/toolkit':
+        specifier: workspace:*
+        version: link:../../loop-base/toolkit
+      ahooks:
+        specifier: 3.7.8
+        version: 3.7.8(patch_hash=201dcc08fdbeeb84f5cd83ac08fbf502e9258a9098bc03a4b7b2c1efea29a345)(react@18.2.0)
+    devDependencies:
+      '@coze-arch/eslint-config':
+        specifier: workspace:*
+        version: link:../../../config/eslint-config
+      '@coze-arch/stylelint-config':
+        specifier: workspace:*
+        version: link:../../../config/stylelint-config
+      '@coze-arch/ts-config':
+        specifier: workspace:*
+        version: link:../../../config/ts-config
+      '@types/react':
+        specifier: 18.2.37
+        version: 18.2.37
+      '@types/react-dom':
+        specifier: 18.2.15
+        version: 18.2.15
+      '@vitest/coverage-v8':
+        specifier: ~3.0.5
+        version: 3.0.9(vitest@3.0.9(@types/debug@4.1.13)(@types/node@24.12.0)(happy-dom@20.8.9)(jiti@2.6.1)(jsdom@26.1.0)(less@4.6.4)(sass-embedded@1.98.0)(sass@1.98.0)(sugarss@2.0.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+      react:
+        specifier: 18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+      react-router-dom:
+        specifier: ^6.22.0
+        version: 6.30.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       vitest:
         specifier: ~3.0.5
         version: 3.0.9(@types/debug@4.1.13)(@types/node@24.12.0)(happy-dom@20.8.9)(jiti@2.6.1)(jsdom@26.1.0)(less@4.6.4)(sass-embedded@1.98.0)(sass@1.98.0)(sugarss@2.0.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)

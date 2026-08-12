@@ -208,3 +208,5 @@ export {
 } from './codemirror-editor';
 
 export { SchemaEditor } from './schema-editor';
+
+export { default as IconEmptyIllus } from './empty-illus';

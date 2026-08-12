@@ -19,9 +19,10 @@ import {
   type Prompt,
   PromptType,
 } from '@cozeloop/api-schema/prompt';
-import { StonePromptApi } from '@cozeloop/api-schema';
+import { StonePromptApi, AuthApi } from '@cozeloop/api-schema';
 import {
   IconCozApply,
+  IconCozCopy,
   IconCozDuplicate,
   IconCozUpdate,
 } from '@coze-arch/coze-design/icons';
@@ -116,6 +117,11 @@ export function VersionList() {
   const [invokeVisible, setInvokeVisible] = useState(false);
   const [invokeData, setInvokeData] = useState<InvokeInfo>({});
   const [invokeLoading, setInvokeLoading] = useState(false);
+  const [publicApiConfig, setPublicApiConfig] = useState<{
+    host?: string;
+    api_key?: string;
+    base_url?: string;
+  }>({});
 
   const handleInvoke = async () => {
     if (!promptInfo?.id || !activeVersion || !spaceID) {
@@ -137,6 +143,21 @@ export function VersionList() {
       const data: InvokeInfo = await resp.json();
       console.log(data, 1111);
       setInvokeData(data.invoke_info);
+
+      // 调用 public_api_config 接口
+      AuthApi.GetPublicApiConfig({
+        workspace_id: spaceID,
+      })
+        .then(configRes => {
+          setPublicApiConfig({
+            host: configRes?.host,
+            api_key: configRes?.api_key,
+            base_url: configRes?.base_url,
+          });
+        })
+        .catch(() => {
+          setPublicApiConfig({});
+        });
       // eslint-disable-next-line @coze-arch/use-error-in-catch -- 异常时显示兜底文案
     } catch {
       setInvokeData({});
@@ -437,6 +458,7 @@ export function VersionList() {
         visible={invokeVisible}
         data={invokeData}
         loading={invokeLoading}
+        publicApiConfig={publicApiConfig}
         onClose={() => setInvokeVisible(false)}
       />
     </div>
@@ -447,10 +469,21 @@ interface InvokeModalProps {
   visible: boolean;
   data: InvokeInfo;
   loading: boolean;
+  publicApiConfig?: {
+    host?: string;
+    api_key?: string;
+    base_url?: string;
+  };
   onClose: () => void;
 }
 
-function InvokeModal({ visible, data, loading, onClose }: InvokeModalProps) {
+function InvokeModal({
+  visible,
+  data,
+  loading,
+  publicApiConfig,
+  onClose,
+}: InvokeModalProps) {
   const [tab, setTab] = useState<string>('sync');
 
   return (
@@ -487,15 +520,38 @@ function InvokeModal({ visible, data, loading, onClose }: InvokeModalProps) {
             </Tooltip> */}
           </div>
 
-          <div>
-            <Typography.Text strong>Endpoint</Typography.Text>
-            <pre
-              style={{ background: 'rgb(247, 247, 252)' }}
-              className="rounded p-3 text-xs font-mono mt-1"
-            >
-              {data.execute_endpoint || '-'}
-            </pre>
-          </div>
+          {publicApiConfig?.base_url ? (
+            <div>
+              <Typography.Text strong>Base URL</Typography.Text>
+              <div style={{ position: 'relative' }}>
+                <Tooltip content={I18n.t('copy')}>
+                  <IconCozCopy
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      zIndex: 1,
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleCopy(publicApiConfig.base_url || '')}
+                  />
+                </Tooltip>
+                <pre
+                  style={{
+                    background: 'rgb(247, 247, 252)',
+                    borderRadius: 4,
+                    padding: '8px 60px 8px 12px',
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    overflow: 'auto',
+                    margin: '8px 0 0 0',
+                  }}
+                >
+                  {publicApiConfig.base_url}
+                </pre>
+              </div>
+            </div>
+          ) : null}
 
           {data.parameters?.length ? (
             <div>
@@ -548,8 +604,7 @@ function InvokeModal({ visible, data, loading, onClose }: InvokeModalProps) {
             </div>
             <div style={{ position: 'relative' }}>
               <Tooltip content={I18n.t('copy')}>
-                <Button
-                  size="small"
+                <IconCozCopy
                   style={{
                     position: 'absolute',
                     top: 8,
@@ -563,9 +618,7 @@ function InvokeModal({ visible, data, loading, onClose }: InvokeModalProps) {
                         : data.streaming_curl || '',
                     )
                   }
-                >
-                  {I18n.t('copy')}
-                </Button>
+                ></IconCozCopy>
               </Tooltip>
               <pre
                 style={{

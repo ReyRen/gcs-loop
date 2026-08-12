@@ -18,7 +18,7 @@ import {
   type EvaluatorAggregateResult,
   type Experiment,
 } from '@cozeloop/api-schema/evaluation';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
+import { IconEmptyIllus } from '@cozeloop/components';
 import { EmptyState, Tag } from '@coze-arch/coze-design';
 
 import {
@@ -201,7 +201,7 @@ export default function EvaluatorsScoreChart({
             <div className="pt-10 pb-6">
               <EmptyState
                 size="full_screen"
-                icon={<IconCozIllusAdd />}
+                icon={<IconEmptyIllus />}
                 title={I18n.t('no_data')}
                 description={I18n.t('refresh_after_experiment')}
               />

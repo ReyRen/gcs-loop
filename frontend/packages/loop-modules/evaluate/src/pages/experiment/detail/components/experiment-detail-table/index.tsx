@@ -24,7 +24,7 @@ import {
   type FilterField,
   type ColumnAnnotation,
 } from '@cozeloop/api-schema/evaluation';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
   Divider,
   EmptyState,
@@ -398,7 +398,7 @@ export default function ({
     experiment?.status === ExptStatus.Pending ? (
       <EmptyState
         size="full_screen"
-        icon={<IconCozIllusAdd />}
+        icon={<IconEmptyIllus />}
         title={I18n.t('experiment_initializing')}
         description={
           <>
@@ -416,7 +416,7 @@ export default function ({
     ) : (
       <EmptyState
         size="full_screen"
-        icon={<IconCozIllusAdd />}
+        icon={<IconEmptyIllus />}
         title={I18n.t('no_data')}
       />
     );

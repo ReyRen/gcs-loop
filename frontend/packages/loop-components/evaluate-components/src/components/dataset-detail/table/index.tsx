@@ -21,7 +21,7 @@ import {
   type EvaluationSet,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
+
 import {
   type ColumnProps,
   EmptyState,
@@ -30,6 +30,7 @@ import {
 } from '@coze-arch/coze-design';
 
 import { MAX_PREVIEW_COUNT, MAX_ITEM_COUNT } from '@/const';
+import { IconEmptyIllus } from '@cozeloop/components';
 
 import { useVersionManage } from '../version-manage/use-version-manage';
 import { DatasetItemPanel } from '../../dataset-item-panel';
@@ -269,7 +270,7 @@ export const DatasetItemList: React.FC<DatasetItemListProps> = ({
           empty={
             <EmptyState
               size="full_screen"
-              icon={<IconCozIllusAdd />}
+              icon={<IconEmptyIllus />}
               title={I18n.t('no_data')}
               description={I18n.t('click_to_add_data')}
             />

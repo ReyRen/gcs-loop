@@ -9,8 +9,8 @@ import {
   type Prompt,
 } from '@cozeloop/api-schema/prompt';
 import { StonePromptApi } from '@cozeloop/api-schema';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
-  IconCozIllusAdd,
   IconCozIllusEmpty,
 } from '@coze-arch/coze-design/illustrations';
 import {
@@ -95,7 +95,7 @@ export function PromptTableSegment({
         ) : (
           <EmptyState
             size="full_screen"
-            icon={<IconCozIllusAdd />}
+            icon={<IconEmptyIllus />}
             title={I18n.t('no_prompt')}
             description={I18n.t('click_to_create')}
           />

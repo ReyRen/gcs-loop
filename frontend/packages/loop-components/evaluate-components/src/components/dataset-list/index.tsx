@@ -15,8 +15,8 @@ import {
 import { useNavigateModule, useSpace } from '@cozeloop/biz-hooks-adapter';
 import { type EvaluationSet } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
-  IconCozIllusAdd,
   IconCozIllusNone,
 } from '@coze-arch/coze-design/illustrations';
 import { IconCozPlus, IconCozRefresh } from '@coze-arch/coze-design/icons';
@@ -178,7 +178,7 @@ export const DatasetList = () => {
           ) : (
             <EmptyState
               size="full_screen"
-              icon={<IconCozIllusAdd />}
+              icon={<IconEmptyIllus />}
               title={I18n.t('no_evaluation_dataset')}
               description={I18n.t('click_to_create_evaluation_set')}
             />

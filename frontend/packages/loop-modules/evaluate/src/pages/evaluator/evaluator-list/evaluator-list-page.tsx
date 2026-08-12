@@ -31,8 +31,8 @@ import {
   type EvaluatorTemplate,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
-  IconCozIllusAdd,
   IconCozIllusEmpty,
 } from '@coze-arch/coze-design/illustrations';
 import {
@@ -508,7 +508,7 @@ function EvaluatorListPage({ className }: { className?: string }) {
             ) : (
               <EmptyState
                 size="full_screen"
-                icon={<IconCozIllusAdd />}
+                icon={<IconEmptyIllus />}
                 title={I18n.t('no_evaluator')}
                 description={I18n.t('click_to_create')}
               />

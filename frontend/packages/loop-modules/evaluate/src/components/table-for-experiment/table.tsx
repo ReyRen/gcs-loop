@@ -9,7 +9,7 @@ import {
 import { useSize } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { getStoragePageSize, LoopTable } from '@cozeloop/components';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
   EmptyState,
   CozPagination,
@@ -87,7 +87,7 @@ export default function TableForExperiment<RecordItem>(
           empty={
             <EmptyState
               size="full_screen"
-              icon={<IconCozIllusAdd />}
+              icon={<IconEmptyIllus />}
               title={I18n.t('no_data')}
             />
           }

@@ -19,6 +19,7 @@ import {
   IconCozNodeFill,
   IconCozTag,
   IconCozTagFill,
+  IconCozSetting,
 } from '@coze-arch/coze-design/icons';
 
 export interface MenuConfig {
@@ -106,6 +107,18 @@ export function useMenuConfig() {
           text: I18n.t('tag_management'),
           icon: <IconCozTag />,
           selectedIcon: <IconCozTagFill className="coz-fg-plus" />,
+        },
+      ],
+    },
+    {
+      itemKey: 'api',
+      text: I18n.t('api_class'),
+      visible: ({ space }) => Boolean(space?.id),
+      items: [
+        {
+          itemKey: 'api/keys',
+          text: I18n.t('api_auth'),
+          icon: <IconCozSetting />,
         },
       ],
     },
