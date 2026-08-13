@@ -17,3 +17,4 @@ export * as foundationUpload from './foundation/coze.loop.foundation.file';
 export * as foundationUser from './foundation/coze.loop.foundation.user';
 export * as foundationAuthn from './foundation/coze.loop.foundation.authn';
 export * as foundationSpace from './foundation/coze.loop.foundation.space';
+export * as foundationAuth from './foundation/coze.loop.foundation.auth';

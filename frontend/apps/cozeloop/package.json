@@ -38,6 +38,7 @@
     "@cozeloop/guard": "workspace:*",
     "@cozeloop/hooks": "workspace:*",
     "@cozeloop/i18n-adapter": "workspace:*",
+    "@cozeloop/api-pages": "workspace:*",
     "@cozeloop/observation-pages": "workspace:*",
     "@cozeloop/prompt-pages": "workspace:*",
     "@cozeloop/stores": "workspace:*",

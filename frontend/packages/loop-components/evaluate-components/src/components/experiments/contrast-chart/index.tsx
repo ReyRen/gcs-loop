@@ -12,7 +12,7 @@ import {
   AggregatorType,
   type AggregateData,
 } from '@cozeloop/api-schema/evaluation';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
+import { IconEmptyIllus } from '@cozeloop/components';
 import { EmptyState, Spin } from '@coze-arch/coze-design';
 
 import { EvaluatorSelectLocalData } from '../selectors/evaluator-select-local-data';
@@ -195,7 +195,7 @@ function EvaluatorChart({
           ready && chartValues.length === 0 ? (
             <EmptyState
               size="full_screen"
-              icon={<IconCozIllusAdd />}
+              icon={<IconEmptyIllus />}
               title={I18n.t('no_data')}
               description={I18n.t('refresh_after_experiment')}
             />

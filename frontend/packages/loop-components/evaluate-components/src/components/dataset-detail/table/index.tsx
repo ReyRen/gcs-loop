@@ -16,12 +16,12 @@ import {
   TableColActions,
   TableWithPagination,
 } from '@cozeloop/components';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
   type EvaluationSetItem,
   type EvaluationSet,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
 import {
   type ColumnProps,
   EmptyState,
@@ -269,7 +269,7 @@ export const DatasetItemList: React.FC<DatasetItemListProps> = ({
           empty={
             <EmptyState
               size="full_screen"
-              icon={<IconCozIllusAdd />}
+              icon={<IconEmptyIllus />}
               title={I18n.t('no_data')}
               description={I18n.t('click_to_add_data')}
             />

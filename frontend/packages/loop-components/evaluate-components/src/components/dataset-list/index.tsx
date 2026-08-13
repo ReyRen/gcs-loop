@@ -11,14 +11,12 @@ import {
   TableWithPagination,
   ColumnSelector,
   PrimaryPage,
+  IconEmptyIllus,
 } from '@cozeloop/components';
 import { useNavigateModule, useSpace } from '@cozeloop/biz-hooks-adapter';
 import { type EvaluationSet } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import {
-  IconCozIllusAdd,
-  IconCozIllusNone,
-} from '@coze-arch/coze-design/illustrations';
+import { IconCozIllusNone } from '@coze-arch/coze-design/illustrations';
 import { IconCozPlus, IconCozRefresh } from '@coze-arch/coze-design/icons';
 import {
   Button,
@@ -178,7 +176,7 @@ export const DatasetList = () => {
           ) : (
             <EmptyState
               size="full_screen"
-              icon={<IconCozIllusAdd />}
+              icon={<IconEmptyIllus />}
               title={I18n.t('no_evaluation_dataset')}
               description={I18n.t('click_to_create_evaluation_set')}
             />

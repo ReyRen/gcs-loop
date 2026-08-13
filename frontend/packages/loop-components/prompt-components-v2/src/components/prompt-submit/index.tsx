@@ -54,8 +54,7 @@ export function PromptSubmit({
   initDescription,
 }: PromptSubmitProps) {
   const sendEvent = useReportEvent();
-  const { spaceID, onSubmitSuccess, submitConfig } =
-    usePromptDevProviderContext();
+  const { spaceID, submitConfig } = usePromptDevProviderContext();
   const formApi = useRef<
     FormApi<{
       version?: string;
@@ -64,10 +63,9 @@ export function PromptSubmit({
     }>
   >();
 
-  const { promptInfo, totalReferenceCount } = usePromptStore(
+  const { promptInfo } = usePromptStore(
     useShallow(state => ({
       promptInfo: state.promptInfo,
-      totalReferenceCount: state.totalReferenceCount,
     })),
   );
 
@@ -115,13 +113,9 @@ export function PromptSubmit({
         });
         await sleep(CALL_SLEEP_TIME);
 
-        await onOk?.({ version: values?.version });
+        onOk?.({ version: values?.version });
 
-        onSubmitSuccess?.({
-          prompt: promptInfo,
-          version: values?.version,
-          totalReferenceCount,
-        });
+        onCancel?.();
       } catch (e) {
         console.error(e);
       }
@@ -129,7 +123,7 @@ export function PromptSubmit({
     {
       manual: true,
       ready: Boolean(spaceID && promptInfo?.id),
-      refreshDeps: [spaceID, promptInfo?.id, totalReferenceCount],
+      refreshDeps: [spaceID, promptInfo?.id],
     },
   );
 

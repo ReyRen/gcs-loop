@@ -24,6 +24,7 @@ import {
   ColumnSelector,
   setColumnsManageStorage,
 } from '@cozeloop/components';
+import { IconEmptyIllus } from '@cozeloop/components';
 import { useNavigateModule, useSpace } from '@cozeloop/biz-hooks-adapter';
 import {
   EvaluatorType,
@@ -31,10 +32,7 @@ import {
   type EvaluatorTemplate,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import {
-  IconCozIllusAdd,
-  IconCozIllusEmpty,
-} from '@coze-arch/coze-design/illustrations';
+import { IconCozIllusEmpty } from '@coze-arch/coze-design/illustrations';
 import {
   IconCozAi,
   IconCozArrowDown,
@@ -508,7 +506,7 @@ function EvaluatorListPage({ className }: { className?: string }) {
             ) : (
               <EmptyState
                 size="full_screen"
-                icon={<IconCozIllusAdd />}
+                icon={<IconEmptyIllus />}
                 title={I18n.t('no_evaluator')}
                 description={I18n.t('click_to_create')}
               />

@@ -19,6 +19,7 @@ import {
   foundationAuthn,
   foundationUser,
   foundationSpace,
+  foundationAuth,
   dateTag,
 } from './api/idl';
 
@@ -42,6 +43,10 @@ export const FoundationApi = {
   ...foundationAuthn,
   ...foundationUser,
   ...foundationSpace,
+};
+
+export const AuthApi = {
+  ...foundationAuth,
 };
 
 export const StonePromptApi = {

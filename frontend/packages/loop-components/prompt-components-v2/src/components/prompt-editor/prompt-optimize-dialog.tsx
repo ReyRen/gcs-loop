@@ -61,10 +61,7 @@ function parseSSELines(buffer: string): ParsedSSEResult {
         recordId = String(parsed.record_id);
       }
       const delta = parsed.delta as Record<string, unknown> | undefined;
-      const text =
-        (delta?.content as string) ||
-        (delta?.reasoning_content as string) ||
-        '';
+      const text = (delta?.content as string) || '';
       if (text) {
         result += String(text);
       }
@@ -218,7 +215,7 @@ function EditorPanel({
           flex: 1,
           border: '1px solid var(--COZColorGray4)',
           borderRadius: 4,
-          overflow: 'hidden',
+          overflow: 'auto',
         }}
       >
         <BasicPromptEditor
@@ -422,6 +419,7 @@ export function PromptOptimizeDialog({
           gap: 16,
           minHeight: 400,
           maxHeight: '60vh',
+          overflow: 'hidden',
         }}
       >
         <EditorPanel

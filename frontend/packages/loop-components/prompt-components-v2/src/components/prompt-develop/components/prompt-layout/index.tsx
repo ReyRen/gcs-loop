@@ -107,7 +107,7 @@ export function PromptLayout({
             </Loading>
             {versionChangeVisible ? (
               <PromptDevLayout
-                className="!w-[360px] flex-shrink-0 border-0 border-l border-solid"
+                className="!w-[400px] flex-shrink-0 border-0 border-l border-solid"
                 wrapperClassName={showTabs ? '!border-t-0' : ''}
                 title={I18n.t('version_record')}
                 actionBtns={

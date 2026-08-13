@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { type EventParams, type ISpec } from '@visactor/vchart';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { Chart } from '@cozeloop/evaluate-components';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
+import { IconEmptyIllus } from '@cozeloop/components';
 import { EmptyState } from '@coze-arch/coze-design';
 
 import { type ChartItemValue } from './types';
@@ -40,7 +40,7 @@ export function ChartCardBase({
     <div className="pt-10 pb-6">
       <EmptyState
         size="full_screen"
-        icon={<IconCozIllusAdd />}
+        icon={<IconEmptyIllus />}
         title={I18n.t('no_data')}
         description={
           type === 'evaluator'

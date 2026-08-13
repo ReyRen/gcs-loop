@@ -16,6 +16,7 @@ const Auth = lazy(() => import('@cozeloop/auth-pages'));
 const Evaluation = lazy(() => import('@cozeloop/evaluate-pages'));
 const Observation = lazy(() => import('@cozeloop/observation-pages'));
 const Prompt = lazy(() => import('@cozeloop/prompt-pages'));
+const ApiPages = lazy(() => import('@cozeloop/api-pages'));
 const Tag = lazy(() => import('@cozeloop/tag-pages'));
 
 export const routeConfig: RouteObject[] = [
@@ -80,6 +81,10 @@ export const routeConfig: RouteObject[] = [
                   {
                     path: 'tag/*',
                     element: <Tag />,
+                  },
+                  {
+                    path: 'api/*',
+                    element: <ApiPages />,
                   },
                 ],
               },

@@ -5,7 +5,7 @@ import { I18n } from '@cozeloop/i18n-adapter';
 import { TableWithPagination, UserProfile } from '@cozeloop/components';
 import { useNavigateModule } from '@cozeloop/biz-hooks-adapter';
 import { type tag, type OrderBy } from '@cozeloop/api-schema/data';
-import { IconCozIllusAdd } from '@coze-arch/coze-design/illustrations';
+import { IconEmptyIllus } from '@cozeloop/components';
 import { EmptyState, type ColumnProps } from '@coze-arch/coze-design';
 
 import { type useSearchTags } from '@/hooks/use-search-tags';
@@ -133,7 +133,7 @@ export const TagsListTable = ({
       empty={
         <EmptyState
           size="full_screen"
-          icon={<IconCozIllusAdd />}
+          icon={<IconEmptyIllus />}
           title={I18n.t('no_tags_available')}
           description={I18n.t('click_to_create')}
         />
