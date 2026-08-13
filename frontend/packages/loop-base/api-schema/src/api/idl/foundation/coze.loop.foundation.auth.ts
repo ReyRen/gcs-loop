@@ -13,6 +13,7 @@ export const ListPersonalAccessTokens = createAPI<
   reqType: 'ListTokensRequest',
   reqMapping: { body: ['page_number', 'page_size'] },
   resType: 'ListTokensResponse',
+  schemaRoot: 'api://schemas/foundation_coze.loop.foundation.auth',
   service: 'foundationAuth',
 });
 
@@ -49,6 +50,7 @@ export const CreatePersonalAccessToken = createAPI<
   reqType: 'CreateTokenRequest',
   reqMapping: { body: ['name', 'duration_day', 'expire_at'] },
   resType: 'CreateTokenResponse',
+  schemaRoot: 'api://schemas/foundation_coze.loop.foundation.auth',
   service: 'foundationAuth',
 });
 
@@ -74,6 +76,7 @@ export const UpdatePersonalAccessToken = createAPI<
   reqType: 'UpdateTokenRequest',
   reqMapping: { path: ['id'], body: ['name'] },
   resType: 'UpdateTokenResponse',
+  schemaRoot: 'api://schemas/foundation_coze.loop.foundation.auth',
   service: 'foundationAuth',
 });
 
@@ -98,6 +101,7 @@ export const DeletePersonalAccessToken = createAPI<
   reqType: 'DeleteTokenRequest',
   reqMapping: { path: ['id'] },
   resType: 'DeleteTokenResponse',
+  schemaRoot: 'api://schemas/foundation_coze.loop.foundation.auth',
   service: 'foundationAuth',
 });
 
@@ -121,6 +125,7 @@ export const GetPublicApiConfig = createAPI<
   reqType: 'GetPublicApiConfigRequest',
   reqMapping: { query: ['workspace_id'] },
   resType: 'GetPublicApiConfigResponse',
+  schemaRoot: 'api://schemas/foundation_coze.loop.foundation.auth',
   service: 'foundationAuth',
 });
 
