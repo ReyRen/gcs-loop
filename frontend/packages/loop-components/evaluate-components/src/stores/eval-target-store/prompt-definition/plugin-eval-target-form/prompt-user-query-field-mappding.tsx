@@ -57,6 +57,7 @@ export function PromptUserQueryFieldMapping({
               return false;
             }
             if (
+              v.content_type !== 'MultiPart' &&
               getTypeText(v) &&
               getTypeText(v) !==
                 getSchemaTypeText({ content_type: ContentType.Text })
