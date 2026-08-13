@@ -12,13 +12,13 @@ import {
   ExperimentScoreTypeSelect,
   type CustomTooltipProps,
 } from '@cozeloop/evaluate-components';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
   type AggregateData,
   AggregatorType,
   type EvaluatorAggregateResult,
   type Experiment,
 } from '@cozeloop/api-schema/evaluation';
-import { IconEmptyIllus } from '@cozeloop/components';
 import { EmptyState, Tag } from '@coze-arch/coze-design';
 
 import {

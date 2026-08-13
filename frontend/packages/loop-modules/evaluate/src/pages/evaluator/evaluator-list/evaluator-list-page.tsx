@@ -24,6 +24,7 @@ import {
   ColumnSelector,
   setColumnsManageStorage,
 } from '@cozeloop/components';
+import { IconEmptyIllus } from '@cozeloop/components';
 import { useNavigateModule, useSpace } from '@cozeloop/biz-hooks-adapter';
 import {
   EvaluatorType,
@@ -31,10 +32,7 @@ import {
   type EvaluatorTemplate,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import { IconEmptyIllus } from '@cozeloop/components';
-import {
-  IconCozIllusEmpty,
-} from '@coze-arch/coze-design/illustrations';
+import { IconCozIllusEmpty } from '@coze-arch/coze-design/illustrations';
 import {
   IconCozAi,
   IconCozArrowDown,

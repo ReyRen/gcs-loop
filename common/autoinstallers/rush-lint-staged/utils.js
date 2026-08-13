@@ -55,9 +55,20 @@ async function excludeIgnoredFiles(changedFiles) {
           eslintInstances.set(projectFolder, eslint);
         }
 
+        let isIgnored = false;
+        try {
+          isIgnored = await eslint.isPathIgnored(file);
+        } catch (e) {
+          // ESLint 9.x throws config-file-missing error when no config
+          // file exists in the project folder, treat as not ignored
+          if (e.messageTemplate !== 'config-file-missing') {
+            throw e;
+          }
+        }
+
         return {
           file,
-          isIgnored: await eslint.isPathIgnored(file),
+          isIgnored,
         };
       }),
     );

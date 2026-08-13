@@ -11,12 +11,12 @@ import {
   ExperimentScoreTypeSelect,
   type CustomTooltipProps,
 } from '@cozeloop/evaluate-components';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
   type AggregatorType,
   type ColumnAnnotation,
   type ColumnEvaluator,
 } from '@cozeloop/api-schema/evaluation';
-import { IconEmptyIllus } from '@cozeloop/components';
 import { EmptyState, Tag } from '@coze-arch/coze-design';
 
 import { setExperimentDetailLocalCache } from '@/utils/experiment-local-cache';

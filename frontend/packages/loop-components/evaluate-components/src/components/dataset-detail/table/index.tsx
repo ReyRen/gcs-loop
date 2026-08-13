@@ -16,12 +16,12 @@ import {
   TableColActions,
   TableWithPagination,
 } from '@cozeloop/components';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
   type EvaluationSetItem,
   type EvaluationSet,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-
 import {
   type ColumnProps,
   EmptyState,
@@ -30,7 +30,6 @@ import {
 } from '@coze-arch/coze-design';
 
 import { MAX_PREVIEW_COUNT, MAX_ITEM_COUNT } from '@/const';
-import { IconEmptyIllus } from '@cozeloop/components';
 
 import { useVersionManage } from '../version-manage/use-version-manage';
 import { DatasetItemPanel } from '../../dataset-item-panel';

@@ -8,8 +8,11 @@ import {
 } from 'ahooks/lib/usePagination/types';
 import { useSize } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
-import { getStoragePageSize, LoopTable } from '@cozeloop/components';
-import { IconEmptyIllus } from '@cozeloop/components';
+import {
+  getStoragePageSize,
+  LoopTable,
+  IconEmptyIllus,
+} from '@cozeloop/components';
 import {
   EmptyState,
   CozPagination,

@@ -11,6 +11,7 @@ import {
   type LogicField,
   type SemiTableSort,
 } from '@cozeloop/evaluate-components';
+import { IconEmptyIllus } from '@cozeloop/components';
 import {
   type Experiment,
   FieldType,
@@ -24,7 +25,6 @@ import {
   type FilterField,
   type ColumnAnnotation,
 } from '@cozeloop/api-schema/evaluation';
-import { IconEmptyIllus } from '@cozeloop/components';
 import {
   Divider,
   EmptyState,

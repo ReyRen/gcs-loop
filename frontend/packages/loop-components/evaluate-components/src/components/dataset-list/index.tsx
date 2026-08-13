@@ -11,14 +11,12 @@ import {
   TableWithPagination,
   ColumnSelector,
   PrimaryPage,
+  IconEmptyIllus,
 } from '@cozeloop/components';
 import { useNavigateModule, useSpace } from '@cozeloop/biz-hooks-adapter';
 import { type EvaluationSet } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import { IconEmptyIllus } from '@cozeloop/components';
-import {
-  IconCozIllusNone,
-} from '@coze-arch/coze-design/illustrations';
+import { IconCozIllusNone } from '@coze-arch/coze-design/illustrations';
 import { IconCozPlus, IconCozRefresh } from '@coze-arch/coze-design/icons';
 import {
   Button,
