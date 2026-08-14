@@ -63,6 +63,9 @@ export interface CreateTokenRequest {
 export interface CreateTokenResponse {
   code?: number;
   msg?: string;
+  /** PAT token 明文，仅在创建时返回一次 */
+  token?: string;
+  personal_access_token?: TokenItem;
 }
 
 /** 修改 personal_access_token */

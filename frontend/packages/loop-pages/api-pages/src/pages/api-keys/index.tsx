@@ -1,5 +1,8 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
+/* eslint-disable max-lines-per-function */
+/* eslint-disable @coze-arch/max-line-per-function */
+import { useParams } from 'react-router-dom';
 import { useState } from 'react';
 
 import { usePagination, useRequest } from 'ahooks';
@@ -10,8 +13,10 @@ import {
   TableColActions,
   TableWithPagination,
   DEFAULT_PAGE_SIZE,
+  handleCopy,
 } from '@cozeloop/components';
 import { AuthApi } from '@cozeloop/api-schema';
+import { IconCozCopy } from '@coze-arch/coze-design/icons';
 import {
   Button,
   Form,
@@ -20,11 +25,13 @@ import {
   Modal,
   Toast,
   Typography,
+  type ColumnProps,
 } from '@coze-arch/coze-design';
 
 interface TokenItem {
   id?: string;
   name?: string;
+  masked_token?: string;
   created_at?: string;
   updated_at?: string;
   expire_at?: string;
@@ -44,6 +51,17 @@ export default function ApiKeysPage() {
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [createVisible, setCreateVisible] = useState(false);
   const [editData, setEditData] = useState<TokenItem | null>(null);
+  const [createdToken, setCreatedToken] = useState('');
+
+  const { spaceID = '' } = useParams();
+
+  const publicApiConfigService = useRequest(
+    () => AuthApi.GetPublicApiConfig({ workspace_id: spaceID }),
+    {
+      ready: !!spaceID,
+    },
+  );
+  const baseUrl = publicApiConfigService.data?.base_url || '';
 
   const listService = usePagination(
     ({ current, pageSize }) =>
@@ -65,9 +83,13 @@ export default function ApiKeysPage() {
       AuthApi.CreatePersonalAccessToken(values),
     {
       manual: true,
-      onSuccess: () => {
-        Toast.success(I18n.t('create_success'));
+      onSuccess: (res?: { token?: string }) => {
         setCreateVisible(false);
+        if (res?.token) {
+          setCreatedToken(res.token);
+        } else {
+          Toast.success(I18n.t('create_success'));
+        }
         setRefreshFlag(f => f + 1);
       },
     },
@@ -103,10 +125,16 @@ export default function ApiKeysPage() {
     }
   };
 
-  const columns = [
+  const columns: ColumnProps<TokenItem>[] = [
     {
       dataIndex: 'name',
       title: I18n.t('name'),
+      width: 260,
+      ellipsis: true,
+    },
+    {
+      dataIndex: 'masked_token',
+      title: I18n.t('token'),
       width: 260,
       ellipsis: true,
     },
@@ -143,7 +171,6 @@ export default function ApiKeysPage() {
     {
       title: I18n.t('operation'),
       key: 'action',
-      dataIndex: 'action',
       width: 160,
       align: 'left',
       fixed: 'right',
@@ -178,9 +205,35 @@ export default function ApiKeysPage() {
       <PrimaryPage
         pageTitle={I18n.t('api_auth')}
         titleSlot={
-          <Button onClick={() => setCreateVisible(true)}>
-            {I18n.t('create_token')}
-          </Button>
+          <div className="flex items-center gap-3">
+            {baseUrl ? (
+              <div
+                className="flex items-center gap-2 px-3 py-1 rounded-[6px]"
+                style={{ backgroundColor: 'rgb(247, 247, 252)' }}
+              >
+                <Typography.Text
+                  className="coz-fg-secondary"
+                  style={{ fontSize: 13 }}
+                >
+                  {I18n.t('api_base_url')}
+                </Typography.Text>
+                <Typography.Text
+                  style={{ fontSize: 13, fontFamily: 'monospace' }}
+                >
+                  {baseUrl}
+                </Typography.Text>
+                <Button
+                  size="small"
+                  color="secondary"
+                  icon={<IconCozCopy />}
+                  onClick={() => handleCopy(baseUrl)}
+                />
+              </div>
+            ) : null}
+            <Button onClick={() => setCreateVisible(true)}>
+              {I18n.t('create_token')}
+            </Button>
+          </div>
         }
       >
         <div className="w-full h-full overflow-hidden flex flex-1 flex-col">
@@ -189,7 +242,7 @@ export default function ApiKeysPage() {
             service={listService}
             tableProps={{
               rowKey: 'id',
-              columns: columns as any,
+              columns,
               sticky: { top: 0 },
             }}
           />
@@ -259,6 +312,39 @@ export default function ApiKeysPage() {
             </Button>
           </div>
         </Form>
+      </Modal>
+
+      <Modal
+        visible={!!createdToken}
+        title={I18n.t('token_created_success')}
+        width={520}
+        footer={null}
+        onCancel={() => setCreatedToken('')}
+      >
+        <div className="flex flex-col gap-4">
+          <Typography.Text className="coz-fg-secondary">
+            {I18n.t('token_save_tip')}
+          </Typography.Text>
+          <div className="flex items-start gap-2 p-3 bg-[var(--coz-bg-plus)] border border-solid border-[var(--coz-stroke-primary)] rounded-[6px]">
+            <Typography.Text
+              className="break-all flex-1"
+              style={{ fontSize: 13, fontFamily: 'monospace' }}
+            >
+              {createdToken}
+            </Typography.Text>
+            <Button
+              size="small"
+              color="secondary"
+              icon={<IconCozCopy />}
+              onClick={() => handleCopy(createdToken)}
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setCreatedToken('')}>
+              {I18n.t('confirm')}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </>
   );
