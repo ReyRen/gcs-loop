@@ -184,6 +184,36 @@ BEGIN
                 END IF;
             END IF;
 
+        -- Check for DROP INDEX/KEY. MySQL does not consistently support
+        -- DROP INDEX IF EXISTS across the versions used by our deployments,
+        -- so make this operation idempotent through information_schema.
+        ELSEIF LOCATE('DROP INDEX', @alter_sql) > 0 OR LOCATE('DROP KEY', @alter_sql) > 0 THEN
+            SET operation_type = 'DROP_INDEX';
+            SET @drop_start = GREATEST(
+                IFNULL(NULLIF(LOCATE('DROP INDEX', @alter_sql), 0), 0),
+                IFNULL(NULLIF(LOCATE('DROP KEY', @alter_sql), 0), 0)
+            );
+            SET @idx_start = LOCATE('`', @alter_sql, @drop_start);
+            IF @idx_start > 0 THEN
+                SET @idx_end = LOCATE('`', @alter_sql, @idx_start + 1);
+                IF @idx_end > 0 THEN
+                    SET index_name = SUBSTRING(@alter_sql, @idx_start + 1, @idx_end - @idx_start - 1);
+                END IF;
+            ELSE
+                SET @drop_keyword_length = IF(LOCATE('DROP INDEX', @alter_sql) > 0, 10, 8);
+                SET @index_tail = TRIM(SUBSTRING(@alter_sql, @drop_start + @drop_keyword_length));
+                SET index_name = SUBSTRING_INDEX(REPLACE(@index_tail, ';', ' '), ' ', 1);
+            END IF;
+
+            IF index_name != '' THEN
+                CALL CozeLoopCheckIndexExists(table_name, index_name, index_exists);
+                IF NOT index_exists THEN
+                    SET error_msg = CONCAT('Index ', index_name, ' does not exist in table ', table_name, ', skipping');
+                    SELECT error_msg as result;
+                    SET should_execute = FALSE;
+                END IF;
+            END IF;
+
         ELSE
             SET operation_type = 'UNKNOWN';
             SELECT CONCAT('Unknown ALTER operation type, executing as-is: ', LEFT(p_alter_ddl, 100)) as result;
@@ -213,6 +243,8 @@ BEGIN
                     SELECT CONCAT('Index ', index_name, ' added to table ', table_name) as result;
                 WHEN 'ADD_UNIQUE_INDEX' THEN
                     SELECT CONCAT('Unique index ', index_name, ' added to table ', table_name) as result;
+                WHEN 'DROP_INDEX' THEN
+                    SELECT CONCAT('Index ', index_name, ' dropped from table ', table_name) as result;
                 ELSE
                     SELECT CONCAT('ALTER statement executed successfully on table ', table_name) as result;
             END CASE;

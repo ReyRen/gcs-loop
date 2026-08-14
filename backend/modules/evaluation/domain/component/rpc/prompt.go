@@ -16,6 +16,7 @@ type IPromptRPCAdapter interface {
 	ListPrompt(ctx context.Context, param *ListPromptParam) (prompts []*LoopPrompt, total *int32, err error)
 	ListPromptVersion(ctx context.Context, param *ListPromptVersionParam) (prompts []*CommitInfo, nextCursor string, err error)
 	ExecutePrompt(ctx context.Context, spaceID int64, param *ExecutePromptParam) (result *ExecutePromptResult, err error)
+	ApplyPromptTemplateToDraft(ctx context.Context, spaceID, promptID int64, sourceVersion string, candidate *PromptTemplate, overwriteExistingDraft bool) error
 }
 
 type ExecutePromptParam struct {
@@ -25,6 +26,10 @@ type ExecutePromptParam struct {
 	History       []*entity.Message
 	UserQuery     *entity.Message
 	RuntimeParam  *string
+	// OverridePromptTemplate is evaluated in-memory only. It never mutates the
+	// committed Prompt and is used by the experiment optimizer to score a
+	// candidate with the exact same runtime model/tools as the source version.
+	OverridePromptTemplate *PromptTemplate
 }
 
 type ExecutePromptResult struct {
@@ -58,14 +63,32 @@ type PromptCommit struct {
 
 type PromptDetail struct {
 	PromptTemplate *PromptTemplate
+	ModelConfig    *PromptModelConfig
+}
+
+type PromptModelConfig struct {
+	ModelID     int64
+	MaxTokens   int32
+	Temperature float64
+	TopP        float64
 }
 
 type PromptTemplate struct {
+	TemplateType string
+	HasSnippet   bool
+	Messages     []*PromptMessage
 	VariableDefs []*VariableDef `thrift:"variable_defs,3,optional" frugal:"3,optional,list<VariableDef>" form:"variable_defs" json:"variable_defs,omitempty" query:"variable_defs"`
+}
+
+type PromptMessage struct {
+	Role       string
+	Content    string
+	SkipRender *bool
 }
 
 type VariableDef struct {
 	Key      *string
+	Desc     *string
 	Type     *VariableType `thrift:"type,3,optional" frugal:"3,optional,string" form:"type" json:"type,omitempty" query:"type"`
 	TypeTags []string      `thrift:"type_tags,4,optional" frugal:"4,optional,list<string>" form:"type_tags" json:"type_tags,omitempty" query:"type_tags"`
 }

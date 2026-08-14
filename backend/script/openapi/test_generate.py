@@ -122,6 +122,56 @@ class OpenAPIGeneratorTest(unittest.TestCase):
                 )
             )
 
+    def test_evaluation_prompt_optimization_contract(self) -> None:
+        prefix = "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations"
+        expected = {
+            ("get", f"{prefix}/prepare"),
+            ("post", prefix),
+            ("post", f"{prefix}/list"),
+            ("get", f"{prefix}/{{optimization_id}}"),
+            ("post", f"{prefix}/{{optimization_id}}/cancel"),
+            ("post", f"{prefix}/{{optimization_id}}/apply_to_draft"),
+        }
+        for method, path in expected:
+            operation = self.document["paths"][path][method]
+            self.assertEqual(operation["security"], [{"sessionCookie": []}])
+
+        create = self.document["paths"][prefix]["post"]
+        create_schema = create["requestBody"]["content"]["application/json"][
+            "schema"
+        ]
+        self.assertTrue(
+            {"workspace_id", "samples", "variable_mappings"}.issubset(
+                create_schema["required"]
+            )
+        )
+        self.assertEqual(
+            create_schema["properties"]["samples"]["maxItems"], 20
+        )
+
+        apply_path = f"{prefix}/{{optimization_id}}/apply_to_draft"
+        apply_schema = self.document["paths"][apply_path]["post"][
+            "requestBody"
+        ]["content"]["application/json"]["schema"]
+        self.assertIn("overwrite_existing_draft", apply_schema["properties"])
+
+        task_schema = self.document["components"]["schemas"][
+            "coze.loop.evaluation.expt.PromptOptimizationTask"
+        ]
+        self.assertTrue(
+            {
+                "status",
+                "stage",
+                "progress",
+                "baseline_metrics",
+                "best_metrics",
+                "original_prompt_template",
+                "optimized_prompt_template",
+                "iterations",
+                "applied_to_draft",
+            }.issubset(task_schema["properties"])
+        )
+
     def test_unannotated_body_field_is_documented_in_json_body(self) -> None:
         list_datasets = self.document["paths"]["/api/data/v1/datasets/list"][
             "post"

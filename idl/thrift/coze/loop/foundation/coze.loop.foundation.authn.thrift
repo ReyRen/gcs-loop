@@ -58,6 +58,7 @@ struct ListPersonalAccessTokenRequest {
 }
 struct ListPersonalAccessTokenResponse {
     1: optional list<authn.PersonalAccessToken> personal_access_tokens
+    2: optional i32 total // current user's normal PAT count before pagination
 
     255: optional base.BaseResp BaseResp
 }

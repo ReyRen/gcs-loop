@@ -2507,3 +2507,48 @@ func _getpromptinvokeinfoMw(handler *apis.APIHandler) []app.HandlerFunc {
 func _getpublicapiconfigMw(handler *apis.APIHandler) []app.HandlerFunc {
 	return []app.HandlerFunc{middleware.PublicBaseURLMW()}
 }
+
+func _prompt_optimizationsMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createpromptoptimizationMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _listpromptoptimizationsMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _optimization_idMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _getpromptoptimizationMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _applypromptoptimizationtodraftMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _cancelpromptoptimizationMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _prompt_optimizations0Mw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _preparepromptoptimizationMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}

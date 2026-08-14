@@ -148,12 +148,12 @@ func InitExperimentApplication(ctx context.Context, idgen2 idgen.IIDGenerator, d
 	iExptTurnResultFilterDAO := ck2.NewExptTurnResultFilterDAO(ckDb, componentIConfiger)
 	iExptTurnResultFilterKeyMappingDAO := mysql.NewExptTurnResultFilterKeyMappingDAO(db2)
 	iExptTurnResultFilterRepo := experiment.NewExptTurnResultFilterRepo(iExptTurnResultFilterDAO, iExptTurnResultFilterKeyMappingDAO)
-	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(sds)
+	iFileProvider := foundation.NewFileRPCProvider(fileClient)
+	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(sds, iFileProvider)
 	evaluationSetVersionService := service.NewEvaluationSetVersionServiceImpl(iDatasetRPCAdapter)
 	iEvaluationSetService := service.NewEvaluationSetServiceImpl(iDatasetRPCAdapter)
 	evaluationSetItemService := service.NewEvaluationSetItemServiceImpl(iDatasetRPCAdapter)
 	iEvaluationAnalysisService := service.NewEvaluationAnalysisService()
-	iFileProvider := foundation.NewFileRPCProvider(fileClient)
 	exptResultService := service.NewExptResultService(iExptItemResultRepo, iExptTurnResultRepo, iExptAnnotateRepo, iExptStatsRepo, iExperimentRepo, exptMetric, iLatestWriteTracker, idgen2, iExptTurnResultFilterRepo, serviceEvaluatorService, iEvalTargetService, evaluationSetVersionService, iEvaluationSetService, evaluatorRecordService, evaluationSetItemService, exptEventPublisher, iTagRPCAdapter, iEvaluationAnalysisService, iFileProvider, iEvaluatorScoreCalculator)
 	iExptItemRefDAO := mysql.NewExptItemRefDAO(db2)
 	iExptItemRefRepo := experiment.NewExptItemRefRepo(iExptItemRefDAO)
@@ -193,7 +193,8 @@ func InitExperimentApplication(ctx context.Context, idgen2 idgen.IIDGenerator, d
 	noopWebhookSecretProvider := service.NewNoopWebhookSecretProvider()
 	webhookDispatcher := service.NewWebhookDispatcher(exptEventPublisher, noopWebhookSecretProvider, iExptStatsRepo)
 	exptLifecycleEventHandler := service.NewExptLifecycleEventHandler(iExperimentRepo, iNotifyRPCAdapter, iUserProvider, webhookDispatcher)
-	iExperimentApplication := NewExperimentApplication(exptAggrResultService, exptResultService, iExptManager, exptSchedulerEvent, exptItemEvalEvent, idgen2, componentIConfiger, iAuthProvider, userInfoService, iEvalTargetService, evaluationSetItemService, iExptAnnotateService, iTagRPCAdapter, iExptResultExportService, iExptInsightAnalysisService, serviceEvaluatorService, iExptTemplateManager, iFileProvider, exptLifecycleEventHandler, sandboxSchedulerAdapter, sandboxAgentMetrics)
+	applicationExperimentApplication := NewExperimentApplication(exptAggrResultService, exptResultService, iExptManager, exptSchedulerEvent, exptItemEvalEvent, idgen2, componentIConfiger, iAuthProvider, userInfoService, iEvalTargetService, evaluationSetItemService, iExptAnnotateService, iTagRPCAdapter, iExptResultExportService, iExptInsightAnalysisService, serviceEvaluatorService, iExptTemplateManager, iFileProvider, exptLifecycleEventHandler, sandboxSchedulerAdapter, sandboxAgentMetrics)
+	iExperimentApplication := NewExperimentApplicationWithPromptOptimization(ctx, applicationExperimentApplication, db2, illmProvider, iPromptRPCAdapter)
 	return iExperimentApplication, nil
 }
 
@@ -273,7 +274,7 @@ func InitEvaluatorApplication(ctx context.Context, idgen2 idgen.IIDGenerator, au
 	iExptRunLogDAO := mysql.NewExptRunLogDAO(db2)
 	iExptRunLogRepo := experiment.NewExptRunLogRepo(iExptRunLogDAO)
 	iEvalTargetService := service.NewEvalTargetServiceImpl(iEvalTargetRepo, idgen2, evalTargetMetrics, v2, iTrajectoryAdapter, componentIConfiger, sandboxSchedulerAdapter, iExptRunLogRepo)
-	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(dataClient)
+	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(dataClient, iFileProvider)
 	evaluationSetVersionService := service.NewEvaluationSetVersionServiceImpl(iDatasetRPCAdapter)
 	iEvaluationSetService := service.NewEvaluationSetServiceImpl(iDatasetRPCAdapter)
 	evaluationSetItemService := service.NewEvaluationSetItemServiceImpl(iDatasetRPCAdapter)
@@ -286,9 +287,10 @@ func InitEvaluatorApplication(ctx context.Context, idgen2 idgen.IIDGenerator, au
 	return evaluationEvaluatorService, nil
 }
 
-func InitEvaluationSetApplication(client datasetservice.Client, authClient authservice.Client, meter metrics.Meter, userClient userservice.Client, configFactory conf.IConfigLoaderFactory) (evaluation.EvaluationSetService, error) {
+func InitEvaluationSetApplication(client datasetservice.Client, authClient authservice.Client, meter metrics.Meter, userClient userservice.Client, configFactory conf.IConfigLoaderFactory, fileClient fileservice.Client) (evaluation.EvaluationSetService, error) {
 	iAuthProvider := foundation.NewAuthRPCProvider(authClient)
-	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(client)
+	iFileProvider := foundation.NewFileRPCProvider(fileClient)
+	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(client, iFileProvider)
 	iEvaluationSetService := service.NewEvaluationSetServiceImpl(iDatasetRPCAdapter)
 	evaluationSetSchemaService := service.NewEvaluationSetSchemaServiceImpl(iDatasetRPCAdapter)
 	evaluationSetVersionService := service.NewEvaluationSetVersionServiceImpl(iDatasetRPCAdapter)
@@ -362,7 +364,8 @@ func InitEvalOpenAPIApplication(ctx context.Context, configFactory conf.IConfigL
 	iExptRunLogRepo := experiment.NewExptRunLogRepo(iExptRunLogDAO)
 	iEvalTargetService := service.NewEvalTargetServiceImpl(iEvalTargetRepo, idgen2, evalTargetMetrics, v, trajectoryAdapter, iConfiger, sandboxSchedulerAdapter, iExptRunLogRepo)
 	iAuthProvider := foundation.NewAuthRPCProvider(authClient)
-	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(dataClient)
+	iFileProvider := foundation.NewFileRPCProvider(fileClient)
+	iDatasetRPCAdapter := data.NewDatasetRPCAdapter(dataClient, iFileProvider)
 	iEvaluationSetService := service.NewEvaluationSetServiceImpl(iDatasetRPCAdapter)
 	evaluationSetVersionService := service.NewEvaluationSetVersionServiceImpl(iDatasetRPCAdapter)
 	evaluationSetItemService := service.NewEvaluationSetItemServiceImpl(iDatasetRPCAdapter)
@@ -422,7 +425,6 @@ func InitEvalOpenAPIApplication(ctx context.Context, configFactory conf.IConfigL
 	iExptTurnResultFilterKeyMappingDAO := mysql.NewExptTurnResultFilterKeyMappingDAO(db2)
 	iExptTurnResultFilterRepo := experiment.NewExptTurnResultFilterRepo(iExptTurnResultFilterDAO, iExptTurnResultFilterKeyMappingDAO)
 	iEvaluationAnalysisService := service.NewEvaluationAnalysisService()
-	iFileProvider := foundation.NewFileRPCProvider(fileClient)
 	exptResultService := service.NewExptResultService(iExptItemResultRepo, iExptTurnResultRepo, iExptAnnotateRepo, iExptStatsRepo, iExperimentRepo, exptMetric, iLatestWriteTracker, idgen2, iExptTurnResultFilterRepo, evaluatorService, iEvalTargetService, evaluationSetVersionService, iEvaluationSetService, evaluatorRecordService, evaluationSetItemService, exptEventPublisher, iTagRPCAdapter, iEvaluationAnalysisService, iFileProvider, iEvaluatorScoreCalculator)
 	iExptItemRefDAO := mysql.NewExptItemRefDAO(db2)
 	iExptItemRefRepo := experiment.NewExptItemRefRepo(iExptItemRefDAO)
@@ -459,7 +461,8 @@ func InitEvalOpenAPIApplication(ctx context.Context, configFactory conf.IConfigL
 	noopWebhookSecretProvider := service.NewNoopWebhookSecretProvider()
 	webhookDispatcher := service.NewWebhookDispatcher(exptEventPublisher, noopWebhookSecretProvider, iExptStatsRepo)
 	exptLifecycleEventHandler := service.NewExptLifecycleEventHandler(iExperimentRepo, iNotifyRPCAdapter, iUserProvider, webhookDispatcher)
-	iExperimentApplication := NewExperimentApplication(exptAggrResultService, exptResultService, iExptManager, exptSchedulerEvent, exptItemEvalEvent, idgen2, iConfiger, iAuthProvider, userInfoService, iEvalTargetService, evaluationSetItemService, iExptAnnotateService, iTagRPCAdapter, iExptResultExportService, iExptInsightAnalysisService, evaluatorService, iExptTemplateManager, iFileProvider, exptLifecycleEventHandler, sandboxSchedulerAdapter, sandboxAgentMetrics)
+	applicationExperimentApplication := NewExperimentApplication(exptAggrResultService, exptResultService, iExptManager, exptSchedulerEvent, exptItemEvalEvent, idgen2, iConfiger, iAuthProvider, userInfoService, iEvalTargetService, evaluationSetItemService, iExptAnnotateService, iTagRPCAdapter, iExptResultExportService, iExptInsightAnalysisService, evaluatorService, iExptTemplateManager, iFileProvider, exptLifecycleEventHandler, sandboxSchedulerAdapter, sandboxAgentMetrics)
+	iExperimentApplication := NewExperimentApplicationWithPromptOptimization(ctx, applicationExperimentApplication, db2, illmProvider, iPromptRPCAdapter)
 	evaluatorCallbackDispatcher := service.NewEvaluatorCallbackDispatcher(noopWebhookSecretProvider)
 	v3 := NewEvalOpenAPIApplication(iEvalAsyncRepo, exptEventPublisher, iEvalTargetService, iEvalTargetRepo, iAuthProvider, iEvaluationSetService, evaluationSetVersionService, evaluationSetItemService, evaluationSetSchemaService, openAPIEvaluationMetrics, sandboxAgentMetrics, userInfoService, iExperimentApplication, iExptManager, exptResultService, exptAggrResultService, evaluatorService, evaluatorRecordService, iExptTemplateManager, iConfiger, sandboxSchedulerAdapter, iFileProvider, evaluatorCallbackDispatcher, resourceAccessAuthorizer)
 	return v3, nil
@@ -471,7 +474,8 @@ var (
 	flagSet = wire.NewSet(platestwrite.NewLatestWriteTracker)
 
 	experimentSet = wire.NewSet(
-		NewExperimentApplication, service.ExperimentDomainServiceSet, service.EvaluationSetDomainServiceSet, service.TargetDomainServiceSet, service.EvaluatorDomainServiceSet, conf2.NewSharedResourceConfigProvider, service.NewResourceAccessAuthorizer, metrics2.ExperimentMetricsSet, metrics3.EvalTargetMetricsSet, sandbox_agent.SandboxAgentMetricsSet, http.NewHTTPClient, foundation.FoundationRPCSet, tag.TagRPCSet, agent.AgentRPCSet, notify.NotifyRPCSet, userinfo.NewUserInfoServiceImpl, NewLock,
+		NewExperimentApplication,
+		NewExperimentApplicationWithPromptOptimization, service.ExperimentDomainServiceSet, service.EvaluationSetDomainServiceSet, service.TargetDomainServiceSet, service.EvaluatorDomainServiceSet, conf2.NewSharedResourceConfigProvider, service.NewResourceAccessAuthorizer, metrics2.ExperimentMetricsSet, metrics3.EvalTargetMetricsSet, sandbox_agent.SandboxAgentMetricsSet, http.NewHTTPClient, foundation.FoundationRPCSet, tag.TagRPCSet, agent.AgentRPCSet, notify.NotifyRPCSet, userinfo.NewUserInfoServiceImpl, NewLock,
 		flagSet, service.NewDefaultURLProcessor, storage.StorageSet,
 	)
 

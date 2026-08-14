@@ -16,6 +16,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/execute"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/application/convertor"
+	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/component/conf"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/component/trace"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/repo"
@@ -30,16 +31,19 @@ import (
 func NewPromptExecuteApplication(
 	promptService service.IPromptService,
 	promptManageRepo repo.IManageRepo,
+	configProvider conf.IConfigProvider,
 ) execute.PromptExecuteService {
 	return &PromptExecuteApplicationImpl{
-		promptService: promptService,
-		manageRepo:    promptManageRepo,
+		promptService:  promptService,
+		manageRepo:     promptManageRepo,
+		configProvider: configProvider,
 	}
 }
 
 type PromptExecuteApplicationImpl struct {
-	promptService service.IPromptService
-	manageRepo    repo.IManageRepo
+	promptService  service.IPromptService
+	manageRepo     repo.IManageRepo
+	configProvider conf.IConfigProvider
 }
 
 func (p *PromptExecuteApplicationImpl) ExecuteInternal(ctx context.Context, req *execute.ExecuteInternalRequest) (r *execute.ExecuteInternalResponse, err error) {
@@ -68,6 +72,16 @@ func (p *PromptExecuteApplicationImpl) ExecuteInternal(ctx context.Context, req 
 	}
 	// expand snippets
 	err = p.promptService.ExpandSnippets(ctx, promptDO)
+	if err != nil {
+		return r, err
+	}
+	// Evaluation-driven Prompt optimization evaluates an in-memory candidate
+	// against the source version's model/tools. The candidate is never persisted
+	// by this internal execution path.
+	if req.OverridePromptTemplate != nil && promptDO.GetPromptDetail() != nil {
+		promptDO.PromptCommit.PromptDetail.PromptTemplate = convertor.PromptTemplateDTO2DO(req.OverridePromptTemplate)
+	}
+	promptDO, _, err = ensurePromptModelConfig(ctx, promptDO, p.configProvider)
 	if err != nil {
 		return r, err
 	}

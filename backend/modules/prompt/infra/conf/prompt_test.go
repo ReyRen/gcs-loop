@@ -16,10 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
 	"github.com/coze-dev/coze-loop/backend/modules/prompt/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/pkg/conf"
 	confmocks "github.com/coze-dev/coze-loop/backend/pkg/conf/mocks"
 	confviper "github.com/coze-dev/coze-loop/backend/pkg/conf/viper"
+	"github.com/coze-dev/coze-loop/backend/pkg/lang/ptr"
 )
 
 func TestPromptConfigProvider_GetPromptTemplatePresetCatalog(t *testing.T) {
@@ -50,6 +52,26 @@ func TestPromptConfigProvider_GetPromptTemplatePresetCatalog(t *testing.T) {
 	assert.Equal(t, "marketing_copy", catalog.Templates[0].TemplateKey)
 }
 
+func TestPromptConfigProvider_GetPromptDefaultConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	configLoader := confmocks.NewMockIConfigLoader(ctrl)
+	configLoader.EXPECT().
+		UnmarshalKey(gomock.Any(), "prompt_default_config", gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, _ string, target interface{}, _ ...conf.DecodeOptionFn) error {
+			config := target.(*prompt.PromptDetail)
+			config.ModelConfig = &prompt.ModelConfig{ModelID: ptr.Of(int64(1))}
+			return nil
+		})
+
+	provider := &PromptConfigProvider{ConfigLoader: configLoader}
+	config, err := provider.GetPromptDefaultConfig(context.Background())
+
+	require.NoError(t, err)
+	require.NotNil(t, config)
+	require.NotNil(t, config.ModelConfig)
+	assert.Equal(t, int64(1), config.ModelConfig.GetModelID())
+}
+
 func TestDockerComposePromptTemplatePresetCatalog(t *testing.T) {
 	_, testFile, _, ok := runtime.Caller(0)
 	require.True(t, ok)
@@ -66,6 +88,12 @@ func TestDockerComposePromptTemplatePresetCatalog(t *testing.T) {
 	require.NoError(t, err)
 
 	provider := &PromptConfigProvider{ConfigLoader: configLoader}
+	defaultConfig, err := provider.GetPromptDefaultConfig(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, defaultConfig)
+	require.NotNil(t, defaultConfig.ModelConfig)
+	assert.Equal(t, int64(1), defaultConfig.ModelConfig.GetModelID())
+
 	catalog, err := provider.GetPromptTemplatePresetCatalog(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, catalog)

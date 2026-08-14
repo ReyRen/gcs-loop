@@ -5,6 +5,7 @@ package entity
 
 import (
 	"encoding/json"
+	"path"
 	"strings"
 	"time"
 
@@ -71,17 +72,90 @@ func (s *FieldSchema) ValidateData(d *FieldData) error {
 		return s.validateTextData(d)
 
 	case ContentTypeImage, ContentTypeAudio, ContentTypeVideo:
-		spec := s.MultiModelSpec
-		if spec == nil {
-			return nil
-		}
-		if spec.MaxFileCount > 0 && int(spec.MaxFileCount) < len(d.Attachments) {
-			return errors.Errorf(`file count out of range, max_file_count=%d, file_count=%d`, spec.MaxFileCount, len(d.Attachments))
-		}
+		return s.validateMediaData(d, s.ContentType)
 		// Notice: 暂不校验文件大小与格式
 
 	case ContentTypeMultiPart:
-		return errors.Errorf("multipart content type not supported")
+		return s.validateMultiPartData(d)
+	}
+	return nil
+}
+
+func (s *FieldSchema) validateMultiPartData(d *FieldData) error {
+	if strings.TrimSpace(d.Content) != "" || len(d.Attachments) > 0 {
+		return errors.New("multipart data must only contain parts")
+	}
+	spec := s.MultiModelSpec
+	if spec != nil && spec.MaxPartCount > 0 && int64(len(d.Parts)) > spec.MaxPartCount {
+		return errors.Errorf("part count out of range, max_part_count=%d, part_count=%d", spec.MaxPartCount, len(d.Parts))
+	}
+
+	mediaCount := 0
+	for i, part := range d.Parts {
+		if part == nil {
+			return errors.Errorf("nil multipart data, part_index=%d", i)
+		}
+		switch part.ContentType {
+		case ContentTypeText:
+			if len(part.Attachments) > 0 || len(part.Parts) > 0 {
+				return errors.Errorf("invalid text multipart data, part_index=%d", i)
+			}
+		case ContentTypeImage, ContentTypeAudio, ContentTypeVideo:
+			if len(part.Attachments) != 1 {
+				return errors.Errorf("invalid multipart media attachment count, part_index=%d, attachment_count=%d", i, len(part.Attachments))
+			}
+			mediaCount += len(part.Attachments)
+			if err := s.validateMediaData(part, part.ContentType); err != nil {
+				return errors.Wrapf(err, "invalid multipart data, part_index=%d", i)
+			}
+		default:
+			return errors.Errorf("unsupported multipart content type, part_index=%d, content_type=%s", i, part.ContentType)
+		}
+	}
+	if spec != nil && spec.MaxFileCount > 0 && int64(mediaCount) > spec.MaxFileCount {
+		return errors.Errorf("file count out of range, max_file_count=%d, file_count=%d", spec.MaxFileCount, mediaCount)
+	}
+	return nil
+}
+
+func (s *FieldSchema) validateMediaData(d *FieldData, contentType ContentType) error {
+	if len(d.Attachments) == 0 {
+		return nil
+	}
+	if len(d.Attachments) != 1 {
+		return errors.Errorf("media content must contain exactly one attachment, attachment_count=%d", len(d.Attachments))
+	}
+	attachment := d.Attachments[0]
+	if attachment == nil || strings.TrimSpace(attachment.URI) == "" {
+		return errors.New("media attachment uri is empty")
+	}
+
+	spec := s.MultiModelSpec
+	if spec == nil {
+		return nil
+	}
+	formats := spec.SupportedFormatsByType[contentType]
+	if len(formats) == 0 {
+		formats = spec.SupportedFormats
+	}
+	if len(formats) == 0 {
+		return nil
+	}
+
+	name := attachment.Name
+	if name == "" {
+		name = attachment.URI
+	}
+	ext := strings.TrimPrefix(strings.ToLower(path.Ext(strings.SplitN(name, "?", 2)[0])), ".")
+	formatSupported := false
+	for _, format := range formats {
+		if strings.TrimPrefix(strings.ToLower(strings.TrimSpace(format)), ".") == ext {
+			formatSupported = true
+			break
+		}
+	}
+	if ext == "" || !formatSupported {
+		return errors.Errorf("unsupported media format, content_type=%s, format=%s", contentType, ext)
 	}
 	return nil
 }

@@ -48,7 +48,8 @@ PAT 列表响应：
       "created_at": "1786410000",
       "updated_at": "1786410000",
       "last_used_at": "0",
-      "expire_at": "1789002000"
+      "expire_at": "1789002000",
+      "masked_token": "a1b2****9f0e"
     }
   ],
   "code": 0,
@@ -56,7 +57,7 @@ PAT 列表响应：
 }
 ```
 
-时间字段是 Unix 秒，IDL 为 JavaScript 安全将 i64 序列化成字符串。当前创建响应使用 `last_used_at = "0"`，持久化列表中的未使用值可能为 `"-1"`；前端按 `<= 0` 统一显示“尚未使用”。
+时间字段是 Unix 秒，IDL 为 JavaScript 安全将 i64 序列化成字符串。当前创建响应使用 `last_used_at = "0"`，持久化列表中的未使用值可能为 `"-1"`；前端按 `<= 0` 统一显示“尚未使用”。`masked_token` 是后端生成的展示值（前 4 位 + `****` + 后 4 位），不能用于 Bearer 认证。
 
 ## 2. 创建并复制密钥
 
@@ -84,7 +85,8 @@ Content-Type: application/json
     "created_at": "1786410000",
     "updated_at": "1786410000",
     "last_used_at": "0",
-    "expire_at": "1789002000"
+    "expire_at": "1789002000",
+    "masked_token": "a1b2****9f0e"
   },
   "token": "<64位十六进制密钥>",
   "code": 0,
@@ -92,7 +94,7 @@ Content-Type: application/json
 }
 ```
 
-只有创建响应返回 `token`。前端应立即打开“一次性查看”弹窗，提供复制按钮；弹窗关闭后不能再从列表或详情接口取回密钥，只能删除并重新创建。不要将 `token` 写入 localStorage、埋点、错误日志或 URL。
+只有创建响应返回可用于认证的完整 `token`。`personal_access_token.masked_token` 仅供列表或确认界面显示。前端应立即打开“一次性查看”弹窗，提供完整 `token` 的复制按钮；弹窗关闭后不能再从列表或详情接口取回完整密钥，只能删除并重新创建。不要将 `token` 写入 localStorage、埋点、错误日志或 URL。
 
 ## 3. 改名与撤销
 
@@ -149,7 +151,7 @@ curl --request POST \
 
 - 页面初始化能同时显示公开 Base URL 和 PAT 列表。
 - 创建成功后明文密钥只显示一次，复制按钮不触发任何日志或埋点。
-- 列表和详情均不显示、不请求明文密钥。
+- 列表和详情只显示后端返回的 `masked_token`，不返回也不请求明文密钥。
 - 改名后列表刷新；撤销二次确认且撤销后调用立即失败。
 - 所有管理请求都使用 `credentials: 'include'`，不使用 Bearer PAT 管理 PAT 本身。
 - 页面明确提示 PAT 只能放在用户自己的服务端或 Secret 管理中。

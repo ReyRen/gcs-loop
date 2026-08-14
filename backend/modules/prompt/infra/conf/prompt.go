@@ -78,7 +78,12 @@ func (c *PromptConfigProvider) GetPTaaSMaxQPSByPromptKey(ctx context.Context, sp
 }
 
 func (c *PromptConfigProvider) GetPromptDefaultConfig(ctx context.Context) (config *prompt.PromptDetail, err error) {
-	return nil, nil
+	const PromptDefaultConfigKey = "prompt_default_config"
+	config = prompt.NewPromptDetail()
+	if err = c.ConfigLoader.UnmarshalKey(ctx, PromptDefaultConfigKey, config, conf.WithTagName("json")); err != nil {
+		return nil, err
+	}
+	return config, nil
 }
 
 func (c *PromptConfigProvider) GetPromptTemplatePresetCatalog(ctx context.Context) (catalog *entity.PromptTemplatePresetCatalog, err error) {

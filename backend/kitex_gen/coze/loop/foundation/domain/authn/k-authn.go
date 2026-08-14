@@ -134,6 +134,20 @@ func (p *PersonalAccessToken) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField7(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
 		default:
 			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 			offset += l
@@ -267,6 +281,20 @@ func (p *PersonalAccessToken) FastReadField6(buf []byte) (int, error) {
 	return offset, nil
 }
 
+func (p *PersonalAccessToken) FastReadField7(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.MaskedToken = _field
+	return offset, nil
+}
+
 func (p *PersonalAccessToken) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
@@ -280,6 +308,7 @@ func (p *PersonalAccessToken) FastWriteNocopy(buf []byte, w thrift.NocopyWriter)
 		offset += p.fastWriteField6(buf[offset:], w)
 		offset += p.fastWriteField1(buf[offset:], w)
 		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField7(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
@@ -294,6 +323,7 @@ func (p *PersonalAccessToken) BLength() int {
 		l += p.field4Length()
 		l += p.field5Length()
 		l += p.field6Length()
+		l += p.field7Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
@@ -341,6 +371,15 @@ func (p *PersonalAccessToken) fastWriteField6(buf []byte, w thrift.NocopyWriter)
 	return offset
 }
 
+func (p *PersonalAccessToken) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetMaskedToken() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 7)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.MaskedToken)
+	}
+	return offset
+}
+
 func (p *PersonalAccessToken) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
@@ -383,6 +422,15 @@ func (p *PersonalAccessToken) field6Length() int {
 	return l
 }
 
+func (p *PersonalAccessToken) field7Length() int {
+	l := 0
+	if p.IsSetMaskedToken() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.MaskedToken)
+	}
+	return l
+}
+
 func (p *PersonalAccessToken) DeepCopy(s interface{}) error {
 	src, ok := s.(*PersonalAccessToken)
 	if !ok {
@@ -404,6 +452,14 @@ func (p *PersonalAccessToken) DeepCopy(s interface{}) error {
 	p.LastUsedAt = src.LastUsedAt
 
 	p.ExpireAt = src.ExpireAt
+
+	if src.MaskedToken != nil {
+		var tmp string
+		if *src.MaskedToken != "" {
+			tmp = kutils.StringDeepCopy(*src.MaskedToken)
+		}
+		p.MaskedToken = &tmp
+	}
 
 	return nil
 }

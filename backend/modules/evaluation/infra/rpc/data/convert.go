@@ -103,6 +103,10 @@ func convert2DatasetFieldSchema(ctx context.Context, schema *entity.FieldSchema)
 		}
 		contentType = &convRes
 	}
+	multiModalSpec := convert2DatasetMultiModalSpec(ctx, schema.MultiModelSpec)
+	if contentType != nil && *contentType == dataset.ContentType_MultiPart {
+		multiModalSpec = mergeEvaluationMultiModalSpec(multiModalSpec)
+	}
 	fieldSchema = &dataset.FieldSchema{
 		Key:            &schema.Key,
 		Name:           &schema.Name,
@@ -110,11 +114,70 @@ func convert2DatasetFieldSchema(ctx context.Context, schema *entity.FieldSchema)
 		ContentType:    contentType,
 		DefaultFormat:  gptr.Of(dataset.FieldDisplayFormat(schema.DefaultDisplayFormat)),
 		Status:         gptr.Of(dataset.FieldStatus(schema.Status)),
-		MultiModelSpec: convert2DatasetMultiModalSpec(ctx, schema.MultiModelSpec),
+		MultiModelSpec: multiModalSpec,
 		TextSchema:     &schema.TextSchema,
 		Hidden:         &schema.Hidden,
 	}
 	return fieldSchema, nil
+}
+
+func defaultEvaluationMultiModalSpec() *dataset.MultiModalSpec {
+	const maxFileSize int64 = 20 * 1024 * 1024
+	imageFormats := []string{"jpg", "jpeg", "png", "gif", "bmp", "webp"}
+	audioFormats := []string{"mp3", "wav", "flac", "aac", "ogg", "m4a", "opus", "amr"}
+	videoFormats := []string{"mp4", "mov", "webm", "mkv", "avi", "mpeg", "mpg"}
+	return &dataset.MultiModalSpec{
+		MaxFileCount:     gptr.Of(int64(20)),
+		MaxFileSize:      gptr.Of(maxFileSize),
+		SupportedFormats: append([]string(nil), imageFormats...),
+		MaxPartCount:     gptr.Of(int32(50)),
+		SupportedFormatsByType: map[dataset.ContentType][]string{
+			dataset.ContentType_Image: append([]string(nil), imageFormats...),
+			dataset.ContentType_Audio: append([]string(nil), audioFormats...),
+			dataset.ContentType_Video: append([]string(nil), videoFormats...),
+		},
+		MaxFileSizeByType: map[dataset.ContentType]int64{
+			dataset.ContentType_Image: maxFileSize,
+			dataset.ContentType_Audio: maxFileSize,
+			dataset.ContentType_Video: maxFileSize,
+		},
+	}
+}
+
+func mergeEvaluationMultiModalSpec(spec *dataset.MultiModalSpec) *dataset.MultiModalSpec {
+	defaults := defaultEvaluationMultiModalSpec()
+	if spec == nil {
+		return defaults
+	}
+	if spec.MaxFileCount == nil || spec.GetMaxFileCount() <= 0 {
+		spec.MaxFileCount = defaults.MaxFileCount
+	}
+	if spec.MaxFileSize == nil || spec.GetMaxFileSize() <= 0 {
+		spec.MaxFileSize = defaults.MaxFileSize
+	}
+	if spec.MaxPartCount == nil || spec.GetMaxPartCount() <= 0 {
+		spec.MaxPartCount = defaults.MaxPartCount
+	}
+	if len(spec.SupportedFormats) == 0 {
+		spec.SupportedFormats = append([]string(nil), defaults.SupportedFormats...)
+	}
+	if spec.SupportedFormatsByType == nil {
+		spec.SupportedFormatsByType = make(map[dataset.ContentType][]string, len(defaults.SupportedFormatsByType))
+	}
+	for contentType, formats := range defaults.SupportedFormatsByType {
+		if len(spec.SupportedFormatsByType[contentType]) == 0 {
+			spec.SupportedFormatsByType[contentType] = append([]string(nil), formats...)
+		}
+	}
+	if spec.MaxFileSizeByType == nil {
+		spec.MaxFileSizeByType = make(map[dataset.ContentType]int64, len(defaults.MaxFileSizeByType))
+	}
+	for contentType, maxSize := range defaults.MaxFileSizeByType {
+		if spec.MaxFileSizeByType[contentType] <= 0 {
+			spec.MaxFileSizeByType[contentType] = maxSize
+		}
+	}
+	return spec
 }
 
 func convert2DatasetData(ctx context.Context, turns []*entity.Turn) (data []*dataset.FieldData, err error) {
@@ -142,21 +205,106 @@ func convert2DatasetFieldData(ctx context.Context, fieldData *entity.FieldData) 
 		Key:  &fieldData.Key,
 		Name: &fieldData.Name,
 	}
-	if fieldData.Content != nil {
-		var contentType *dataset.ContentType
-		if fieldData.Content.ContentType != nil {
-			convRes, err := dataset.ContentTypeFromString(common.ConvertContentTypeDO2DTO(gptr.Indirect(fieldData.Content.ContentType)))
+	if fieldData.TraceID != "" {
+		datasetFieldData.TraceID = &fieldData.TraceID
+	}
+	if fieldData.Content == nil {
+		return datasetFieldData, nil
+	}
+
+	contentData, err := convertContentToDatasetFieldData(fieldData.Content)
+	if err != nil {
+		return nil, err
+	}
+	datasetFieldData.ContentType = contentData.ContentType
+	datasetFieldData.Format = contentData.Format
+	datasetFieldData.Content = contentData.Content
+	datasetFieldData.Attachments = contentData.Attachments
+	datasetFieldData.Parts = contentData.Parts
+	return datasetFieldData, nil
+}
+
+func convertContentToDatasetFieldData(content *entity.Content) (*dataset.FieldData, error) {
+	if content == nil {
+		return &dataset.FieldData{}, nil
+	}
+
+	result := &dataset.FieldData{}
+	if content.ContentType != nil {
+		converted, err := dataset.ContentTypeFromString(common.ConvertContentTypeDO2DTO(gptr.Indirect(content.ContentType)))
+		if err != nil {
+			return nil, err
+		}
+		result.ContentType = &converted
+	}
+	if content.Format != nil {
+		result.Format = gptr.Of(dataset.FieldDisplayFormat(gptr.Indirect(content.Format)))
+	}
+
+	switch content.GetContentType() {
+	case entity.ContentTypeText:
+		result.Content = content.Text
+	case entity.ContentTypeImage:
+		result.Attachments = objectStorageFromImage(content.Image)
+	case entity.ContentTypeAudio:
+		result.Attachments = objectStorageFromAudio(content.Audio)
+	case entity.ContentTypeVideo:
+		result.Attachments = objectStorageFromVideo(content.Video)
+	case entity.ContentTypeMultipart:
+		result.Parts = make([]*dataset.FieldData, 0, len(content.MultiPart))
+		for _, part := range content.MultiPart {
+			converted, err := convertContentToDatasetFieldData(part)
 			if err != nil {
 				return nil, err
 			}
-			contentType = &convRes
+			result.Parts = append(result.Parts, converted)
 		}
-		datasetFieldData.ContentType = contentType
-		datasetFieldData.Format = gptr.Of(dataset.FieldDisplayFormat(gptr.Indirect(fieldData.Content.Format)))
-		// TODO image multi-parts本期不支持，故暂不实现
-		datasetFieldData.Content = fieldData.Content.Text
 	}
-	return datasetFieldData, nil
+	return result, nil
+}
+
+func objectStorageFromImage(image *entity.Image) []*dataset.ObjectStorage {
+	if image == nil {
+		return nil
+	}
+	return []*dataset.ObjectStorage{newDatasetObjectStorage(image.Name, image.URI, image.URL, image.ThumbURL, image.StorageProvider)}
+}
+
+func objectStorageFromAudio(audio *entity.Audio) []*dataset.ObjectStorage {
+	if audio == nil {
+		return nil
+	}
+	return []*dataset.ObjectStorage{newDatasetObjectStorage(audio.Name, audio.URI, audio.URL, nil, audio.StorageProvider)}
+}
+
+func objectStorageFromVideo(video *entity.Video) []*dataset.ObjectStorage {
+	if video == nil {
+		return nil
+	}
+	return []*dataset.ObjectStorage{newDatasetObjectStorage(video.Name, video.URI, video.URL, video.ThumbURL, video.StorageProvider)}
+}
+
+func newDatasetObjectStorage(name, uri, url, thumbURL *string, provider *entity.StorageProvider) *dataset.ObjectStorage {
+	storageProvider := dataset.StorageProvider_S3
+	if provider != nil {
+		storageProvider = dataset.StorageProvider(*provider)
+	}
+	// The OSS uploader historically labels uploaded objects as ImageX although
+	// Docker Compose stores them in S3/MinIO. Normalize that wire value here.
+	if storageProvider == dataset.StorageProvider_ImageX {
+		if uri != nil && (strings.HasPrefix(*uri, "http://") || strings.HasPrefix(*uri, "https://")) {
+			storageProvider = dataset.StorageProvider_ExternalUrl
+		} else {
+			storageProvider = dataset.StorageProvider_S3
+		}
+	}
+	return &dataset.ObjectStorage{
+		Provider: &storageProvider,
+		Name:     name,
+		URI:      uri,
+		URL:      url,
+		ThumbURL: thumbURL,
+	}
 }
 
 func convert2DatasetItem(ctx context.Context, item *entity.EvaluationSetItem) (datasetItem *dataset.DatasetItem, err error) {
@@ -412,52 +560,35 @@ func convert2EvaluationSetFieldData(ctx context.Context, fieldData *dataset.Fiel
 		return nil
 	}
 
-	// 转换 Parts 为 MultiPart
-	var multiPart []*entity.Content
-	if len(fieldData.Parts) > 0 {
-		multiPart = make([]*entity.Content, 0, len(fieldData.Parts))
-		for _, part := range fieldData.Parts {
-			// 为每个 part 创建 Content，包含完整的多媒体转换
-			partContent := &entity.Content{
-				ContentType: gptr.Of(common.ConvertContentTypeDTO2DO(part.GetContentType().String())),
-				Format:      gptr.Of(common.ConvertFieldDisplayFormatDTO2DO(int64(gptr.Indirect(part.Format)))),
-				Text:        part.Content,
-				Image:       convertObjectStorageToImage(ctx, part.Attachments),
-				Audio:       convertObjectStorageToAudio(ctx, part.Attachments),
-				Video:       convertObjectStorageToVideo(ctx, part.Attachments),
-			}
-
-			// 如果 part 还有嵌套的 Parts，递归处理
-			if len(part.Parts) > 0 {
-				nestedMultiPart := make([]*entity.Content, 0, len(part.Parts))
-				for _, nestedPart := range part.Parts {
-					nestedFieldData := convert2EvaluationSetFieldData(ctx, nestedPart)
-					if nestedFieldData != nil && nestedFieldData.Content != nil {
-						nestedMultiPart = append(nestedMultiPart, nestedFieldData.Content)
-					}
-				}
-				partContent.MultiPart = nestedMultiPart
-			}
-
-			multiPart = append(multiPart, partContent)
-		}
-	}
-
 	evalSetFieldData = &entity.FieldData{
-		Key:  gptr.Indirect(fieldData.Key),
-		Name: gptr.Indirect(fieldData.Name),
-		Content: &entity.Content{
-			ContentType: gptr.Of(common.ConvertContentTypeDTO2DO(fieldData.GetContentType().String())),
-			Format:      gptr.Of(common.ConvertFieldDisplayFormatDTO2DO(int64(gptr.Indirect(fieldData.Format)))),
-			Text:        fieldData.Content,
-			Image:       convertObjectStorageToImage(ctx, fieldData.Attachments),
-			Audio:       convertObjectStorageToAudio(ctx, fieldData.Attachments),
-			Video:       convertObjectStorageToVideo(ctx, fieldData.Attachments),
-			MultiPart:   multiPart,
-		},
+		Key:     gptr.Indirect(fieldData.Key),
+		Name:    gptr.Indirect(fieldData.Name),
+		Content: convertDatasetFieldDataToContent(ctx, fieldData),
 		TraceID: gptr.Indirect(fieldData.TraceID),
 	}
 	return evalSetFieldData
+}
+
+func convertDatasetFieldDataToContent(ctx context.Context, fieldData *dataset.FieldData) *entity.Content {
+	if fieldData == nil {
+		return nil
+	}
+	contentType := common.ConvertContentTypeDTO2DO(fieldData.GetContentType().String())
+	content := &entity.Content{
+		ContentType: gptr.Of(contentType),
+		Format:      gptr.Of(common.ConvertFieldDisplayFormatDTO2DO(int64(gptr.Indirect(fieldData.Format)))),
+		Text:        fieldData.Content,
+		Image:       convertObjectStorageToImage(ctx, fieldData.Attachments),
+		Audio:       convertObjectStorageToAudio(ctx, fieldData.Attachments),
+		Video:       convertObjectStorageToVideo(ctx, fieldData.Attachments),
+	}
+	if len(fieldData.Parts) > 0 {
+		content.MultiPart = make([]*entity.Content, 0, len(fieldData.Parts))
+		for _, part := range fieldData.Parts {
+			content.MultiPart = append(content.MultiPart, convertDatasetFieldDataToContent(ctx, part))
+		}
+	}
+	return content
 }
 
 // convertObjectStorageToImage 从 ObjectStorage 列表中提取图片信息并转换为 entity.Image
@@ -466,13 +597,10 @@ func convertObjectStorageToImage(ctx context.Context, attachments []*dataset.Obj
 		return nil
 	}
 
-	// 查找第一个图片类型的 attachment
 	for _, attachment := range attachments {
 		if attachment == nil {
 			continue
 		}
-
-		// 根据文件名或其他信息判断是否为图片
 		if isImageAttachment(attachment) {
 			return &entity.Image{
 				Name:            attachment.Name,
@@ -483,7 +611,6 @@ func convertObjectStorageToImage(ctx context.Context, attachments []*dataset.Obj
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -493,13 +620,10 @@ func convertObjectStorageToAudio(ctx context.Context, attachments []*dataset.Obj
 		return nil
 	}
 
-	// 查找第一个音频类型的 attachment
 	for _, attachment := range attachments {
 		if attachment == nil {
 			continue
 		}
-
-		// 根据文件名或其他信息判断是否为音频
 		if isAudioAttachment(attachment) {
 			return &entity.Audio{
 				Format:          getAudioFormat(attachment),
@@ -510,7 +634,6 @@ func convertObjectStorageToAudio(ctx context.Context, attachments []*dataset.Obj
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -520,13 +643,10 @@ func convertObjectStorageToVideo(ctx context.Context, attachments []*dataset.Obj
 		return nil
 	}
 
-	// 查找第一个音频类型的 attachment
 	for _, attachment := range attachments {
 		if attachment == nil {
 			continue
 		}
-
-		// 根据文件名或其他信息判断是否为音频
 		if isVideoAttachment(attachment) {
 			return &entity.Video{
 				Name:            attachment.Name,
@@ -537,7 +657,6 @@ func convertObjectStorageToVideo(ctx context.Context, attachments []*dataset.Obj
 			}
 		}
 	}
-
 	return nil
 }
 

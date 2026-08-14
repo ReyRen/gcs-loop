@@ -19,6 +19,8 @@ type PersonalAccessToken struct {
 	LastUsedAt int64 `thrift:"last_used_at,5,required" frugal:"5,required,i64" json:"last_used_at" form:"last_used_at,required" query:"last_used_at,required"`
 	// unix，秒
 	ExpireAt int64 `thrift:"expire_at,6,required" frugal:"6,required,i64" json:"expire_at" form:"expire_at,required" query:"expire_at,required"`
+	// Masked preview for display only. It is never accepted as a bearer token.
+	MaskedToken *string `thrift:"masked_token,7,optional" frugal:"7,optional,string" form:"masked_token" json:"masked_token,omitempty" query:"masked_token"`
 }
 
 func NewPersonalAccessToken() *PersonalAccessToken {
@@ -69,6 +71,18 @@ func (p *PersonalAccessToken) GetExpireAt() (v int64) {
 	}
 	return
 }
+
+var PersonalAccessToken_MaskedToken_DEFAULT string
+
+func (p *PersonalAccessToken) GetMaskedToken() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetMaskedToken() {
+		return PersonalAccessToken_MaskedToken_DEFAULT
+	}
+	return *p.MaskedToken
+}
 func (p *PersonalAccessToken) SetID(val string) {
 	p.ID = val
 }
@@ -87,6 +101,9 @@ func (p *PersonalAccessToken) SetLastUsedAt(val int64) {
 func (p *PersonalAccessToken) SetExpireAt(val int64) {
 	p.ExpireAt = val
 }
+func (p *PersonalAccessToken) SetMaskedToken(val *string) {
+	p.MaskedToken = val
+}
 
 var fieldIDToName_PersonalAccessToken = map[int16]string{
 	1: "id",
@@ -95,6 +112,11 @@ var fieldIDToName_PersonalAccessToken = map[int16]string{
 	4: "updated_at",
 	5: "last_used_at",
 	6: "expire_at",
+	7: "masked_token",
+}
+
+func (p *PersonalAccessToken) IsSetMaskedToken() bool {
+	return p.MaskedToken != nil
 }
 
 func (p *PersonalAccessToken) Read(iprot thrift.TProtocol) (err error) {
@@ -172,6 +194,14 @@ func (p *PersonalAccessToken) Read(iprot thrift.TProtocol) (err error) {
 					goto ReadFieldError
 				}
 				issetExpireAt = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -301,6 +331,17 @@ func (p *PersonalAccessToken) ReadField6(iprot thrift.TProtocol) error {
 	p.ExpireAt = _field
 	return nil
 }
+func (p *PersonalAccessToken) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.MaskedToken = _field
+	return nil
+}
 
 func (p *PersonalAccessToken) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -330,6 +371,10 @@ func (p *PersonalAccessToken) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField6(oprot); err != nil {
 			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
 			goto WriteFieldError
 		}
 	}
@@ -446,6 +491,24 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
 }
+func (p *PersonalAccessToken) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetMaskedToken() {
+		if err = oprot.WriteFieldBegin("masked_token", thrift.STRING, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.MaskedToken); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
 
 func (p *PersonalAccessToken) String() string {
 	if p == nil {
@@ -477,6 +540,9 @@ func (p *PersonalAccessToken) DeepEqual(ano *PersonalAccessToken) bool {
 		return false
 	}
 	if !p.Field6DeepEqual(ano.ExpireAt) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.MaskedToken) {
 		return false
 	}
 	return true
@@ -520,6 +586,18 @@ func (p *PersonalAccessToken) Field5DeepEqual(src int64) bool {
 func (p *PersonalAccessToken) Field6DeepEqual(src int64) bool {
 
 	if p.ExpireAt != src {
+		return false
+	}
+	return true
+}
+func (p *PersonalAccessToken) Field7DeepEqual(src *string) bool {
+
+	if p.MaskedToken == src {
+		return true
+	} else if p.MaskedToken == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.MaskedToken, *src) != 0 {
 		return false
 	}
 	return true

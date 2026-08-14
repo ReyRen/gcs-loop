@@ -53,6 +53,9 @@ func (p PromptRPCAdapter) ExecutePrompt(ctx context.Context, spaceID int64, para
 		messages = append(messages, param.UserQuery)
 	}
 	req.Messages = ConvertMessages2Prompt(messages)
+	if param.OverridePromptTemplate != nil {
+		req.OverridePromptTemplate = ConvertPromptTemplate2DTO(param.OverridePromptTemplate)
+	}
 
 	if runtimeParam, err := p.parseRuntimeParam(ctx, gptr.Indirect(param.RuntimeParam)); err != nil {
 		logs.CtxError(ctx, "prompt execute parse runtime param fail, err=%v", err)
@@ -92,6 +95,64 @@ func (p PromptRPCAdapter) ExecutePrompt(ctx context.Context, spaceID int64, para
 	}
 	result.MultiContent = p.convMsgToContent(resp.Message)
 	return result, nil
+}
+
+func (p PromptRPCAdapter) ApplyPromptTemplateToDraft(ctx context.Context, spaceID, promptID int64, sourceVersion string, candidate *rpc.PromptTemplate, overwriteExistingDraft bool) error {
+	if candidate == nil {
+		return errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("optimized prompt template is empty"))
+	}
+	resp, err := p.client.GetPrompt(ctx, &manage.GetPromptRequest{
+		PromptID:      gptr.Of(promptID),
+		WithCommit:    gptr.Of(true),
+		WithDraft:     gptr.Of(true),
+		CommitVersion: gptr.Of(sourceVersion),
+	})
+	if err != nil {
+		return err
+	}
+	if resp == nil || resp.Prompt == nil || resp.Prompt.PromptCommit == nil || resp.Prompt.PromptCommit.Detail == nil {
+		return errorx.NewByCode(errno.ResourceNotFoundCode, errorx.WithExtraMsg("source prompt version not found"))
+	}
+	if resp.Prompt.GetWorkspaceID() != spaceID {
+		return errorx.NewByCode(errno.ResourceNotFoundCode, errorx.WithExtraMsg("prompt not found in workspace"))
+	}
+	if resp.Prompt.PromptDraft != nil && !overwriteExistingDraft {
+		return errorx.NewByCode(errno.CommonInvalidParamCode,
+			errorx.WithExtraMsg("an editable draft already exists; set overwrite_existing_draft=true after explicit user confirmation"))
+	}
+	detail := &prompt.PromptDetail{}
+	if err := detail.DeepCopy(resp.Prompt.PromptCommit.Detail); err != nil {
+		return err
+	}
+	optimizedTemplate := ConvertPromptTemplate2DTO(candidate)
+	if sourceTemplate := resp.Prompt.PromptCommit.Detail.PromptTemplate; sourceTemplate != nil {
+		// The optimizer only rewrites the executable messages and variable
+		// definitions. Keep source metadata and snippet references intact.
+		optimizedTemplate.HasSnippet = sourceTemplate.HasSnippet
+		optimizedTemplate.Snippets = sourceTemplate.Snippets
+		optimizedTemplate.Metadata = sourceTemplate.Metadata
+	}
+	detail.PromptTemplate = optimizedTemplate
+	saveResp, err := p.client.SaveDraft(ctx, &manage.SaveDraftRequest{
+		PromptID: gptr.Of(promptID),
+		PromptDraft: &prompt.PromptDraft{
+			Detail: detail,
+			DraftInfo: &prompt.DraftInfo{
+				BaseVersion: gptr.Of(sourceVersion),
+				IsModified:  gptr.Of(true),
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if saveResp == nil {
+		return errorx.NewByCode(errno.CommonRPCErrorCode)
+	}
+	if saveResp.BaseResp != nil && saveResp.BaseResp.StatusCode != 0 {
+		return errorx.NewByCode(saveResp.BaseResp.StatusCode, errorx.WithExtraMsg(saveResp.BaseResp.StatusMessage))
+	}
+	return nil
 }
 
 func (p PromptRPCAdapter) convMsgToContent(msg *prompt.Message) *entity.Content {

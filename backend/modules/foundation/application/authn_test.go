@@ -74,6 +74,25 @@ func TestAuthNApplicationImpl_CreatePersonalAccessToken(t *testing.T) {
 			resp, err := p.CreatePersonalAccessToken(tt.args.ctx, tt.args.req)
 			unittest.AssertErrorEqual(t, tt.wantErr, err)
 			assert.Equal(t, tt.wantR, *resp.Token)
+			assert.Equal(t, "********", resp.PersonalAccessToken.GetMaskedToken())
+		})
+	}
+}
+
+func TestMaskedPersonalAccessTokenPtr(t *testing.T) {
+	tests := []struct {
+		name  string
+		token string
+		want  *string
+	}{
+		{name: "empty is omitted", token: "", want: nil},
+		{name: "short token is fully masked", token: "secret", want: lo.ToPtr("******")},
+		{name: "normal token keeps prefix and suffix", token: "0123456789abcdef", want: lo.ToPtr("0123****cdef")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, maskedPersonalAccessTokenPtr(tt.token))
 		})
 	}
 }
@@ -252,7 +271,7 @@ func TestAuthNApplicationImpl_GetPersonalAccessToken(t *testing.T) {
 				mockIAuthNRepo.EXPECT().GetAPIKeyByIDs(gomock.Any(), gomock.Any()).Return([]*entity.APIKey{
 					{
 						ID:         111111111111,
-						Key:        "",
+						Key:        "0123456789abcdef",
 						Name:       "my token",
 						Status:     0,
 						UserID:     111222333,
@@ -273,12 +292,13 @@ func TestAuthNApplicationImpl_GetPersonalAccessToken(t *testing.T) {
 			},
 			wantR: &authn.GetPersonalAccessTokenResponse{
 				PersonalAccessToken: &authn2.PersonalAccessToken{
-					ID:         "111111111111",
-					Name:       "my token",
-					CreatedAt:  -62135596800,
-					UpdatedAt:  -62135596800,
-					LastUsedAt: 0,
-					ExpireAt:   0,
+					ID:          "111111111111",
+					Name:        "my token",
+					CreatedAt:   -62135596800,
+					UpdatedAt:   -62135596800,
+					LastUsedAt:  0,
+					ExpireAt:    0,
+					MaskedToken: lo.ToPtr("0123****cdef"),
 				},
 			},
 			wantErr: nil,
@@ -327,7 +347,7 @@ func TestAuthNApplicationImpl_ListPersonalAccessToken(t *testing.T) {
 				mockIAuthNRepo.EXPECT().GetAPIKeyByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entity.APIKey{
 					{
 						ID:         111111111111,
-						Key:        "",
+						Key:        "0123456789abcdef",
 						Name:       "my token",
 						Status:     0,
 						UserID:     111222333,
@@ -335,7 +355,7 @@ func TestAuthNApplicationImpl_ListPersonalAccessToken(t *testing.T) {
 						DeletedAt:  0,
 						LastUsedAt: 0,
 					},
-				}, nil)
+				}, int64(21), nil)
 				return fields{
 					authNRepo: mockIAuthNRepo,
 				}
@@ -347,14 +367,16 @@ func TestAuthNApplicationImpl_ListPersonalAccessToken(t *testing.T) {
 			wantR: &authn.ListPersonalAccessTokenResponse{
 				PersonalAccessTokens: []*authn2.PersonalAccessToken{
 					{
-						ID:         "111111111111",
-						Name:       "my token",
-						CreatedAt:  -62135596800,
-						UpdatedAt:  -62135596800,
-						LastUsedAt: 0,
-						ExpireAt:   0,
+						ID:          "111111111111",
+						Name:        "my token",
+						CreatedAt:   -62135596800,
+						UpdatedAt:   -62135596800,
+						LastUsedAt:  0,
+						ExpireAt:    0,
+						MaskedToken: lo.ToPtr("0123****cdef"),
 					},
 				},
+				Total: lo.ToPtr(int32(21)),
 			},
 			wantErr: nil,
 		},

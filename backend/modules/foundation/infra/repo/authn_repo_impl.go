@@ -82,13 +82,13 @@ func (a AuthNRepoImpl) UpdateAPIKeyName(ctx context.Context, apiKeyID int64, nam
 	return nil
 }
 
-func (a AuthNRepoImpl) GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*entity.APIKey, err error) {
-	apiKeysPO, err := a.authNDao.GetAPIKeyByUser(ctx, userID, pageNumber, pageSize)
+func (a AuthNRepoImpl) GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*entity.APIKey, total int64, err error) {
+	apiKeysPO, total, err := a.authNDao.GetAPIKeyByUser(ctx, userID, pageNumber, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return convertor.APIKeysPO2DO(apiKeysPO), nil
+	return convertor.APIKeysPO2DO(apiKeysPO), total, nil
 }
 
 func (a AuthNRepoImpl) GetAPIKeyByKey(ctx context.Context, key string) (apiKey *entity.APIKey, err error) {

@@ -22,7 +22,6 @@ import (
 type MockPromptManageClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockPromptManageClientMockRecorder
-	isgomock struct{}
 }
 
 // MockPromptManageClientMockRecorder is the mock recorder for MockPromptManageClient.
@@ -43,10 +42,10 @@ func (m *MockPromptManageClient) EXPECT() *MockPromptManageClientMockRecorder {
 }
 
 // BatchGetLabel mocks base method.
-func (m *MockPromptManageClient) BatchGetLabel(ctx context.Context, request *manage.BatchGetLabelRequest, callOptions ...callopt.Option) (*manage.BatchGetLabelResponse, error) {
+func (m *MockPromptManageClient) BatchGetLabel(arg0 context.Context, arg1 *manage.BatchGetLabelRequest, arg2 ...callopt.Option) (*manage.BatchGetLabelResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "BatchGetLabel", varargs...)
@@ -56,17 +55,17 @@ func (m *MockPromptManageClient) BatchGetLabel(ctx context.Context, request *man
 }
 
 // BatchGetLabel indicates an expected call of BatchGetLabel.
-func (mr *MockPromptManageClientMockRecorder) BatchGetLabel(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) BatchGetLabel(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetLabel", reflect.TypeOf((*MockPromptManageClient)(nil).BatchGetLabel), varargs...)
 }
 
 // BatchGetPrompt mocks base method.
-func (m *MockPromptManageClient) BatchGetPrompt(ctx context.Context, request *manage.BatchGetPromptRequest, callOptions ...callopt.Option) (*manage.BatchGetPromptResponse, error) {
+func (m *MockPromptManageClient) BatchGetPrompt(arg0 context.Context, arg1 *manage.BatchGetPromptRequest, arg2 ...callopt.Option) (*manage.BatchGetPromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "BatchGetPrompt", varargs...)
@@ -76,17 +75,17 @@ func (m *MockPromptManageClient) BatchGetPrompt(ctx context.Context, request *ma
 }
 
 // BatchGetPrompt indicates an expected call of BatchGetPrompt.
-func (mr *MockPromptManageClientMockRecorder) BatchGetPrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) BatchGetPrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetPrompt", reflect.TypeOf((*MockPromptManageClient)(nil).BatchGetPrompt), varargs...)
 }
 
 // BatchGetPromptBasic mocks base method.
-func (m *MockPromptManageClient) BatchGetPromptBasic(ctx context.Context, request *manage.BatchGetPromptBasicRequest, callOptions ...callopt.Option) (*manage.BatchGetPromptBasicResponse, error) {
+func (m *MockPromptManageClient) BatchGetPromptBasic(arg0 context.Context, arg1 *manage.BatchGetPromptBasicRequest, arg2 ...callopt.Option) (*manage.BatchGetPromptBasicResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "BatchGetPromptBasic", varargs...)
@@ -96,17 +95,17 @@ func (m *MockPromptManageClient) BatchGetPromptBasic(ctx context.Context, reques
 }
 
 // BatchGetPromptBasic indicates an expected call of BatchGetPromptBasic.
-func (mr *MockPromptManageClientMockRecorder) BatchGetPromptBasic(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) BatchGetPromptBasic(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetPromptBasic", reflect.TypeOf((*MockPromptManageClient)(nil).BatchGetPromptBasic), varargs...)
 }
 
 // ClonePrompt mocks base method.
-func (m *MockPromptManageClient) ClonePrompt(ctx context.Context, request *manage.ClonePromptRequest, callOptions ...callopt.Option) (*manage.ClonePromptResponse, error) {
+func (m *MockPromptManageClient) ClonePrompt(arg0 context.Context, arg1 *manage.ClonePromptRequest, arg2 ...callopt.Option) (*manage.ClonePromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ClonePrompt", varargs...)
@@ -116,17 +115,17 @@ func (m *MockPromptManageClient) ClonePrompt(ctx context.Context, request *manag
 }
 
 // ClonePrompt indicates an expected call of ClonePrompt.
-func (mr *MockPromptManageClientMockRecorder) ClonePrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) ClonePrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClonePrompt", reflect.TypeOf((*MockPromptManageClient)(nil).ClonePrompt), varargs...)
 }
 
 // CommitDraft mocks base method.
-func (m *MockPromptManageClient) CommitDraft(ctx context.Context, request *manage.CommitDraftRequest, callOptions ...callopt.Option) (*manage.CommitDraftResponse, error) {
+func (m *MockPromptManageClient) CommitDraft(arg0 context.Context, arg1 *manage.CommitDraftRequest, arg2 ...callopt.Option) (*manage.CommitDraftResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CommitDraft", varargs...)
@@ -136,17 +135,17 @@ func (m *MockPromptManageClient) CommitDraft(ctx context.Context, request *manag
 }
 
 // CommitDraft indicates an expected call of CommitDraft.
-func (mr *MockPromptManageClientMockRecorder) CommitDraft(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) CommitDraft(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommitDraft", reflect.TypeOf((*MockPromptManageClient)(nil).CommitDraft), varargs...)
 }
 
 // CreateLabel mocks base method.
-func (m *MockPromptManageClient) CreateLabel(ctx context.Context, request *manage.CreateLabelRequest, callOptions ...callopt.Option) (*manage.CreateLabelResponse, error) {
+func (m *MockPromptManageClient) CreateLabel(arg0 context.Context, arg1 *manage.CreateLabelRequest, arg2 ...callopt.Option) (*manage.CreateLabelResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateLabel", varargs...)
@@ -156,17 +155,17 @@ func (m *MockPromptManageClient) CreateLabel(ctx context.Context, request *manag
 }
 
 // CreateLabel indicates an expected call of CreateLabel.
-func (mr *MockPromptManageClientMockRecorder) CreateLabel(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) CreateLabel(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLabel", reflect.TypeOf((*MockPromptManageClient)(nil).CreateLabel), varargs...)
 }
 
 // CreatePrompt mocks base method.
-func (m *MockPromptManageClient) CreatePrompt(ctx context.Context, request *manage.CreatePromptRequest, callOptions ...callopt.Option) (*manage.CreatePromptResponse, error) {
+func (m *MockPromptManageClient) CreatePrompt(arg0 context.Context, arg1 *manage.CreatePromptRequest, arg2 ...callopt.Option) (*manage.CreatePromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreatePrompt", varargs...)
@@ -176,17 +175,17 @@ func (m *MockPromptManageClient) CreatePrompt(ctx context.Context, request *mana
 }
 
 // CreatePrompt indicates an expected call of CreatePrompt.
-func (mr *MockPromptManageClientMockRecorder) CreatePrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) CreatePrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePrompt", reflect.TypeOf((*MockPromptManageClient)(nil).CreatePrompt), varargs...)
 }
 
 // DeletePrompt mocks base method.
-func (m *MockPromptManageClient) DeletePrompt(ctx context.Context, request *manage.DeletePromptRequest, callOptions ...callopt.Option) (*manage.DeletePromptResponse, error) {
+func (m *MockPromptManageClient) DeletePrompt(arg0 context.Context, arg1 *manage.DeletePromptRequest, arg2 ...callopt.Option) (*manage.DeletePromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DeletePrompt", varargs...)
@@ -196,17 +195,17 @@ func (m *MockPromptManageClient) DeletePrompt(ctx context.Context, request *mana
 }
 
 // DeletePrompt indicates an expected call of DeletePrompt.
-func (mr *MockPromptManageClientMockRecorder) DeletePrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) DeletePrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePrompt", reflect.TypeOf((*MockPromptManageClient)(nil).DeletePrompt), varargs...)
 }
 
 // GetPrompt mocks base method.
-func (m *MockPromptManageClient) GetPrompt(ctx context.Context, request *manage.GetPromptRequest, callOptions ...callopt.Option) (*manage.GetPromptResponse, error) {
+func (m *MockPromptManageClient) GetPrompt(arg0 context.Context, arg1 *manage.GetPromptRequest, arg2 ...callopt.Option) (*manage.GetPromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetPrompt", varargs...)
@@ -216,17 +215,57 @@ func (m *MockPromptManageClient) GetPrompt(ctx context.Context, request *manage.
 }
 
 // GetPrompt indicates an expected call of GetPrompt.
-func (mr *MockPromptManageClientMockRecorder) GetPrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) GetPrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrompt", reflect.TypeOf((*MockPromptManageClient)(nil).GetPrompt), varargs...)
 }
 
-// ListCommit mocks base method.
-func (m *MockPromptManageClient) ListCommit(ctx context.Context, request *manage.ListCommitRequest, callOptions ...callopt.Option) (*manage.ListCommitResponse, error) {
+// GetPromptInvokeInfo mocks base method.
+func (m *MockPromptManageClient) GetPromptInvokeInfo(arg0 context.Context, arg1 *manage.GetPromptInvokeInfoRequest, arg2 ...callopt.Option) (*manage.GetPromptInvokeInfoResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPromptInvokeInfo", varargs...)
+	ret0, _ := ret[0].(*manage.GetPromptInvokeInfoResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPromptInvokeInfo indicates an expected call of GetPromptInvokeInfo.
+func (mr *MockPromptManageClientMockRecorder) GetPromptInvokeInfo(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPromptInvokeInfo", reflect.TypeOf((*MockPromptManageClient)(nil).GetPromptInvokeInfo), varargs...)
+}
+
+// GetPromptTemplate mocks base method.
+func (m *MockPromptManageClient) GetPromptTemplate(arg0 context.Context, arg1 *manage.GetPromptTemplateRequest, arg2 ...callopt.Option) (*manage.GetPromptTemplateResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPromptTemplate", varargs...)
+	ret0, _ := ret[0].(*manage.GetPromptTemplateResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPromptTemplate indicates an expected call of GetPromptTemplate.
+func (mr *MockPromptManageClientMockRecorder) GetPromptTemplate(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPromptTemplate", reflect.TypeOf((*MockPromptManageClient)(nil).GetPromptTemplate), varargs...)
+}
+
+// ListCommit mocks base method.
+func (m *MockPromptManageClient) ListCommit(arg0 context.Context, arg1 *manage.ListCommitRequest, arg2 ...callopt.Option) (*manage.ListCommitResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListCommit", varargs...)
@@ -236,17 +275,17 @@ func (m *MockPromptManageClient) ListCommit(ctx context.Context, request *manage
 }
 
 // ListCommit indicates an expected call of ListCommit.
-func (mr *MockPromptManageClientMockRecorder) ListCommit(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) ListCommit(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommit", reflect.TypeOf((*MockPromptManageClient)(nil).ListCommit), varargs...)
 }
 
 // ListLabel mocks base method.
-func (m *MockPromptManageClient) ListLabel(ctx context.Context, request *manage.ListLabelRequest, callOptions ...callopt.Option) (*manage.ListLabelResponse, error) {
+func (m *MockPromptManageClient) ListLabel(arg0 context.Context, arg1 *manage.ListLabelRequest, arg2 ...callopt.Option) (*manage.ListLabelResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListLabel", varargs...)
@@ -256,17 +295,17 @@ func (m *MockPromptManageClient) ListLabel(ctx context.Context, request *manage.
 }
 
 // ListLabel indicates an expected call of ListLabel.
-func (mr *MockPromptManageClientMockRecorder) ListLabel(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) ListLabel(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLabel", reflect.TypeOf((*MockPromptManageClient)(nil).ListLabel), varargs...)
 }
 
 // ListParentPrompt mocks base method.
-func (m *MockPromptManageClient) ListParentPrompt(ctx context.Context, request *manage.ListParentPromptRequest, callOptions ...callopt.Option) (*manage.ListParentPromptResponse, error) {
+func (m *MockPromptManageClient) ListParentPrompt(arg0 context.Context, arg1 *manage.ListParentPromptRequest, arg2 ...callopt.Option) (*manage.ListParentPromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListParentPrompt", varargs...)
@@ -276,17 +315,17 @@ func (m *MockPromptManageClient) ListParentPrompt(ctx context.Context, request *
 }
 
 // ListParentPrompt indicates an expected call of ListParentPrompt.
-func (mr *MockPromptManageClientMockRecorder) ListParentPrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) ListParentPrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListParentPrompt", reflect.TypeOf((*MockPromptManageClient)(nil).ListParentPrompt), varargs...)
 }
 
 // ListPrompt mocks base method.
-func (m *MockPromptManageClient) ListPrompt(ctx context.Context, request *manage.ListPromptRequest, callOptions ...callopt.Option) (*manage.ListPromptResponse, error) {
+func (m *MockPromptManageClient) ListPrompt(arg0 context.Context, arg1 *manage.ListPromptRequest, arg2 ...callopt.Option) (*manage.ListPromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListPrompt", varargs...)
@@ -296,17 +335,37 @@ func (m *MockPromptManageClient) ListPrompt(ctx context.Context, request *manage
 }
 
 // ListPrompt indicates an expected call of ListPrompt.
-func (mr *MockPromptManageClientMockRecorder) ListPrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) ListPrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPrompt", reflect.TypeOf((*MockPromptManageClient)(nil).ListPrompt), varargs...)
 }
 
-// RevertDraftFromCommit mocks base method.
-func (m *MockPromptManageClient) RevertDraftFromCommit(ctx context.Context, request *manage.RevertDraftFromCommitRequest, callOptions ...callopt.Option) (*manage.RevertDraftFromCommitResponse, error) {
+// ListPromptTemplates mocks base method.
+func (m *MockPromptManageClient) ListPromptTemplates(arg0 context.Context, arg1 *manage.ListPromptTemplatesRequest, arg2 ...callopt.Option) (*manage.ListPromptTemplatesResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListPromptTemplates", varargs...)
+	ret0, _ := ret[0].(*manage.ListPromptTemplatesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPromptTemplates indicates an expected call of ListPromptTemplates.
+func (mr *MockPromptManageClientMockRecorder) ListPromptTemplates(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPromptTemplates", reflect.TypeOf((*MockPromptManageClient)(nil).ListPromptTemplates), varargs...)
+}
+
+// RevertDraftFromCommit mocks base method.
+func (m *MockPromptManageClient) RevertDraftFromCommit(arg0 context.Context, arg1 *manage.RevertDraftFromCommitRequest, arg2 ...callopt.Option) (*manage.RevertDraftFromCommitResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "RevertDraftFromCommit", varargs...)
@@ -316,17 +375,17 @@ func (m *MockPromptManageClient) RevertDraftFromCommit(ctx context.Context, requ
 }
 
 // RevertDraftFromCommit indicates an expected call of RevertDraftFromCommit.
-func (mr *MockPromptManageClientMockRecorder) RevertDraftFromCommit(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) RevertDraftFromCommit(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevertDraftFromCommit", reflect.TypeOf((*MockPromptManageClient)(nil).RevertDraftFromCommit), varargs...)
 }
 
 // SaveDraft mocks base method.
-func (m *MockPromptManageClient) SaveDraft(ctx context.Context, request *manage.SaveDraftRequest, callOptions ...callopt.Option) (*manage.SaveDraftResponse, error) {
+func (m *MockPromptManageClient) SaveDraft(arg0 context.Context, arg1 *manage.SaveDraftRequest, arg2 ...callopt.Option) (*manage.SaveDraftResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "SaveDraft", varargs...)
@@ -336,17 +395,17 @@ func (m *MockPromptManageClient) SaveDraft(ctx context.Context, request *manage.
 }
 
 // SaveDraft indicates an expected call of SaveDraft.
-func (mr *MockPromptManageClientMockRecorder) SaveDraft(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) SaveDraft(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDraft", reflect.TypeOf((*MockPromptManageClient)(nil).SaveDraft), varargs...)
 }
 
 // UpdateCommitLabels mocks base method.
-func (m *MockPromptManageClient) UpdateCommitLabels(ctx context.Context, request *manage.UpdateCommitLabelsRequest, callOptions ...callopt.Option) (*manage.UpdateCommitLabelsResponse, error) {
+func (m *MockPromptManageClient) UpdateCommitLabels(arg0 context.Context, arg1 *manage.UpdateCommitLabelsRequest, arg2 ...callopt.Option) (*manage.UpdateCommitLabelsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "UpdateCommitLabels", varargs...)
@@ -356,17 +415,17 @@ func (m *MockPromptManageClient) UpdateCommitLabels(ctx context.Context, request
 }
 
 // UpdateCommitLabels indicates an expected call of UpdateCommitLabels.
-func (mr *MockPromptManageClientMockRecorder) UpdateCommitLabels(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) UpdateCommitLabels(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCommitLabels", reflect.TypeOf((*MockPromptManageClient)(nil).UpdateCommitLabels), varargs...)
 }
 
 // UpdatePrompt mocks base method.
-func (m *MockPromptManageClient) UpdatePrompt(ctx context.Context, request *manage.UpdatePromptRequest, callOptions ...callopt.Option) (*manage.UpdatePromptResponse, error) {
+func (m *MockPromptManageClient) UpdatePrompt(arg0 context.Context, arg1 *manage.UpdatePromptRequest, arg2 ...callopt.Option) (*manage.UpdatePromptResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, request}
-	for _, a := range callOptions {
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "UpdatePrompt", varargs...)
@@ -376,8 +435,8 @@ func (m *MockPromptManageClient) UpdatePrompt(ctx context.Context, request *mana
 }
 
 // UpdatePrompt indicates an expected call of UpdatePrompt.
-func (mr *MockPromptManageClientMockRecorder) UpdatePrompt(ctx, request any, callOptions ...any) *gomock.Call {
+func (mr *MockPromptManageClientMockRecorder) UpdatePrompt(arg0, arg1 any, arg2 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, request}, callOptions...)
+	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePrompt", reflect.TypeOf((*MockPromptManageClient)(nil).UpdatePrompt), varargs...)
 }

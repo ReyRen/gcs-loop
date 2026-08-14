@@ -13,6 +13,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/domain/evaluator"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/domain/expt"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/eval_target"
+	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
 	"strings"
 )
 
@@ -22,9 +23,47 @@ const (
 	UpsertExptTurnResultFilterTypeAUTO = "auto"
 
 	UpsertExptTurnResultFilterTypeCHECK = "check"
+
+	PromptOptimizationModeEffectFirst = "effect_first"
+
+	PromptOptimizationModeCostEffective = "cost_effective"
+
+	PromptOptimizationStatusQueued = "queued"
+
+	PromptOptimizationStatusRunning = "running"
+
+	PromptOptimizationStatusSucceeded = "succeeded"
+
+	PromptOptimizationStatusFailed = "failed"
+
+	PromptOptimizationStatusCanceled = "canceled"
+
+	PromptOptimizationStagePreparing = "preparing"
+
+	PromptOptimizationStageAnalyzing = "analyzing"
+
+	PromptOptimizationStageOptimizing = "optimizing"
+
+	PromptOptimizationStageEvaluating = "evaluating"
+
+	PromptOptimizationStageFinalizing = "finalizing"
+
+	PromptOptimizationStageCompleted = "completed"
 )
 
 type UpsertExptTurnResultFilterType = string
+
+// Prompt optimization based on a completed evaluation experiment.
+//
+// The optimization result is intentionally stored as a durable task. It does
+// not overwrite or publish the source Prompt. The user must explicitly apply
+// the result to a draft and then use the existing Prompt version submission
+// flow.
+type PromptOptimizationMode = string
+
+type PromptOptimizationStatus = string
+
+type PromptOptimizationStage = string
 
 type CreateExperimentRequest struct {
 	WorkspaceID         int64   `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
@@ -43672,6 +43711,11701 @@ func (p *GetAnalysisRecordFeedbackVoteResponse) Field255DeepEqual(src *base.Base
 	return true
 }
 
+type PromptOptimizationSampleRef struct {
+	ItemID int64  `thrift:"item_id,1,required" frugal:"1,required,i64" json:"item_id" form:"item_id,required" query:"item_id,required"`
+	TurnID *int64 `thrift:"turn_id,2,optional" frugal:"2,optional,i64" json:"turn_id" form:"turn_id" query:"turn_id"`
+}
+
+func NewPromptOptimizationSampleRef() *PromptOptimizationSampleRef {
+	return &PromptOptimizationSampleRef{}
+}
+
+func (p *PromptOptimizationSampleRef) InitDefault() {
+}
+
+func (p *PromptOptimizationSampleRef) GetItemID() (v int64) {
+	if p != nil {
+		return p.ItemID
+	}
+	return
+}
+
+var PromptOptimizationSampleRef_TurnID_DEFAULT int64
+
+func (p *PromptOptimizationSampleRef) GetTurnID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTurnID() {
+		return PromptOptimizationSampleRef_TurnID_DEFAULT
+	}
+	return *p.TurnID
+}
+func (p *PromptOptimizationSampleRef) SetItemID(val int64) {
+	p.ItemID = val
+}
+func (p *PromptOptimizationSampleRef) SetTurnID(val *int64) {
+	p.TurnID = val
+}
+
+var fieldIDToName_PromptOptimizationSampleRef = map[int16]string{
+	1: "item_id",
+	2: "turn_id",
+}
+
+func (p *PromptOptimizationSampleRef) IsSetTurnID() bool {
+	return p.TurnID != nil
+}
+
+func (p *PromptOptimizationSampleRef) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetItemID bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetItemID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetItemID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationSampleRef[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_PromptOptimizationSampleRef[fieldId]))
+}
+
+func (p *PromptOptimizationSampleRef) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ItemID = _field
+	return nil
+}
+func (p *PromptOptimizationSampleRef) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.TurnID = _field
+	return nil
+}
+
+func (p *PromptOptimizationSampleRef) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptOptimizationSampleRef"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationSampleRef) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("item_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.ItemID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleRef) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTurnID() {
+		if err = oprot.WriteFieldBegin("turn_id", thrift.I64, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.TurnID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *PromptOptimizationSampleRef) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptOptimizationSampleRef(%+v)", *p)
+
+}
+
+func (p *PromptOptimizationSampleRef) DeepEqual(ano *PromptOptimizationSampleRef) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.ItemID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.TurnID) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptOptimizationSampleRef) Field1DeepEqual(src int64) bool {
+
+	if p.ItemID != src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleRef) Field2DeepEqual(src *int64) bool {
+
+	if p.TurnID == src {
+		return true
+	} else if p.TurnID == nil || src == nil {
+		return false
+	}
+	if *p.TurnID != *src {
+		return false
+	}
+	return true
+}
+
+type PromptOptimizationVariable struct {
+	Key         string   `thrift:"key,1,required" frugal:"1,required,string" form:"key,required" json:"key,required" query:"key,required"`
+	Type        *string  `thrift:"type,2,optional" frugal:"2,optional,string" form:"type" json:"type,omitempty" query:"type"`
+	TypeTags    []string `thrift:"type_tags,3,optional" frugal:"3,optional,list<string>" form:"type_tags" json:"type_tags,omitempty" query:"type_tags"`
+	Description *string  `thrift:"description,4,optional" frugal:"4,optional,string" form:"description" json:"description,omitempty" query:"description"`
+}
+
+func NewPromptOptimizationVariable() *PromptOptimizationVariable {
+	return &PromptOptimizationVariable{}
+}
+
+func (p *PromptOptimizationVariable) InitDefault() {
+}
+
+func (p *PromptOptimizationVariable) GetKey() (v string) {
+	if p != nil {
+		return p.Key
+	}
+	return
+}
+
+var PromptOptimizationVariable_Type_DEFAULT string
+
+func (p *PromptOptimizationVariable) GetType() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetType() {
+		return PromptOptimizationVariable_Type_DEFAULT
+	}
+	return *p.Type
+}
+
+var PromptOptimizationVariable_TypeTags_DEFAULT []string
+
+func (p *PromptOptimizationVariable) GetTypeTags() (v []string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTypeTags() {
+		return PromptOptimizationVariable_TypeTags_DEFAULT
+	}
+	return p.TypeTags
+}
+
+var PromptOptimizationVariable_Description_DEFAULT string
+
+func (p *PromptOptimizationVariable) GetDescription() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDescription() {
+		return PromptOptimizationVariable_Description_DEFAULT
+	}
+	return *p.Description
+}
+func (p *PromptOptimizationVariable) SetKey(val string) {
+	p.Key = val
+}
+func (p *PromptOptimizationVariable) SetType(val *string) {
+	p.Type = val
+}
+func (p *PromptOptimizationVariable) SetTypeTags(val []string) {
+	p.TypeTags = val
+}
+func (p *PromptOptimizationVariable) SetDescription(val *string) {
+	p.Description = val
+}
+
+var fieldIDToName_PromptOptimizationVariable = map[int16]string{
+	1: "key",
+	2: "type",
+	3: "type_tags",
+	4: "description",
+}
+
+func (p *PromptOptimizationVariable) IsSetType() bool {
+	return p.Type != nil
+}
+
+func (p *PromptOptimizationVariable) IsSetTypeTags() bool {
+	return p.TypeTags != nil
+}
+
+func (p *PromptOptimizationVariable) IsSetDescription() bool {
+	return p.Description != nil
+}
+
+func (p *PromptOptimizationVariable) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetKey bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetKey = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetKey {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationVariable[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_PromptOptimizationVariable[fieldId]))
+}
+
+func (p *PromptOptimizationVariable) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Key = _field
+	return nil
+}
+func (p *PromptOptimizationVariable) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Type = _field
+	return nil
+}
+func (p *PromptOptimizationVariable) ReadField3(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]string, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.TypeTags = _field
+	return nil
+}
+func (p *PromptOptimizationVariable) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Description = _field
+	return nil
+}
+
+func (p *PromptOptimizationVariable) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptOptimizationVariable"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationVariable) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("key", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Key); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptOptimizationVariable) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetType() {
+		if err = oprot.WriteFieldBegin("type", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Type); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PromptOptimizationVariable) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTypeTags() {
+		if err = oprot.WriteFieldBegin("type_tags", thrift.LIST, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.TypeTags)); err != nil {
+			return err
+		}
+		for _, v := range p.TypeTags {
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PromptOptimizationVariable) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDescription() {
+		if err = oprot.WriteFieldBegin("description", thrift.STRING, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Description); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *PromptOptimizationVariable) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptOptimizationVariable(%+v)", *p)
+
+}
+
+func (p *PromptOptimizationVariable) DeepEqual(ano *PromptOptimizationVariable) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Key) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Type) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.TypeTags) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Description) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptOptimizationVariable) Field1DeepEqual(src string) bool {
+
+	if strings.Compare(p.Key, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationVariable) Field2DeepEqual(src *string) bool {
+
+	if p.Type == src {
+		return true
+	} else if p.Type == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Type, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationVariable) Field3DeepEqual(src []string) bool {
+
+	if len(p.TypeTags) != len(src) {
+		return false
+	}
+	for i, v := range p.TypeTags {
+		_src := src[i]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationVariable) Field4DeepEqual(src *string) bool {
+
+	if p.Description == src {
+		return true
+	} else if p.Description == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Description, *src) != 0 {
+		return false
+	}
+	return true
+}
+
+type PromptOptimizationModeOption struct {
+	Mode                 PromptOptimizationMode `thrift:"mode,1,required" frugal:"1,required,string" form:"mode,required" json:"mode,required" query:"mode,required"`
+	DisplayName          string                 `thrift:"display_name,2,required" frugal:"2,required,string" form:"display_name,required" json:"display_name,required" query:"display_name,required"`
+	Description          *string                `thrift:"description,3,optional" frugal:"3,optional,string" form:"description" json:"description,omitempty" query:"description"`
+	DefaultMaxIterations *int32                 `thrift:"default_max_iterations,4,optional" frugal:"4,optional,i32" form:"default_max_iterations" json:"default_max_iterations,omitempty" query:"default_max_iterations"`
+}
+
+func NewPromptOptimizationModeOption() *PromptOptimizationModeOption {
+	return &PromptOptimizationModeOption{}
+}
+
+func (p *PromptOptimizationModeOption) InitDefault() {
+}
+
+func (p *PromptOptimizationModeOption) GetMode() (v PromptOptimizationMode) {
+	if p != nil {
+		return p.Mode
+	}
+	return
+}
+
+func (p *PromptOptimizationModeOption) GetDisplayName() (v string) {
+	if p != nil {
+		return p.DisplayName
+	}
+	return
+}
+
+var PromptOptimizationModeOption_Description_DEFAULT string
+
+func (p *PromptOptimizationModeOption) GetDescription() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDescription() {
+		return PromptOptimizationModeOption_Description_DEFAULT
+	}
+	return *p.Description
+}
+
+var PromptOptimizationModeOption_DefaultMaxIterations_DEFAULT int32
+
+func (p *PromptOptimizationModeOption) GetDefaultMaxIterations() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDefaultMaxIterations() {
+		return PromptOptimizationModeOption_DefaultMaxIterations_DEFAULT
+	}
+	return *p.DefaultMaxIterations
+}
+func (p *PromptOptimizationModeOption) SetMode(val PromptOptimizationMode) {
+	p.Mode = val
+}
+func (p *PromptOptimizationModeOption) SetDisplayName(val string) {
+	p.DisplayName = val
+}
+func (p *PromptOptimizationModeOption) SetDescription(val *string) {
+	p.Description = val
+}
+func (p *PromptOptimizationModeOption) SetDefaultMaxIterations(val *int32) {
+	p.DefaultMaxIterations = val
+}
+
+var fieldIDToName_PromptOptimizationModeOption = map[int16]string{
+	1: "mode",
+	2: "display_name",
+	3: "description",
+	4: "default_max_iterations",
+}
+
+func (p *PromptOptimizationModeOption) IsSetDescription() bool {
+	return p.Description != nil
+}
+
+func (p *PromptOptimizationModeOption) IsSetDefaultMaxIterations() bool {
+	return p.DefaultMaxIterations != nil
+}
+
+func (p *PromptOptimizationModeOption) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetMode bool = false
+	var issetDisplayName bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetMode = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetDisplayName = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetMode {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetDisplayName {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationModeOption[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_PromptOptimizationModeOption[fieldId]))
+}
+
+func (p *PromptOptimizationModeOption) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field PromptOptimizationMode
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Mode = _field
+	return nil
+}
+func (p *PromptOptimizationModeOption) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.DisplayName = _field
+	return nil
+}
+func (p *PromptOptimizationModeOption) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Description = _field
+	return nil
+}
+func (p *PromptOptimizationModeOption) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.DefaultMaxIterations = _field
+	return nil
+}
+
+func (p *PromptOptimizationModeOption) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptOptimizationModeOption"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationModeOption) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("mode", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Mode); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptOptimizationModeOption) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("display_name", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.DisplayName); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PromptOptimizationModeOption) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDescription() {
+		if err = oprot.WriteFieldBegin("description", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Description); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PromptOptimizationModeOption) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDefaultMaxIterations() {
+		if err = oprot.WriteFieldBegin("default_max_iterations", thrift.I32, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.DefaultMaxIterations); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *PromptOptimizationModeOption) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptOptimizationModeOption(%+v)", *p)
+
+}
+
+func (p *PromptOptimizationModeOption) DeepEqual(ano *PromptOptimizationModeOption) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Mode) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.DisplayName) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Description) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.DefaultMaxIterations) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptOptimizationModeOption) Field1DeepEqual(src PromptOptimizationMode) bool {
+
+	if strings.Compare(p.Mode, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationModeOption) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.DisplayName, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationModeOption) Field3DeepEqual(src *string) bool {
+
+	if p.Description == src {
+		return true
+	} else if p.Description == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Description, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationModeOption) Field4DeepEqual(src *int32) bool {
+
+	if p.DefaultMaxIterations == src {
+		return true
+	} else if p.DefaultMaxIterations == nil || src == nil {
+		return false
+	}
+	if *p.DefaultMaxIterations != *src {
+		return false
+	}
+	return true
+}
+
+type PromptOptimizationMetrics struct {
+	SampleCount            *int32             `thrift:"sample_count,1,optional" frugal:"1,optional,i32" form:"sample_count" json:"sample_count,omitempty" query:"sample_count"`
+	AverageScore           *float64           `thrift:"average_score,2,optional" frugal:"2,optional,double" form:"average_score" json:"average_score,omitempty" query:"average_score"`
+	FullScoreCount         *int32             `thrift:"full_score_count,3,optional" frugal:"3,optional,i32" form:"full_score_count" json:"full_score_count,omitempty" query:"full_score_count"`
+	ImprovedCount          *int32             `thrift:"improved_count,4,optional" frugal:"4,optional,i32" form:"improved_count" json:"improved_count,omitempty" query:"improved_count"`
+	RegressedCount         *int32             `thrift:"regressed_count,5,optional" frugal:"5,optional,i32" form:"regressed_count" json:"regressed_count,omitempty" query:"regressed_count"`
+	UnchangedCount         *int32             `thrift:"unchanged_count,6,optional" frugal:"6,optional,i32" form:"unchanged_count" json:"unchanged_count,omitempty" query:"unchanged_count"`
+	EvaluatorAverageScores map[string]float64 `thrift:"evaluator_average_scores,7,optional" frugal:"7,optional,map<string:double>" form:"evaluator_average_scores" json:"evaluator_average_scores,omitempty" query:"evaluator_average_scores"`
+	InputTokens            *int64             `thrift:"input_tokens,8,optional" frugal:"8,optional,i64" json:"input_tokens" form:"input_tokens" query:"input_tokens"`
+	OutputTokens           *int64             `thrift:"output_tokens,9,optional" frugal:"9,optional,i64" json:"output_tokens" form:"output_tokens" query:"output_tokens"`
+}
+
+func NewPromptOptimizationMetrics() *PromptOptimizationMetrics {
+	return &PromptOptimizationMetrics{}
+}
+
+func (p *PromptOptimizationMetrics) InitDefault() {
+}
+
+var PromptOptimizationMetrics_SampleCount_DEFAULT int32
+
+func (p *PromptOptimizationMetrics) GetSampleCount() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSampleCount() {
+		return PromptOptimizationMetrics_SampleCount_DEFAULT
+	}
+	return *p.SampleCount
+}
+
+var PromptOptimizationMetrics_AverageScore_DEFAULT float64
+
+func (p *PromptOptimizationMetrics) GetAverageScore() (v float64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetAverageScore() {
+		return PromptOptimizationMetrics_AverageScore_DEFAULT
+	}
+	return *p.AverageScore
+}
+
+var PromptOptimizationMetrics_FullScoreCount_DEFAULT int32
+
+func (p *PromptOptimizationMetrics) GetFullScoreCount() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetFullScoreCount() {
+		return PromptOptimizationMetrics_FullScoreCount_DEFAULT
+	}
+	return *p.FullScoreCount
+}
+
+var PromptOptimizationMetrics_ImprovedCount_DEFAULT int32
+
+func (p *PromptOptimizationMetrics) GetImprovedCount() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetImprovedCount() {
+		return PromptOptimizationMetrics_ImprovedCount_DEFAULT
+	}
+	return *p.ImprovedCount
+}
+
+var PromptOptimizationMetrics_RegressedCount_DEFAULT int32
+
+func (p *PromptOptimizationMetrics) GetRegressedCount() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetRegressedCount() {
+		return PromptOptimizationMetrics_RegressedCount_DEFAULT
+	}
+	return *p.RegressedCount
+}
+
+var PromptOptimizationMetrics_UnchangedCount_DEFAULT int32
+
+func (p *PromptOptimizationMetrics) GetUnchangedCount() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetUnchangedCount() {
+		return PromptOptimizationMetrics_UnchangedCount_DEFAULT
+	}
+	return *p.UnchangedCount
+}
+
+var PromptOptimizationMetrics_EvaluatorAverageScores_DEFAULT map[string]float64
+
+func (p *PromptOptimizationMetrics) GetEvaluatorAverageScores() (v map[string]float64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetEvaluatorAverageScores() {
+		return PromptOptimizationMetrics_EvaluatorAverageScores_DEFAULT
+	}
+	return p.EvaluatorAverageScores
+}
+
+var PromptOptimizationMetrics_InputTokens_DEFAULT int64
+
+func (p *PromptOptimizationMetrics) GetInputTokens() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetInputTokens() {
+		return PromptOptimizationMetrics_InputTokens_DEFAULT
+	}
+	return *p.InputTokens
+}
+
+var PromptOptimizationMetrics_OutputTokens_DEFAULT int64
+
+func (p *PromptOptimizationMetrics) GetOutputTokens() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOutputTokens() {
+		return PromptOptimizationMetrics_OutputTokens_DEFAULT
+	}
+	return *p.OutputTokens
+}
+func (p *PromptOptimizationMetrics) SetSampleCount(val *int32) {
+	p.SampleCount = val
+}
+func (p *PromptOptimizationMetrics) SetAverageScore(val *float64) {
+	p.AverageScore = val
+}
+func (p *PromptOptimizationMetrics) SetFullScoreCount(val *int32) {
+	p.FullScoreCount = val
+}
+func (p *PromptOptimizationMetrics) SetImprovedCount(val *int32) {
+	p.ImprovedCount = val
+}
+func (p *PromptOptimizationMetrics) SetRegressedCount(val *int32) {
+	p.RegressedCount = val
+}
+func (p *PromptOptimizationMetrics) SetUnchangedCount(val *int32) {
+	p.UnchangedCount = val
+}
+func (p *PromptOptimizationMetrics) SetEvaluatorAverageScores(val map[string]float64) {
+	p.EvaluatorAverageScores = val
+}
+func (p *PromptOptimizationMetrics) SetInputTokens(val *int64) {
+	p.InputTokens = val
+}
+func (p *PromptOptimizationMetrics) SetOutputTokens(val *int64) {
+	p.OutputTokens = val
+}
+
+var fieldIDToName_PromptOptimizationMetrics = map[int16]string{
+	1: "sample_count",
+	2: "average_score",
+	3: "full_score_count",
+	4: "improved_count",
+	5: "regressed_count",
+	6: "unchanged_count",
+	7: "evaluator_average_scores",
+	8: "input_tokens",
+	9: "output_tokens",
+}
+
+func (p *PromptOptimizationMetrics) IsSetSampleCount() bool {
+	return p.SampleCount != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetAverageScore() bool {
+	return p.AverageScore != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetFullScoreCount() bool {
+	return p.FullScoreCount != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetImprovedCount() bool {
+	return p.ImprovedCount != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetRegressedCount() bool {
+	return p.RegressedCount != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetUnchangedCount() bool {
+	return p.UnchangedCount != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetEvaluatorAverageScores() bool {
+	return p.EvaluatorAverageScores != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetInputTokens() bool {
+	return p.InputTokens != nil
+}
+
+func (p *PromptOptimizationMetrics) IsSetOutputTokens() bool {
+	return p.OutputTokens != nil
+}
+
+func (p *PromptOptimizationMetrics) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.DOUBLE {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 8:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField8(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 9:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField9(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationMetrics[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationMetrics) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.SampleCount = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *float64
+	if v, err := iprot.ReadDouble(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.AverageScore = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.FullScoreCount = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ImprovedCount = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.RegressedCount = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField6(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.UnchangedCount = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField7(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]float64, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val float64
+		if v, err := iprot.ReadDouble(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.EvaluatorAverageScores = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField8(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.InputTokens = _field
+	return nil
+}
+func (p *PromptOptimizationMetrics) ReadField9(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.OutputTokens = _field
+	return nil
+}
+
+func (p *PromptOptimizationMetrics) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptOptimizationMetrics"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
+			goto WriteFieldError
+		}
+		if err = p.writeField8(oprot); err != nil {
+			fieldId = 8
+			goto WriteFieldError
+		}
+		if err = p.writeField9(oprot); err != nil {
+			fieldId = 9
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationMetrics) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSampleCount() {
+		if err = oprot.WriteFieldBegin("sample_count", thrift.I32, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.SampleCount); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetAverageScore() {
+		if err = oprot.WriteFieldBegin("average_score", thrift.DOUBLE, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteDouble(*p.AverageScore); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetFullScoreCount() {
+		if err = oprot.WriteFieldBegin("full_score_count", thrift.I32, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.FullScoreCount); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetImprovedCount() {
+		if err = oprot.WriteFieldBegin("improved_count", thrift.I32, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.ImprovedCount); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetRegressedCount() {
+		if err = oprot.WriteFieldBegin("regressed_count", thrift.I32, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.RegressedCount); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField6(oprot thrift.TProtocol) (err error) {
+	if p.IsSetUnchangedCount() {
+		if err = oprot.WriteFieldBegin("unchanged_count", thrift.I32, 6); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.UnchangedCount); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetEvaluatorAverageScores() {
+		if err = oprot.WriteFieldBegin("evaluator_average_scores", thrift.MAP, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.DOUBLE, len(p.EvaluatorAverageScores)); err != nil {
+			return err
+		}
+		for k, v := range p.EvaluatorAverageScores {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteDouble(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField8(oprot thrift.TProtocol) (err error) {
+	if p.IsSetInputTokens() {
+		if err = oprot.WriteFieldBegin("input_tokens", thrift.I64, 8); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.InputTokens); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
+}
+func (p *PromptOptimizationMetrics) writeField9(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOutputTokens() {
+		if err = oprot.WriteFieldBegin("output_tokens", thrift.I64, 9); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.OutputTokens); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 end error: ", p), err)
+}
+
+func (p *PromptOptimizationMetrics) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptOptimizationMetrics(%+v)", *p)
+
+}
+
+func (p *PromptOptimizationMetrics) DeepEqual(ano *PromptOptimizationMetrics) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.SampleCount) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.AverageScore) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.FullScoreCount) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.ImprovedCount) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.RegressedCount) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.UnchangedCount) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.EvaluatorAverageScores) {
+		return false
+	}
+	if !p.Field8DeepEqual(ano.InputTokens) {
+		return false
+	}
+	if !p.Field9DeepEqual(ano.OutputTokens) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptOptimizationMetrics) Field1DeepEqual(src *int32) bool {
+
+	if p.SampleCount == src {
+		return true
+	} else if p.SampleCount == nil || src == nil {
+		return false
+	}
+	if *p.SampleCount != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field2DeepEqual(src *float64) bool {
+
+	if p.AverageScore == src {
+		return true
+	} else if p.AverageScore == nil || src == nil {
+		return false
+	}
+	if *p.AverageScore != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field3DeepEqual(src *int32) bool {
+
+	if p.FullScoreCount == src {
+		return true
+	} else if p.FullScoreCount == nil || src == nil {
+		return false
+	}
+	if *p.FullScoreCount != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field4DeepEqual(src *int32) bool {
+
+	if p.ImprovedCount == src {
+		return true
+	} else if p.ImprovedCount == nil || src == nil {
+		return false
+	}
+	if *p.ImprovedCount != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field5DeepEqual(src *int32) bool {
+
+	if p.RegressedCount == src {
+		return true
+	} else if p.RegressedCount == nil || src == nil {
+		return false
+	}
+	if *p.RegressedCount != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field6DeepEqual(src *int32) bool {
+
+	if p.UnchangedCount == src {
+		return true
+	} else if p.UnchangedCount == nil || src == nil {
+		return false
+	}
+	if *p.UnchangedCount != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field7DeepEqual(src map[string]float64) bool {
+
+	if len(p.EvaluatorAverageScores) != len(src) {
+		return false
+	}
+	for k, v := range p.EvaluatorAverageScores {
+		_src := src[k]
+		if v != _src {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field8DeepEqual(src *int64) bool {
+
+	if p.InputTokens == src {
+		return true
+	} else if p.InputTokens == nil || src == nil {
+		return false
+	}
+	if *p.InputTokens != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationMetrics) Field9DeepEqual(src *int64) bool {
+
+	if p.OutputTokens == src {
+		return true
+	} else if p.OutputTokens == nil || src == nil {
+		return false
+	}
+	if *p.OutputTokens != *src {
+		return false
+	}
+	return true
+}
+
+type PromptOptimizationSampleEvaluation struct {
+	ItemID                    *int64             `thrift:"item_id,1,optional" frugal:"1,optional,i64" json:"item_id" form:"item_id" query:"item_id"`
+	TurnID                    *int64             `thrift:"turn_id,2,optional" frugal:"2,optional,i64" json:"turn_id" form:"turn_id" query:"turn_id"`
+	Variables                 map[string]string  `thrift:"variables,3,optional" frugal:"3,optional,map<string:string>" form:"variables" json:"variables,omitempty" query:"variables"`
+	ReferenceAnswer           *string            `thrift:"reference_answer,4,optional" frugal:"4,optional,string" form:"reference_answer" json:"reference_answer,omitempty" query:"reference_answer"`
+	OriginalAnswer            *string            `thrift:"original_answer,5,optional" frugal:"5,optional,string" form:"original_answer" json:"original_answer,omitempty" query:"original_answer"`
+	OptimizedAnswer           *string            `thrift:"optimized_answer,6,optional" frugal:"6,optional,string" form:"optimized_answer" json:"optimized_answer,omitempty" query:"optimized_answer"`
+	OriginalScore             *float64           `thrift:"original_score,7,optional" frugal:"7,optional,double" form:"original_score" json:"original_score,omitempty" query:"original_score"`
+	OptimizedScore            *float64           `thrift:"optimized_score,8,optional" frugal:"8,optional,double" form:"optimized_score" json:"optimized_score,omitempty" query:"optimized_score"`
+	OriginalEvaluatorScores   map[string]float64 `thrift:"original_evaluator_scores,9,optional" frugal:"9,optional,map<string:double>" form:"original_evaluator_scores" json:"original_evaluator_scores,omitempty" query:"original_evaluator_scores"`
+	OptimizedEvaluatorScores  map[string]float64 `thrift:"optimized_evaluator_scores,10,optional" frugal:"10,optional,map<string:double>" form:"optimized_evaluator_scores" json:"optimized_evaluator_scores,omitempty" query:"optimized_evaluator_scores"`
+	OriginalEvaluatorReasons  map[string]string  `thrift:"original_evaluator_reasons,11,optional" frugal:"11,optional,map<string:string>" form:"original_evaluator_reasons" json:"original_evaluator_reasons,omitempty" query:"original_evaluator_reasons"`
+	OptimizedEvaluatorReasons map[string]string  `thrift:"optimized_evaluator_reasons,12,optional" frugal:"12,optional,map<string:string>" form:"optimized_evaluator_reasons" json:"optimized_evaluator_reasons,omitempty" query:"optimized_evaluator_reasons"`
+	ErrorMessage              *string            `thrift:"error_message,13,optional" frugal:"13,optional,string" form:"error_message" json:"error_message,omitempty" query:"error_message"`
+}
+
+func NewPromptOptimizationSampleEvaluation() *PromptOptimizationSampleEvaluation {
+	return &PromptOptimizationSampleEvaluation{}
+}
+
+func (p *PromptOptimizationSampleEvaluation) InitDefault() {
+}
+
+var PromptOptimizationSampleEvaluation_ItemID_DEFAULT int64
+
+func (p *PromptOptimizationSampleEvaluation) GetItemID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetItemID() {
+		return PromptOptimizationSampleEvaluation_ItemID_DEFAULT
+	}
+	return *p.ItemID
+}
+
+var PromptOptimizationSampleEvaluation_TurnID_DEFAULT int64
+
+func (p *PromptOptimizationSampleEvaluation) GetTurnID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTurnID() {
+		return PromptOptimizationSampleEvaluation_TurnID_DEFAULT
+	}
+	return *p.TurnID
+}
+
+var PromptOptimizationSampleEvaluation_Variables_DEFAULT map[string]string
+
+func (p *PromptOptimizationSampleEvaluation) GetVariables() (v map[string]string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetVariables() {
+		return PromptOptimizationSampleEvaluation_Variables_DEFAULT
+	}
+	return p.Variables
+}
+
+var PromptOptimizationSampleEvaluation_ReferenceAnswer_DEFAULT string
+
+func (p *PromptOptimizationSampleEvaluation) GetReferenceAnswer() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReferenceAnswer() {
+		return PromptOptimizationSampleEvaluation_ReferenceAnswer_DEFAULT
+	}
+	return *p.ReferenceAnswer
+}
+
+var PromptOptimizationSampleEvaluation_OriginalAnswer_DEFAULT string
+
+func (p *PromptOptimizationSampleEvaluation) GetOriginalAnswer() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOriginalAnswer() {
+		return PromptOptimizationSampleEvaluation_OriginalAnswer_DEFAULT
+	}
+	return *p.OriginalAnswer
+}
+
+var PromptOptimizationSampleEvaluation_OptimizedAnswer_DEFAULT string
+
+func (p *PromptOptimizationSampleEvaluation) GetOptimizedAnswer() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOptimizedAnswer() {
+		return PromptOptimizationSampleEvaluation_OptimizedAnswer_DEFAULT
+	}
+	return *p.OptimizedAnswer
+}
+
+var PromptOptimizationSampleEvaluation_OriginalScore_DEFAULT float64
+
+func (p *PromptOptimizationSampleEvaluation) GetOriginalScore() (v float64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOriginalScore() {
+		return PromptOptimizationSampleEvaluation_OriginalScore_DEFAULT
+	}
+	return *p.OriginalScore
+}
+
+var PromptOptimizationSampleEvaluation_OptimizedScore_DEFAULT float64
+
+func (p *PromptOptimizationSampleEvaluation) GetOptimizedScore() (v float64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOptimizedScore() {
+		return PromptOptimizationSampleEvaluation_OptimizedScore_DEFAULT
+	}
+	return *p.OptimizedScore
+}
+
+var PromptOptimizationSampleEvaluation_OriginalEvaluatorScores_DEFAULT map[string]float64
+
+func (p *PromptOptimizationSampleEvaluation) GetOriginalEvaluatorScores() (v map[string]float64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOriginalEvaluatorScores() {
+		return PromptOptimizationSampleEvaluation_OriginalEvaluatorScores_DEFAULT
+	}
+	return p.OriginalEvaluatorScores
+}
+
+var PromptOptimizationSampleEvaluation_OptimizedEvaluatorScores_DEFAULT map[string]float64
+
+func (p *PromptOptimizationSampleEvaluation) GetOptimizedEvaluatorScores() (v map[string]float64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOptimizedEvaluatorScores() {
+		return PromptOptimizationSampleEvaluation_OptimizedEvaluatorScores_DEFAULT
+	}
+	return p.OptimizedEvaluatorScores
+}
+
+var PromptOptimizationSampleEvaluation_OriginalEvaluatorReasons_DEFAULT map[string]string
+
+func (p *PromptOptimizationSampleEvaluation) GetOriginalEvaluatorReasons() (v map[string]string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOriginalEvaluatorReasons() {
+		return PromptOptimizationSampleEvaluation_OriginalEvaluatorReasons_DEFAULT
+	}
+	return p.OriginalEvaluatorReasons
+}
+
+var PromptOptimizationSampleEvaluation_OptimizedEvaluatorReasons_DEFAULT map[string]string
+
+func (p *PromptOptimizationSampleEvaluation) GetOptimizedEvaluatorReasons() (v map[string]string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOptimizedEvaluatorReasons() {
+		return PromptOptimizationSampleEvaluation_OptimizedEvaluatorReasons_DEFAULT
+	}
+	return p.OptimizedEvaluatorReasons
+}
+
+var PromptOptimizationSampleEvaluation_ErrorMessage_DEFAULT string
+
+func (p *PromptOptimizationSampleEvaluation) GetErrorMessage() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetErrorMessage() {
+		return PromptOptimizationSampleEvaluation_ErrorMessage_DEFAULT
+	}
+	return *p.ErrorMessage
+}
+func (p *PromptOptimizationSampleEvaluation) SetItemID(val *int64) {
+	p.ItemID = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetTurnID(val *int64) {
+	p.TurnID = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetVariables(val map[string]string) {
+	p.Variables = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetReferenceAnswer(val *string) {
+	p.ReferenceAnswer = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOriginalAnswer(val *string) {
+	p.OriginalAnswer = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOptimizedAnswer(val *string) {
+	p.OptimizedAnswer = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOriginalScore(val *float64) {
+	p.OriginalScore = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOptimizedScore(val *float64) {
+	p.OptimizedScore = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOriginalEvaluatorScores(val map[string]float64) {
+	p.OriginalEvaluatorScores = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOptimizedEvaluatorScores(val map[string]float64) {
+	p.OptimizedEvaluatorScores = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOriginalEvaluatorReasons(val map[string]string) {
+	p.OriginalEvaluatorReasons = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetOptimizedEvaluatorReasons(val map[string]string) {
+	p.OptimizedEvaluatorReasons = val
+}
+func (p *PromptOptimizationSampleEvaluation) SetErrorMessage(val *string) {
+	p.ErrorMessage = val
+}
+
+var fieldIDToName_PromptOptimizationSampleEvaluation = map[int16]string{
+	1:  "item_id",
+	2:  "turn_id",
+	3:  "variables",
+	4:  "reference_answer",
+	5:  "original_answer",
+	6:  "optimized_answer",
+	7:  "original_score",
+	8:  "optimized_score",
+	9:  "original_evaluator_scores",
+	10: "optimized_evaluator_scores",
+	11: "original_evaluator_reasons",
+	12: "optimized_evaluator_reasons",
+	13: "error_message",
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetItemID() bool {
+	return p.ItemID != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetTurnID() bool {
+	return p.TurnID != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetVariables() bool {
+	return p.Variables != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetReferenceAnswer() bool {
+	return p.ReferenceAnswer != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOriginalAnswer() bool {
+	return p.OriginalAnswer != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOptimizedAnswer() bool {
+	return p.OptimizedAnswer != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOriginalScore() bool {
+	return p.OriginalScore != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOptimizedScore() bool {
+	return p.OptimizedScore != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOriginalEvaluatorScores() bool {
+	return p.OriginalEvaluatorScores != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOptimizedEvaluatorScores() bool {
+	return p.OptimizedEvaluatorScores != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOriginalEvaluatorReasons() bool {
+	return p.OriginalEvaluatorReasons != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetOptimizedEvaluatorReasons() bool {
+	return p.OptimizedEvaluatorReasons != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) IsSetErrorMessage() bool {
+	return p.ErrorMessage != nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.DOUBLE {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 8:
+			if fieldTypeId == thrift.DOUBLE {
+				if err = p.ReadField8(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 9:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField9(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 10:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 11:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 12:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField12(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 13:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField13(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationSampleEvaluation[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationSampleEvaluation) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ItemID = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.TurnID = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField3(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.Variables = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ReferenceAnswer = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.OriginalAnswer = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField6(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.OptimizedAnswer = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field *float64
+	if v, err := iprot.ReadDouble(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.OriginalScore = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField8(iprot thrift.TProtocol) error {
+
+	var _field *float64
+	if v, err := iprot.ReadDouble(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.OptimizedScore = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField9(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]float64, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val float64
+		if v, err := iprot.ReadDouble(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.OriginalEvaluatorScores = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField10(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]float64, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val float64
+		if v, err := iprot.ReadDouble(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.OptimizedEvaluatorScores = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField11(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.OriginalEvaluatorReasons = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField12(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.OptimizedEvaluatorReasons = _field
+	return nil
+}
+func (p *PromptOptimizationSampleEvaluation) ReadField13(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ErrorMessage = _field
+	return nil
+}
+
+func (p *PromptOptimizationSampleEvaluation) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptOptimizationSampleEvaluation"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
+			goto WriteFieldError
+		}
+		if err = p.writeField8(oprot); err != nil {
+			fieldId = 8
+			goto WriteFieldError
+		}
+		if err = p.writeField9(oprot); err != nil {
+			fieldId = 9
+			goto WriteFieldError
+		}
+		if err = p.writeField10(oprot); err != nil {
+			fieldId = 10
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+		if err = p.writeField12(oprot); err != nil {
+			fieldId = 12
+			goto WriteFieldError
+		}
+		if err = p.writeField13(oprot); err != nil {
+			fieldId = 13
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationSampleEvaluation) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetItemID() {
+		if err = oprot.WriteFieldBegin("item_id", thrift.I64, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.ItemID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTurnID() {
+		if err = oprot.WriteFieldBegin("turn_id", thrift.I64, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.TurnID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetVariables() {
+		if err = oprot.WriteFieldBegin("variables", thrift.MAP, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.Variables)); err != nil {
+			return err
+		}
+		for k, v := range p.Variables {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetReferenceAnswer() {
+		if err = oprot.WriteFieldBegin("reference_answer", thrift.STRING, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ReferenceAnswer); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOriginalAnswer() {
+		if err = oprot.WriteFieldBegin("original_answer", thrift.STRING, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.OriginalAnswer); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField6(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOptimizedAnswer() {
+		if err = oprot.WriteFieldBegin("optimized_answer", thrift.STRING, 6); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.OptimizedAnswer); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOriginalScore() {
+		if err = oprot.WriteFieldBegin("original_score", thrift.DOUBLE, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteDouble(*p.OriginalScore); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField8(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOptimizedScore() {
+		if err = oprot.WriteFieldBegin("optimized_score", thrift.DOUBLE, 8); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteDouble(*p.OptimizedScore); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField9(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOriginalEvaluatorScores() {
+		if err = oprot.WriteFieldBegin("original_evaluator_scores", thrift.MAP, 9); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.DOUBLE, len(p.OriginalEvaluatorScores)); err != nil {
+			return err
+		}
+		for k, v := range p.OriginalEvaluatorScores {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteDouble(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField10(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOptimizedEvaluatorScores() {
+		if err = oprot.WriteFieldBegin("optimized_evaluator_scores", thrift.MAP, 10); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.DOUBLE, len(p.OptimizedEvaluatorScores)); err != nil {
+			return err
+		}
+		for k, v := range p.OptimizedEvaluatorScores {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteDouble(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOriginalEvaluatorReasons() {
+		if err = oprot.WriteFieldBegin("original_evaluator_reasons", thrift.MAP, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.OriginalEvaluatorReasons)); err != nil {
+			return err
+		}
+		for k, v := range p.OriginalEvaluatorReasons {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField12(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOptimizedEvaluatorReasons() {
+		if err = oprot.WriteFieldBegin("optimized_evaluator_reasons", thrift.MAP, 12); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.OptimizedEvaluatorReasons)); err != nil {
+			return err
+		}
+		for k, v := range p.OptimizedEvaluatorReasons {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 end error: ", p), err)
+}
+func (p *PromptOptimizationSampleEvaluation) writeField13(oprot thrift.TProtocol) (err error) {
+	if p.IsSetErrorMessage() {
+		if err = oprot.WriteFieldBegin("error_message", thrift.STRING, 13); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ErrorMessage); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 end error: ", p), err)
+}
+
+func (p *PromptOptimizationSampleEvaluation) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptOptimizationSampleEvaluation(%+v)", *p)
+
+}
+
+func (p *PromptOptimizationSampleEvaluation) DeepEqual(ano *PromptOptimizationSampleEvaluation) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.ItemID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.TurnID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Variables) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.ReferenceAnswer) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.OriginalAnswer) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.OptimizedAnswer) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.OriginalScore) {
+		return false
+	}
+	if !p.Field8DeepEqual(ano.OptimizedScore) {
+		return false
+	}
+	if !p.Field9DeepEqual(ano.OriginalEvaluatorScores) {
+		return false
+	}
+	if !p.Field10DeepEqual(ano.OptimizedEvaluatorScores) {
+		return false
+	}
+	if !p.Field11DeepEqual(ano.OriginalEvaluatorReasons) {
+		return false
+	}
+	if !p.Field12DeepEqual(ano.OptimizedEvaluatorReasons) {
+		return false
+	}
+	if !p.Field13DeepEqual(ano.ErrorMessage) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptOptimizationSampleEvaluation) Field1DeepEqual(src *int64) bool {
+
+	if p.ItemID == src {
+		return true
+	} else if p.ItemID == nil || src == nil {
+		return false
+	}
+	if *p.ItemID != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field2DeepEqual(src *int64) bool {
+
+	if p.TurnID == src {
+		return true
+	} else if p.TurnID == nil || src == nil {
+		return false
+	}
+	if *p.TurnID != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field3DeepEqual(src map[string]string) bool {
+
+	if len(p.Variables) != len(src) {
+		return false
+	}
+	for k, v := range p.Variables {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field4DeepEqual(src *string) bool {
+
+	if p.ReferenceAnswer == src {
+		return true
+	} else if p.ReferenceAnswer == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ReferenceAnswer, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field5DeepEqual(src *string) bool {
+
+	if p.OriginalAnswer == src {
+		return true
+	} else if p.OriginalAnswer == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.OriginalAnswer, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field6DeepEqual(src *string) bool {
+
+	if p.OptimizedAnswer == src {
+		return true
+	} else if p.OptimizedAnswer == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.OptimizedAnswer, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field7DeepEqual(src *float64) bool {
+
+	if p.OriginalScore == src {
+		return true
+	} else if p.OriginalScore == nil || src == nil {
+		return false
+	}
+	if *p.OriginalScore != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field8DeepEqual(src *float64) bool {
+
+	if p.OptimizedScore == src {
+		return true
+	} else if p.OptimizedScore == nil || src == nil {
+		return false
+	}
+	if *p.OptimizedScore != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field9DeepEqual(src map[string]float64) bool {
+
+	if len(p.OriginalEvaluatorScores) != len(src) {
+		return false
+	}
+	for k, v := range p.OriginalEvaluatorScores {
+		_src := src[k]
+		if v != _src {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field10DeepEqual(src map[string]float64) bool {
+
+	if len(p.OptimizedEvaluatorScores) != len(src) {
+		return false
+	}
+	for k, v := range p.OptimizedEvaluatorScores {
+		_src := src[k]
+		if v != _src {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field11DeepEqual(src map[string]string) bool {
+
+	if len(p.OriginalEvaluatorReasons) != len(src) {
+		return false
+	}
+	for k, v := range p.OriginalEvaluatorReasons {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field12DeepEqual(src map[string]string) bool {
+
+	if len(p.OptimizedEvaluatorReasons) != len(src) {
+		return false
+	}
+	for k, v := range p.OptimizedEvaluatorReasons {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationSampleEvaluation) Field13DeepEqual(src *string) bool {
+
+	if p.ErrorMessage == src {
+		return true
+	} else if p.ErrorMessage == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ErrorMessage, *src) != 0 {
+		return false
+	}
+	return true
+}
+
+type PromptOptimizationIteration struct {
+	Iteration               *int32                                `thrift:"iteration,1,optional" frugal:"1,optional,i32" form:"iteration" json:"iteration,omitempty" query:"iteration"`
+	CandidatePromptTemplate *prompt.PromptTemplate                `thrift:"candidate_prompt_template,2,optional" frugal:"2,optional,prompt.PromptTemplate" form:"candidate_prompt_template" json:"candidate_prompt_template,omitempty" query:"candidate_prompt_template"`
+	Rationale               *string                               `thrift:"rationale,3,optional" frugal:"3,optional,string" form:"rationale" json:"rationale,omitempty" query:"rationale"`
+	Metrics                 *PromptOptimizationMetrics            `thrift:"metrics,4,optional" frugal:"4,optional,PromptOptimizationMetrics" form:"metrics" json:"metrics,omitempty" query:"metrics"`
+	SampleResults           []*PromptOptimizationSampleEvaluation `thrift:"sample_results,5,optional" frugal:"5,optional,list<PromptOptimizationSampleEvaluation>" form:"sample_results" json:"sample_results,omitempty" query:"sample_results"`
+	CreatedAt               *int64                                `thrift:"created_at,6,optional" frugal:"6,optional,i64" json:"created_at" form:"created_at" query:"created_at"`
+}
+
+func NewPromptOptimizationIteration() *PromptOptimizationIteration {
+	return &PromptOptimizationIteration{}
+}
+
+func (p *PromptOptimizationIteration) InitDefault() {
+}
+
+var PromptOptimizationIteration_Iteration_DEFAULT int32
+
+func (p *PromptOptimizationIteration) GetIteration() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetIteration() {
+		return PromptOptimizationIteration_Iteration_DEFAULT
+	}
+	return *p.Iteration
+}
+
+var PromptOptimizationIteration_CandidatePromptTemplate_DEFAULT *prompt.PromptTemplate
+
+func (p *PromptOptimizationIteration) GetCandidatePromptTemplate() (v *prompt.PromptTemplate) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCandidatePromptTemplate() {
+		return PromptOptimizationIteration_CandidatePromptTemplate_DEFAULT
+	}
+	return p.CandidatePromptTemplate
+}
+
+var PromptOptimizationIteration_Rationale_DEFAULT string
+
+func (p *PromptOptimizationIteration) GetRationale() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetRationale() {
+		return PromptOptimizationIteration_Rationale_DEFAULT
+	}
+	return *p.Rationale
+}
+
+var PromptOptimizationIteration_Metrics_DEFAULT *PromptOptimizationMetrics
+
+func (p *PromptOptimizationIteration) GetMetrics() (v *PromptOptimizationMetrics) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetMetrics() {
+		return PromptOptimizationIteration_Metrics_DEFAULT
+	}
+	return p.Metrics
+}
+
+var PromptOptimizationIteration_SampleResults_DEFAULT []*PromptOptimizationSampleEvaluation
+
+func (p *PromptOptimizationIteration) GetSampleResults() (v []*PromptOptimizationSampleEvaluation) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSampleResults() {
+		return PromptOptimizationIteration_SampleResults_DEFAULT
+	}
+	return p.SampleResults
+}
+
+var PromptOptimizationIteration_CreatedAt_DEFAULT int64
+
+func (p *PromptOptimizationIteration) GetCreatedAt() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCreatedAt() {
+		return PromptOptimizationIteration_CreatedAt_DEFAULT
+	}
+	return *p.CreatedAt
+}
+func (p *PromptOptimizationIteration) SetIteration(val *int32) {
+	p.Iteration = val
+}
+func (p *PromptOptimizationIteration) SetCandidatePromptTemplate(val *prompt.PromptTemplate) {
+	p.CandidatePromptTemplate = val
+}
+func (p *PromptOptimizationIteration) SetRationale(val *string) {
+	p.Rationale = val
+}
+func (p *PromptOptimizationIteration) SetMetrics(val *PromptOptimizationMetrics) {
+	p.Metrics = val
+}
+func (p *PromptOptimizationIteration) SetSampleResults(val []*PromptOptimizationSampleEvaluation) {
+	p.SampleResults = val
+}
+func (p *PromptOptimizationIteration) SetCreatedAt(val *int64) {
+	p.CreatedAt = val
+}
+
+var fieldIDToName_PromptOptimizationIteration = map[int16]string{
+	1: "iteration",
+	2: "candidate_prompt_template",
+	3: "rationale",
+	4: "metrics",
+	5: "sample_results",
+	6: "created_at",
+}
+
+func (p *PromptOptimizationIteration) IsSetIteration() bool {
+	return p.Iteration != nil
+}
+
+func (p *PromptOptimizationIteration) IsSetCandidatePromptTemplate() bool {
+	return p.CandidatePromptTemplate != nil
+}
+
+func (p *PromptOptimizationIteration) IsSetRationale() bool {
+	return p.Rationale != nil
+}
+
+func (p *PromptOptimizationIteration) IsSetMetrics() bool {
+	return p.Metrics != nil
+}
+
+func (p *PromptOptimizationIteration) IsSetSampleResults() bool {
+	return p.SampleResults != nil
+}
+
+func (p *PromptOptimizationIteration) IsSetCreatedAt() bool {
+	return p.CreatedAt != nil
+}
+
+func (p *PromptOptimizationIteration) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationIteration[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationIteration) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Iteration = _field
+	return nil
+}
+func (p *PromptOptimizationIteration) ReadField2(iprot thrift.TProtocol) error {
+	_field := prompt.NewPromptTemplate()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.CandidatePromptTemplate = _field
+	return nil
+}
+func (p *PromptOptimizationIteration) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Rationale = _field
+	return nil
+}
+func (p *PromptOptimizationIteration) ReadField4(iprot thrift.TProtocol) error {
+	_field := NewPromptOptimizationMetrics()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Metrics = _field
+	return nil
+}
+func (p *PromptOptimizationIteration) ReadField5(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptOptimizationSampleEvaluation, 0, size)
+	values := make([]PromptOptimizationSampleEvaluation, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.SampleResults = _field
+	return nil
+}
+func (p *PromptOptimizationIteration) ReadField6(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.CreatedAt = _field
+	return nil
+}
+
+func (p *PromptOptimizationIteration) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptOptimizationIteration"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationIteration) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetIteration() {
+		if err = oprot.WriteFieldBegin("iteration", thrift.I32, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.Iteration); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptOptimizationIteration) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCandidatePromptTemplate() {
+		if err = oprot.WriteFieldBegin("candidate_prompt_template", thrift.STRUCT, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.CandidatePromptTemplate.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PromptOptimizationIteration) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetRationale() {
+		if err = oprot.WriteFieldBegin("rationale", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Rationale); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PromptOptimizationIteration) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetMetrics() {
+		if err = oprot.WriteFieldBegin("metrics", thrift.STRUCT, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Metrics.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *PromptOptimizationIteration) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSampleResults() {
+		if err = oprot.WriteFieldBegin("sample_results", thrift.LIST, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.SampleResults)); err != nil {
+			return err
+		}
+		for _, v := range p.SampleResults {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+func (p *PromptOptimizationIteration) writeField6(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCreatedAt() {
+		if err = oprot.WriteFieldBegin("created_at", thrift.I64, 6); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.CreatedAt); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+
+func (p *PromptOptimizationIteration) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptOptimizationIteration(%+v)", *p)
+
+}
+
+func (p *PromptOptimizationIteration) DeepEqual(ano *PromptOptimizationIteration) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Iteration) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.CandidatePromptTemplate) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Rationale) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Metrics) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.SampleResults) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.CreatedAt) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptOptimizationIteration) Field1DeepEqual(src *int32) bool {
+
+	if p.Iteration == src {
+		return true
+	} else if p.Iteration == nil || src == nil {
+		return false
+	}
+	if *p.Iteration != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationIteration) Field2DeepEqual(src *prompt.PromptTemplate) bool {
+
+	if !p.CandidatePromptTemplate.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationIteration) Field3DeepEqual(src *string) bool {
+
+	if p.Rationale == src {
+		return true
+	} else if p.Rationale == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Rationale, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationIteration) Field4DeepEqual(src *PromptOptimizationMetrics) bool {
+
+	if !p.Metrics.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationIteration) Field5DeepEqual(src []*PromptOptimizationSampleEvaluation) bool {
+
+	if len(p.SampleResults) != len(src) {
+		return false
+	}
+	for i, v := range p.SampleResults {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationIteration) Field6DeepEqual(src *int64) bool {
+
+	if p.CreatedAt == src {
+		return true
+	} else if p.CreatedAt == nil || src == nil {
+		return false
+	}
+	if *p.CreatedAt != *src {
+		return false
+	}
+	return true
+}
+
+type PromptOptimizationTask struct {
+	ID                      *int64                         `thrift:"id,1,optional" frugal:"1,optional,i64" json:"id" form:"id" query:"id"`
+	WorkspaceID             *int64                         `thrift:"workspace_id,2,optional" frugal:"2,optional,i64" json:"workspace_id" form:"workspace_id" query:"workspace_id"`
+	ExperimentID            *int64                         `thrift:"experiment_id,3,optional" frugal:"3,optional,i64" json:"experiment_id" form:"experiment_id" query:"experiment_id"`
+	Name                    *string                        `thrift:"name,4,optional" frugal:"4,optional,string" form:"name" json:"name,omitempty" query:"name"`
+	PromptID                *int64                         `thrift:"prompt_id,5,optional" frugal:"5,optional,i64" json:"prompt_id" form:"prompt_id" query:"prompt_id"`
+	PromptKey               *string                        `thrift:"prompt_key,6,optional" frugal:"6,optional,string" form:"prompt_key" json:"prompt_key,omitempty" query:"prompt_key"`
+	SourcePromptVersion     *string                        `thrift:"source_prompt_version,7,optional" frugal:"7,optional,string" form:"source_prompt_version" json:"source_prompt_version,omitempty" query:"source_prompt_version"`
+	Mode                    *PromptOptimizationMode        `thrift:"mode,8,optional" frugal:"8,optional,string" form:"mode" json:"mode,omitempty" query:"mode"`
+	Status                  *PromptOptimizationStatus      `thrift:"status,9,optional" frugal:"9,optional,string" form:"status" json:"status,omitempty" query:"status"`
+	Stage                   *PromptOptimizationStage       `thrift:"stage,10,optional" frugal:"10,optional,string" form:"stage" json:"stage,omitempty" query:"stage"`
+	Progress                *int32                         `thrift:"progress,11,optional" frugal:"11,optional,i32" form:"progress" json:"progress,omitempty" query:"progress"`
+	BaselineMetrics         *PromptOptimizationMetrics     `thrift:"baseline_metrics,12,optional" frugal:"12,optional,PromptOptimizationMetrics" form:"baseline_metrics" json:"baseline_metrics,omitempty" query:"baseline_metrics"`
+	BestMetrics             *PromptOptimizationMetrics     `thrift:"best_metrics,13,optional" frugal:"13,optional,PromptOptimizationMetrics" form:"best_metrics" json:"best_metrics,omitempty" query:"best_metrics"`
+	OriginalPromptTemplate  *prompt.PromptTemplate         `thrift:"original_prompt_template,14,optional" frugal:"14,optional,prompt.PromptTemplate" form:"original_prompt_template" json:"original_prompt_template,omitempty" query:"original_prompt_template"`
+	OptimizedPromptTemplate *prompt.PromptTemplate         `thrift:"optimized_prompt_template,15,optional" frugal:"15,optional,prompt.PromptTemplate" form:"optimized_prompt_template" json:"optimized_prompt_template,omitempty" query:"optimized_prompt_template"`
+	Iterations              []*PromptOptimizationIteration `thrift:"iterations,16,optional" frugal:"16,optional,list<PromptOptimizationIteration>" form:"iterations" json:"iterations,omitempty" query:"iterations"`
+	ErrorMessage            *string                        `thrift:"error_message,17,optional" frugal:"17,optional,string" form:"error_message" json:"error_message,omitempty" query:"error_message"`
+	CreatedBy               *string                        `thrift:"created_by,18,optional" frugal:"18,optional,string" form:"created_by" json:"created_by,omitempty" query:"created_by"`
+	CreatedAt               *int64                         `thrift:"created_at,19,optional" frugal:"19,optional,i64" json:"created_at" form:"created_at" query:"created_at"`
+	UpdatedAt               *int64                         `thrift:"updated_at,20,optional" frugal:"20,optional,i64" json:"updated_at" form:"updated_at" query:"updated_at"`
+	StartedAt               *int64                         `thrift:"started_at,21,optional" frugal:"21,optional,i64" json:"started_at" form:"started_at" query:"started_at"`
+	EndedAt                 *int64                         `thrift:"ended_at,22,optional" frugal:"22,optional,i64" json:"ended_at" form:"ended_at" query:"ended_at"`
+	AppliedToDraft          *bool                          `thrift:"applied_to_draft,23,optional" frugal:"23,optional,bool" form:"applied_to_draft" json:"applied_to_draft,omitempty" query:"applied_to_draft"`
+	AppliedAt               *int64                         `thrift:"applied_at,24,optional" frugal:"24,optional,i64" json:"applied_at" form:"applied_at" query:"applied_at"`
+}
+
+func NewPromptOptimizationTask() *PromptOptimizationTask {
+	return &PromptOptimizationTask{}
+}
+
+func (p *PromptOptimizationTask) InitDefault() {
+}
+
+var PromptOptimizationTask_ID_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetID() {
+		return PromptOptimizationTask_ID_DEFAULT
+	}
+	return *p.ID
+}
+
+var PromptOptimizationTask_WorkspaceID_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetWorkspaceID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetWorkspaceID() {
+		return PromptOptimizationTask_WorkspaceID_DEFAULT
+	}
+	return *p.WorkspaceID
+}
+
+var PromptOptimizationTask_ExperimentID_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetExperimentID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetExperimentID() {
+		return PromptOptimizationTask_ExperimentID_DEFAULT
+	}
+	return *p.ExperimentID
+}
+
+var PromptOptimizationTask_Name_DEFAULT string
+
+func (p *PromptOptimizationTask) GetName() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetName() {
+		return PromptOptimizationTask_Name_DEFAULT
+	}
+	return *p.Name
+}
+
+var PromptOptimizationTask_PromptID_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetPromptID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptID() {
+		return PromptOptimizationTask_PromptID_DEFAULT
+	}
+	return *p.PromptID
+}
+
+var PromptOptimizationTask_PromptKey_DEFAULT string
+
+func (p *PromptOptimizationTask) GetPromptKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptKey() {
+		return PromptOptimizationTask_PromptKey_DEFAULT
+	}
+	return *p.PromptKey
+}
+
+var PromptOptimizationTask_SourcePromptVersion_DEFAULT string
+
+func (p *PromptOptimizationTask) GetSourcePromptVersion() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSourcePromptVersion() {
+		return PromptOptimizationTask_SourcePromptVersion_DEFAULT
+	}
+	return *p.SourcePromptVersion
+}
+
+var PromptOptimizationTask_Mode_DEFAULT PromptOptimizationMode
+
+func (p *PromptOptimizationTask) GetMode() (v PromptOptimizationMode) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetMode() {
+		return PromptOptimizationTask_Mode_DEFAULT
+	}
+	return *p.Mode
+}
+
+var PromptOptimizationTask_Status_DEFAULT PromptOptimizationStatus
+
+func (p *PromptOptimizationTask) GetStatus() (v PromptOptimizationStatus) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetStatus() {
+		return PromptOptimizationTask_Status_DEFAULT
+	}
+	return *p.Status
+}
+
+var PromptOptimizationTask_Stage_DEFAULT PromptOptimizationStage
+
+func (p *PromptOptimizationTask) GetStage() (v PromptOptimizationStage) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetStage() {
+		return PromptOptimizationTask_Stage_DEFAULT
+	}
+	return *p.Stage
+}
+
+var PromptOptimizationTask_Progress_DEFAULT int32
+
+func (p *PromptOptimizationTask) GetProgress() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetProgress() {
+		return PromptOptimizationTask_Progress_DEFAULT
+	}
+	return *p.Progress
+}
+
+var PromptOptimizationTask_BaselineMetrics_DEFAULT *PromptOptimizationMetrics
+
+func (p *PromptOptimizationTask) GetBaselineMetrics() (v *PromptOptimizationMetrics) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaselineMetrics() {
+		return PromptOptimizationTask_BaselineMetrics_DEFAULT
+	}
+	return p.BaselineMetrics
+}
+
+var PromptOptimizationTask_BestMetrics_DEFAULT *PromptOptimizationMetrics
+
+func (p *PromptOptimizationTask) GetBestMetrics() (v *PromptOptimizationMetrics) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBestMetrics() {
+		return PromptOptimizationTask_BestMetrics_DEFAULT
+	}
+	return p.BestMetrics
+}
+
+var PromptOptimizationTask_OriginalPromptTemplate_DEFAULT *prompt.PromptTemplate
+
+func (p *PromptOptimizationTask) GetOriginalPromptTemplate() (v *prompt.PromptTemplate) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOriginalPromptTemplate() {
+		return PromptOptimizationTask_OriginalPromptTemplate_DEFAULT
+	}
+	return p.OriginalPromptTemplate
+}
+
+var PromptOptimizationTask_OptimizedPromptTemplate_DEFAULT *prompt.PromptTemplate
+
+func (p *PromptOptimizationTask) GetOptimizedPromptTemplate() (v *prompt.PromptTemplate) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOptimizedPromptTemplate() {
+		return PromptOptimizationTask_OptimizedPromptTemplate_DEFAULT
+	}
+	return p.OptimizedPromptTemplate
+}
+
+var PromptOptimizationTask_Iterations_DEFAULT []*PromptOptimizationIteration
+
+func (p *PromptOptimizationTask) GetIterations() (v []*PromptOptimizationIteration) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetIterations() {
+		return PromptOptimizationTask_Iterations_DEFAULT
+	}
+	return p.Iterations
+}
+
+var PromptOptimizationTask_ErrorMessage_DEFAULT string
+
+func (p *PromptOptimizationTask) GetErrorMessage() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetErrorMessage() {
+		return PromptOptimizationTask_ErrorMessage_DEFAULT
+	}
+	return *p.ErrorMessage
+}
+
+var PromptOptimizationTask_CreatedBy_DEFAULT string
+
+func (p *PromptOptimizationTask) GetCreatedBy() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCreatedBy() {
+		return PromptOptimizationTask_CreatedBy_DEFAULT
+	}
+	return *p.CreatedBy
+}
+
+var PromptOptimizationTask_CreatedAt_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetCreatedAt() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetCreatedAt() {
+		return PromptOptimizationTask_CreatedAt_DEFAULT
+	}
+	return *p.CreatedAt
+}
+
+var PromptOptimizationTask_UpdatedAt_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetUpdatedAt() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetUpdatedAt() {
+		return PromptOptimizationTask_UpdatedAt_DEFAULT
+	}
+	return *p.UpdatedAt
+}
+
+var PromptOptimizationTask_StartedAt_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetStartedAt() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetStartedAt() {
+		return PromptOptimizationTask_StartedAt_DEFAULT
+	}
+	return *p.StartedAt
+}
+
+var PromptOptimizationTask_EndedAt_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetEndedAt() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetEndedAt() {
+		return PromptOptimizationTask_EndedAt_DEFAULT
+	}
+	return *p.EndedAt
+}
+
+var PromptOptimizationTask_AppliedToDraft_DEFAULT bool
+
+func (p *PromptOptimizationTask) GetAppliedToDraft() (v bool) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetAppliedToDraft() {
+		return PromptOptimizationTask_AppliedToDraft_DEFAULT
+	}
+	return *p.AppliedToDraft
+}
+
+var PromptOptimizationTask_AppliedAt_DEFAULT int64
+
+func (p *PromptOptimizationTask) GetAppliedAt() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetAppliedAt() {
+		return PromptOptimizationTask_AppliedAt_DEFAULT
+	}
+	return *p.AppliedAt
+}
+func (p *PromptOptimizationTask) SetID(val *int64) {
+	p.ID = val
+}
+func (p *PromptOptimizationTask) SetWorkspaceID(val *int64) {
+	p.WorkspaceID = val
+}
+func (p *PromptOptimizationTask) SetExperimentID(val *int64) {
+	p.ExperimentID = val
+}
+func (p *PromptOptimizationTask) SetName(val *string) {
+	p.Name = val
+}
+func (p *PromptOptimizationTask) SetPromptID(val *int64) {
+	p.PromptID = val
+}
+func (p *PromptOptimizationTask) SetPromptKey(val *string) {
+	p.PromptKey = val
+}
+func (p *PromptOptimizationTask) SetSourcePromptVersion(val *string) {
+	p.SourcePromptVersion = val
+}
+func (p *PromptOptimizationTask) SetMode(val *PromptOptimizationMode) {
+	p.Mode = val
+}
+func (p *PromptOptimizationTask) SetStatus(val *PromptOptimizationStatus) {
+	p.Status = val
+}
+func (p *PromptOptimizationTask) SetStage(val *PromptOptimizationStage) {
+	p.Stage = val
+}
+func (p *PromptOptimizationTask) SetProgress(val *int32) {
+	p.Progress = val
+}
+func (p *PromptOptimizationTask) SetBaselineMetrics(val *PromptOptimizationMetrics) {
+	p.BaselineMetrics = val
+}
+func (p *PromptOptimizationTask) SetBestMetrics(val *PromptOptimizationMetrics) {
+	p.BestMetrics = val
+}
+func (p *PromptOptimizationTask) SetOriginalPromptTemplate(val *prompt.PromptTemplate) {
+	p.OriginalPromptTemplate = val
+}
+func (p *PromptOptimizationTask) SetOptimizedPromptTemplate(val *prompt.PromptTemplate) {
+	p.OptimizedPromptTemplate = val
+}
+func (p *PromptOptimizationTask) SetIterations(val []*PromptOptimizationIteration) {
+	p.Iterations = val
+}
+func (p *PromptOptimizationTask) SetErrorMessage(val *string) {
+	p.ErrorMessage = val
+}
+func (p *PromptOptimizationTask) SetCreatedBy(val *string) {
+	p.CreatedBy = val
+}
+func (p *PromptOptimizationTask) SetCreatedAt(val *int64) {
+	p.CreatedAt = val
+}
+func (p *PromptOptimizationTask) SetUpdatedAt(val *int64) {
+	p.UpdatedAt = val
+}
+func (p *PromptOptimizationTask) SetStartedAt(val *int64) {
+	p.StartedAt = val
+}
+func (p *PromptOptimizationTask) SetEndedAt(val *int64) {
+	p.EndedAt = val
+}
+func (p *PromptOptimizationTask) SetAppliedToDraft(val *bool) {
+	p.AppliedToDraft = val
+}
+func (p *PromptOptimizationTask) SetAppliedAt(val *int64) {
+	p.AppliedAt = val
+}
+
+var fieldIDToName_PromptOptimizationTask = map[int16]string{
+	1:  "id",
+	2:  "workspace_id",
+	3:  "experiment_id",
+	4:  "name",
+	5:  "prompt_id",
+	6:  "prompt_key",
+	7:  "source_prompt_version",
+	8:  "mode",
+	9:  "status",
+	10: "stage",
+	11: "progress",
+	12: "baseline_metrics",
+	13: "best_metrics",
+	14: "original_prompt_template",
+	15: "optimized_prompt_template",
+	16: "iterations",
+	17: "error_message",
+	18: "created_by",
+	19: "created_at",
+	20: "updated_at",
+	21: "started_at",
+	22: "ended_at",
+	23: "applied_to_draft",
+	24: "applied_at",
+}
+
+func (p *PromptOptimizationTask) IsSetID() bool {
+	return p.ID != nil
+}
+
+func (p *PromptOptimizationTask) IsSetWorkspaceID() bool {
+	return p.WorkspaceID != nil
+}
+
+func (p *PromptOptimizationTask) IsSetExperimentID() bool {
+	return p.ExperimentID != nil
+}
+
+func (p *PromptOptimizationTask) IsSetName() bool {
+	return p.Name != nil
+}
+
+func (p *PromptOptimizationTask) IsSetPromptID() bool {
+	return p.PromptID != nil
+}
+
+func (p *PromptOptimizationTask) IsSetPromptKey() bool {
+	return p.PromptKey != nil
+}
+
+func (p *PromptOptimizationTask) IsSetSourcePromptVersion() bool {
+	return p.SourcePromptVersion != nil
+}
+
+func (p *PromptOptimizationTask) IsSetMode() bool {
+	return p.Mode != nil
+}
+
+func (p *PromptOptimizationTask) IsSetStatus() bool {
+	return p.Status != nil
+}
+
+func (p *PromptOptimizationTask) IsSetStage() bool {
+	return p.Stage != nil
+}
+
+func (p *PromptOptimizationTask) IsSetProgress() bool {
+	return p.Progress != nil
+}
+
+func (p *PromptOptimizationTask) IsSetBaselineMetrics() bool {
+	return p.BaselineMetrics != nil
+}
+
+func (p *PromptOptimizationTask) IsSetBestMetrics() bool {
+	return p.BestMetrics != nil
+}
+
+func (p *PromptOptimizationTask) IsSetOriginalPromptTemplate() bool {
+	return p.OriginalPromptTemplate != nil
+}
+
+func (p *PromptOptimizationTask) IsSetOptimizedPromptTemplate() bool {
+	return p.OptimizedPromptTemplate != nil
+}
+
+func (p *PromptOptimizationTask) IsSetIterations() bool {
+	return p.Iterations != nil
+}
+
+func (p *PromptOptimizationTask) IsSetErrorMessage() bool {
+	return p.ErrorMessage != nil
+}
+
+func (p *PromptOptimizationTask) IsSetCreatedBy() bool {
+	return p.CreatedBy != nil
+}
+
+func (p *PromptOptimizationTask) IsSetCreatedAt() bool {
+	return p.CreatedAt != nil
+}
+
+func (p *PromptOptimizationTask) IsSetUpdatedAt() bool {
+	return p.UpdatedAt != nil
+}
+
+func (p *PromptOptimizationTask) IsSetStartedAt() bool {
+	return p.StartedAt != nil
+}
+
+func (p *PromptOptimizationTask) IsSetEndedAt() bool {
+	return p.EndedAt != nil
+}
+
+func (p *PromptOptimizationTask) IsSetAppliedToDraft() bool {
+	return p.AppliedToDraft != nil
+}
+
+func (p *PromptOptimizationTask) IsSetAppliedAt() bool {
+	return p.AppliedAt != nil
+}
+
+func (p *PromptOptimizationTask) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 8:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField8(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 9:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField9(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 10:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 11:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 12:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField12(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 13:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField13(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 14:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField14(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 15:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField15(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 16:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField16(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 17:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField17(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 18:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField18(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 19:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField19(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 20:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField20(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 21:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField21(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 22:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField22(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 23:
+			if fieldTypeId == thrift.BOOL {
+				if err = p.ReadField23(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 24:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField24(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationTask[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationTask) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ID = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ExperimentID = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Name = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptID = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField6(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptKey = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.SourcePromptVersion = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField8(iprot thrift.TProtocol) error {
+
+	var _field *PromptOptimizationMode
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Mode = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField9(iprot thrift.TProtocol) error {
+
+	var _field *PromptOptimizationStatus
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Status = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField10(iprot thrift.TProtocol) error {
+
+	var _field *PromptOptimizationStage
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Stage = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField11(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Progress = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField12(iprot thrift.TProtocol) error {
+	_field := NewPromptOptimizationMetrics()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaselineMetrics = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField13(iprot thrift.TProtocol) error {
+	_field := NewPromptOptimizationMetrics()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BestMetrics = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField14(iprot thrift.TProtocol) error {
+	_field := prompt.NewPromptTemplate()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.OriginalPromptTemplate = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField15(iprot thrift.TProtocol) error {
+	_field := prompt.NewPromptTemplate()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.OptimizedPromptTemplate = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField16(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptOptimizationIteration, 0, size)
+	values := make([]PromptOptimizationIteration, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Iterations = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField17(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ErrorMessage = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField18(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.CreatedBy = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField19(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.CreatedAt = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField20(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.UpdatedAt = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField21(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.StartedAt = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField22(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.EndedAt = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField23(iprot thrift.TProtocol) error {
+
+	var _field *bool
+	if v, err := iprot.ReadBool(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.AppliedToDraft = _field
+	return nil
+}
+func (p *PromptOptimizationTask) ReadField24(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.AppliedAt = _field
+	return nil
+}
+
+func (p *PromptOptimizationTask) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PromptOptimizationTask"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
+			goto WriteFieldError
+		}
+		if err = p.writeField8(oprot); err != nil {
+			fieldId = 8
+			goto WriteFieldError
+		}
+		if err = p.writeField9(oprot); err != nil {
+			fieldId = 9
+			goto WriteFieldError
+		}
+		if err = p.writeField10(oprot); err != nil {
+			fieldId = 10
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+		if err = p.writeField12(oprot); err != nil {
+			fieldId = 12
+			goto WriteFieldError
+		}
+		if err = p.writeField13(oprot); err != nil {
+			fieldId = 13
+			goto WriteFieldError
+		}
+		if err = p.writeField14(oprot); err != nil {
+			fieldId = 14
+			goto WriteFieldError
+		}
+		if err = p.writeField15(oprot); err != nil {
+			fieldId = 15
+			goto WriteFieldError
+		}
+		if err = p.writeField16(oprot); err != nil {
+			fieldId = 16
+			goto WriteFieldError
+		}
+		if err = p.writeField17(oprot); err != nil {
+			fieldId = 17
+			goto WriteFieldError
+		}
+		if err = p.writeField18(oprot); err != nil {
+			fieldId = 18
+			goto WriteFieldError
+		}
+		if err = p.writeField19(oprot); err != nil {
+			fieldId = 19
+			goto WriteFieldError
+		}
+		if err = p.writeField20(oprot); err != nil {
+			fieldId = 20
+			goto WriteFieldError
+		}
+		if err = p.writeField21(oprot); err != nil {
+			fieldId = 21
+			goto WriteFieldError
+		}
+		if err = p.writeField22(oprot); err != nil {
+			fieldId = 22
+			goto WriteFieldError
+		}
+		if err = p.writeField23(oprot); err != nil {
+			fieldId = 23
+			goto WriteFieldError
+		}
+		if err = p.writeField24(oprot); err != nil {
+			fieldId = 24
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PromptOptimizationTask) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetID() {
+		if err = oprot.WriteFieldBegin("id", thrift.I64, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.ID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetWorkspaceID() {
+		if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.WorkspaceID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetExperimentID() {
+		if err = oprot.WriteFieldBegin("experiment_id", thrift.I64, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.ExperimentID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetName() {
+		if err = oprot.WriteFieldBegin("name", thrift.STRING, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Name); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptID() {
+		if err = oprot.WriteFieldBegin("prompt_id", thrift.I64, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.PromptID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField6(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptKey() {
+		if err = oprot.WriteFieldBegin("prompt_key", thrift.STRING, 6); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.PromptKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSourcePromptVersion() {
+		if err = oprot.WriteFieldBegin("source_prompt_version", thrift.STRING, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.SourcePromptVersion); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField8(oprot thrift.TProtocol) (err error) {
+	if p.IsSetMode() {
+		if err = oprot.WriteFieldBegin("mode", thrift.STRING, 8); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Mode); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField9(oprot thrift.TProtocol) (err error) {
+	if p.IsSetStatus() {
+		if err = oprot.WriteFieldBegin("status", thrift.STRING, 9); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Status); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField10(oprot thrift.TProtocol) (err error) {
+	if p.IsSetStage() {
+		if err = oprot.WriteFieldBegin("stage", thrift.STRING, 10); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Stage); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetProgress() {
+		if err = oprot.WriteFieldBegin("progress", thrift.I32, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.Progress); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField12(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBaselineMetrics() {
+		if err = oprot.WriteFieldBegin("baseline_metrics", thrift.STRUCT, 12); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.BaselineMetrics.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField13(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBestMetrics() {
+		if err = oprot.WriteFieldBegin("best_metrics", thrift.STRUCT, 13); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.BestMetrics.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField14(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOriginalPromptTemplate() {
+		if err = oprot.WriteFieldBegin("original_prompt_template", thrift.STRUCT, 14); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.OriginalPromptTemplate.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 14 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 14 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField15(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOptimizedPromptTemplate() {
+		if err = oprot.WriteFieldBegin("optimized_prompt_template", thrift.STRUCT, 15); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.OptimizedPromptTemplate.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 15 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 15 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField16(oprot thrift.TProtocol) (err error) {
+	if p.IsSetIterations() {
+		if err = oprot.WriteFieldBegin("iterations", thrift.LIST, 16); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Iterations)); err != nil {
+			return err
+		}
+		for _, v := range p.Iterations {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 16 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 16 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField17(oprot thrift.TProtocol) (err error) {
+	if p.IsSetErrorMessage() {
+		if err = oprot.WriteFieldBegin("error_message", thrift.STRING, 17); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ErrorMessage); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 17 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 17 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField18(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCreatedBy() {
+		if err = oprot.WriteFieldBegin("created_by", thrift.STRING, 18); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.CreatedBy); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 18 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 18 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField19(oprot thrift.TProtocol) (err error) {
+	if p.IsSetCreatedAt() {
+		if err = oprot.WriteFieldBegin("created_at", thrift.I64, 19); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.CreatedAt); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 19 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 19 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField20(oprot thrift.TProtocol) (err error) {
+	if p.IsSetUpdatedAt() {
+		if err = oprot.WriteFieldBegin("updated_at", thrift.I64, 20); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.UpdatedAt); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 20 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 20 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField21(oprot thrift.TProtocol) (err error) {
+	if p.IsSetStartedAt() {
+		if err = oprot.WriteFieldBegin("started_at", thrift.I64, 21); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.StartedAt); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 21 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 21 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField22(oprot thrift.TProtocol) (err error) {
+	if p.IsSetEndedAt() {
+		if err = oprot.WriteFieldBegin("ended_at", thrift.I64, 22); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.EndedAt); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 22 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 22 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField23(oprot thrift.TProtocol) (err error) {
+	if p.IsSetAppliedToDraft() {
+		if err = oprot.WriteFieldBegin("applied_to_draft", thrift.BOOL, 23); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBool(*p.AppliedToDraft); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 23 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 23 end error: ", p), err)
+}
+func (p *PromptOptimizationTask) writeField24(oprot thrift.TProtocol) (err error) {
+	if p.IsSetAppliedAt() {
+		if err = oprot.WriteFieldBegin("applied_at", thrift.I64, 24); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.AppliedAt); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 24 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 24 end error: ", p), err)
+}
+
+func (p *PromptOptimizationTask) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PromptOptimizationTask(%+v)", *p)
+
+}
+
+func (p *PromptOptimizationTask) DeepEqual(ano *PromptOptimizationTask) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.ID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.ExperimentID) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Name) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.PromptID) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.PromptKey) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.SourcePromptVersion) {
+		return false
+	}
+	if !p.Field8DeepEqual(ano.Mode) {
+		return false
+	}
+	if !p.Field9DeepEqual(ano.Status) {
+		return false
+	}
+	if !p.Field10DeepEqual(ano.Stage) {
+		return false
+	}
+	if !p.Field11DeepEqual(ano.Progress) {
+		return false
+	}
+	if !p.Field12DeepEqual(ano.BaselineMetrics) {
+		return false
+	}
+	if !p.Field13DeepEqual(ano.BestMetrics) {
+		return false
+	}
+	if !p.Field14DeepEqual(ano.OriginalPromptTemplate) {
+		return false
+	}
+	if !p.Field15DeepEqual(ano.OptimizedPromptTemplate) {
+		return false
+	}
+	if !p.Field16DeepEqual(ano.Iterations) {
+		return false
+	}
+	if !p.Field17DeepEqual(ano.ErrorMessage) {
+		return false
+	}
+	if !p.Field18DeepEqual(ano.CreatedBy) {
+		return false
+	}
+	if !p.Field19DeepEqual(ano.CreatedAt) {
+		return false
+	}
+	if !p.Field20DeepEqual(ano.UpdatedAt) {
+		return false
+	}
+	if !p.Field21DeepEqual(ano.StartedAt) {
+		return false
+	}
+	if !p.Field22DeepEqual(ano.EndedAt) {
+		return false
+	}
+	if !p.Field23DeepEqual(ano.AppliedToDraft) {
+		return false
+	}
+	if !p.Field24DeepEqual(ano.AppliedAt) {
+		return false
+	}
+	return true
+}
+
+func (p *PromptOptimizationTask) Field1DeepEqual(src *int64) bool {
+
+	if p.ID == src {
+		return true
+	} else if p.ID == nil || src == nil {
+		return false
+	}
+	if *p.ID != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field2DeepEqual(src *int64) bool {
+
+	if p.WorkspaceID == src {
+		return true
+	} else if p.WorkspaceID == nil || src == nil {
+		return false
+	}
+	if *p.WorkspaceID != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field3DeepEqual(src *int64) bool {
+
+	if p.ExperimentID == src {
+		return true
+	} else if p.ExperimentID == nil || src == nil {
+		return false
+	}
+	if *p.ExperimentID != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field4DeepEqual(src *string) bool {
+
+	if p.Name == src {
+		return true
+	} else if p.Name == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Name, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field5DeepEqual(src *int64) bool {
+
+	if p.PromptID == src {
+		return true
+	} else if p.PromptID == nil || src == nil {
+		return false
+	}
+	if *p.PromptID != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field6DeepEqual(src *string) bool {
+
+	if p.PromptKey == src {
+		return true
+	} else if p.PromptKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.PromptKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field7DeepEqual(src *string) bool {
+
+	if p.SourcePromptVersion == src {
+		return true
+	} else if p.SourcePromptVersion == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.SourcePromptVersion, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field8DeepEqual(src *PromptOptimizationMode) bool {
+
+	if p.Mode == src {
+		return true
+	} else if p.Mode == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Mode, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field9DeepEqual(src *PromptOptimizationStatus) bool {
+
+	if p.Status == src {
+		return true
+	} else if p.Status == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Status, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field10DeepEqual(src *PromptOptimizationStage) bool {
+
+	if p.Stage == src {
+		return true
+	} else if p.Stage == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Stage, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field11DeepEqual(src *int32) bool {
+
+	if p.Progress == src {
+		return true
+	} else if p.Progress == nil || src == nil {
+		return false
+	}
+	if *p.Progress != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field12DeepEqual(src *PromptOptimizationMetrics) bool {
+
+	if !p.BaselineMetrics.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field13DeepEqual(src *PromptOptimizationMetrics) bool {
+
+	if !p.BestMetrics.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field14DeepEqual(src *prompt.PromptTemplate) bool {
+
+	if !p.OriginalPromptTemplate.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field15DeepEqual(src *prompt.PromptTemplate) bool {
+
+	if !p.OptimizedPromptTemplate.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field16DeepEqual(src []*PromptOptimizationIteration) bool {
+
+	if len(p.Iterations) != len(src) {
+		return false
+	}
+	for i, v := range p.Iterations {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field17DeepEqual(src *string) bool {
+
+	if p.ErrorMessage == src {
+		return true
+	} else if p.ErrorMessage == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ErrorMessage, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field18DeepEqual(src *string) bool {
+
+	if p.CreatedBy == src {
+		return true
+	} else if p.CreatedBy == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.CreatedBy, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field19DeepEqual(src *int64) bool {
+
+	if p.CreatedAt == src {
+		return true
+	} else if p.CreatedAt == nil || src == nil {
+		return false
+	}
+	if *p.CreatedAt != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field20DeepEqual(src *int64) bool {
+
+	if p.UpdatedAt == src {
+		return true
+	} else if p.UpdatedAt == nil || src == nil {
+		return false
+	}
+	if *p.UpdatedAt != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field21DeepEqual(src *int64) bool {
+
+	if p.StartedAt == src {
+		return true
+	} else if p.StartedAt == nil || src == nil {
+		return false
+	}
+	if *p.StartedAt != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field22DeepEqual(src *int64) bool {
+
+	if p.EndedAt == src {
+		return true
+	} else if p.EndedAt == nil || src == nil {
+		return false
+	}
+	if *p.EndedAt != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field23DeepEqual(src *bool) bool {
+
+	if p.AppliedToDraft == src {
+		return true
+	} else if p.AppliedToDraft == nil || src == nil {
+		return false
+	}
+	if *p.AppliedToDraft != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizationTask) Field24DeepEqual(src *int64) bool {
+
+	if p.AppliedAt == src {
+		return true
+	} else if p.AppliedAt == nil || src == nil {
+		return false
+	}
+	if *p.AppliedAt != *src {
+		return false
+	}
+	return true
+}
+
+type PreparePromptOptimizationRequest struct {
+	WorkspaceID int64 `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" query:"workspace_id,required" `
+	ExptID      int64 `thrift:"expt_id,2,required" frugal:"2,required,i64" json:"expt_id" path:"expt_id,required" `
+}
+
+func NewPreparePromptOptimizationRequest() *PreparePromptOptimizationRequest {
+	return &PreparePromptOptimizationRequest{}
+}
+
+func (p *PreparePromptOptimizationRequest) InitDefault() {
+}
+
+func (p *PreparePromptOptimizationRequest) GetWorkspaceID() (v int64) {
+	if p != nil {
+		return p.WorkspaceID
+	}
+	return
+}
+
+func (p *PreparePromptOptimizationRequest) GetExptID() (v int64) {
+	if p != nil {
+		return p.ExptID
+	}
+	return
+}
+func (p *PreparePromptOptimizationRequest) SetWorkspaceID(val int64) {
+	p.WorkspaceID = val
+}
+func (p *PreparePromptOptimizationRequest) SetExptID(val int64) {
+	p.ExptID = val
+}
+
+var fieldIDToName_PreparePromptOptimizationRequest = map[int16]string{
+	1: "workspace_id",
+	2: "expt_id",
+}
+
+func (p *PreparePromptOptimizationRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetExptID bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetExptID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetExptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PreparePromptOptimizationRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_PreparePromptOptimizationRequest[fieldId]))
+}
+
+func (p *PreparePromptOptimizationRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *PreparePromptOptimizationRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ExptID = _field
+	return nil
+}
+
+func (p *PreparePromptOptimizationRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PreparePromptOptimizationRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PreparePromptOptimizationRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.WorkspaceID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("expt_id", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.ExptID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *PreparePromptOptimizationRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PreparePromptOptimizationRequest(%+v)", *p)
+
+}
+
+func (p *PreparePromptOptimizationRequest) DeepEqual(ano *PreparePromptOptimizationRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ExptID) {
+		return false
+	}
+	return true
+}
+
+func (p *PreparePromptOptimizationRequest) Field1DeepEqual(src int64) bool {
+
+	if p.WorkspaceID != src {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationRequest) Field2DeepEqual(src int64) bool {
+
+	if p.ExptID != src {
+		return false
+	}
+	return true
+}
+
+type PreparePromptOptimizationResponse struct {
+	Eligible                      *bool                           `thrift:"eligible,1,optional" frugal:"1,optional,bool" form:"eligible" json:"eligible,omitempty" query:"eligible"`
+	IneligibleReason              *string                         `thrift:"ineligible_reason,2,optional" frugal:"2,optional,string" form:"ineligible_reason" json:"ineligible_reason,omitempty" query:"ineligible_reason"`
+	ExperimentID                  *int64                          `thrift:"experiment_id,3,optional" frugal:"3,optional,i64" json:"experiment_id" form:"experiment_id" query:"experiment_id"`
+	ExperimentName                *string                         `thrift:"experiment_name,4,optional" frugal:"4,optional,string" form:"experiment_name" json:"experiment_name,omitempty" query:"experiment_name"`
+	PromptID                      *int64                          `thrift:"prompt_id,5,optional" frugal:"5,optional,i64" json:"prompt_id" form:"prompt_id" query:"prompt_id"`
+	PromptKey                     *string                         `thrift:"prompt_key,6,optional" frugal:"6,optional,string" form:"prompt_key" json:"prompt_key,omitempty" query:"prompt_key"`
+	PromptName                    *string                         `thrift:"prompt_name,7,optional" frugal:"7,optional,string" form:"prompt_name" json:"prompt_name,omitempty" query:"prompt_name"`
+	SourcePromptVersion           *string                         `thrift:"source_prompt_version,8,optional" frugal:"8,optional,string" form:"source_prompt_version" json:"source_prompt_version,omitempty" query:"source_prompt_version"`
+	PromptVariables               []*PromptOptimizationVariable   `thrift:"prompt_variables,9,optional" frugal:"9,optional,list<PromptOptimizationVariable>" form:"prompt_variables" json:"prompt_variables,omitempty" query:"prompt_variables"`
+	DatasetFields                 []string                        `thrift:"dataset_fields,10,optional" frugal:"10,optional,list<string>" form:"dataset_fields" json:"dataset_fields,omitempty" query:"dataset_fields"`
+	TargetOutputFields            []string                        `thrift:"target_output_fields,11,optional" frugal:"11,optional,list<string>" form:"target_output_fields" json:"target_output_fields,omitempty" query:"target_output_fields"`
+	Evaluators                    []*evaluator.Evaluator          `thrift:"evaluators,12,optional" frugal:"12,optional,list<evaluator.Evaluator>" form:"evaluators" json:"evaluators,omitempty" query:"evaluators"`
+	SuggestedVariableMappings     map[string]string               `thrift:"suggested_variable_mappings,13,optional" frugal:"13,optional,map<string:string>" form:"suggested_variable_mappings" json:"suggested_variable_mappings,omitempty" query:"suggested_variable_mappings"`
+	SuggestedModelAnswerField     *string                         `thrift:"suggested_model_answer_field,14,optional" frugal:"14,optional,string" form:"suggested_model_answer_field" json:"suggested_model_answer_field,omitempty" query:"suggested_model_answer_field"`
+	SuggestedReferenceAnswerField *string                         `thrift:"suggested_reference_answer_field,15,optional" frugal:"15,optional,string" form:"suggested_reference_answer_field" json:"suggested_reference_answer_field,omitempty" query:"suggested_reference_answer_field"`
+	ModeOptions                   []*PromptOptimizationModeOption `thrift:"mode_options,16,optional" frugal:"16,optional,list<PromptOptimizationModeOption>" form:"mode_options" json:"mode_options,omitempty" query:"mode_options"`
+	MaxSampleCount                *int32                          `thrift:"max_sample_count,17,optional" frugal:"17,optional,i32" form:"max_sample_count" json:"max_sample_count,omitempty" query:"max_sample_count"`
+	DefaultSampleCount            *int32                          `thrift:"default_sample_count,18,optional" frugal:"18,optional,i32" form:"default_sample_count" json:"default_sample_count,omitempty" query:"default_sample_count"`
+	BaseResp                      *base.BaseResp                  `thrift:"BaseResp,255" frugal:"255,default,base.BaseResp" form:"BaseResp" json:"BaseResp" query:"BaseResp"`
+}
+
+func NewPreparePromptOptimizationResponse() *PreparePromptOptimizationResponse {
+	return &PreparePromptOptimizationResponse{}
+}
+
+func (p *PreparePromptOptimizationResponse) InitDefault() {
+}
+
+var PreparePromptOptimizationResponse_Eligible_DEFAULT bool
+
+func (p *PreparePromptOptimizationResponse) GetEligible() (v bool) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetEligible() {
+		return PreparePromptOptimizationResponse_Eligible_DEFAULT
+	}
+	return *p.Eligible
+}
+
+var PreparePromptOptimizationResponse_IneligibleReason_DEFAULT string
+
+func (p *PreparePromptOptimizationResponse) GetIneligibleReason() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetIneligibleReason() {
+		return PreparePromptOptimizationResponse_IneligibleReason_DEFAULT
+	}
+	return *p.IneligibleReason
+}
+
+var PreparePromptOptimizationResponse_ExperimentID_DEFAULT int64
+
+func (p *PreparePromptOptimizationResponse) GetExperimentID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetExperimentID() {
+		return PreparePromptOptimizationResponse_ExperimentID_DEFAULT
+	}
+	return *p.ExperimentID
+}
+
+var PreparePromptOptimizationResponse_ExperimentName_DEFAULT string
+
+func (p *PreparePromptOptimizationResponse) GetExperimentName() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetExperimentName() {
+		return PreparePromptOptimizationResponse_ExperimentName_DEFAULT
+	}
+	return *p.ExperimentName
+}
+
+var PreparePromptOptimizationResponse_PromptID_DEFAULT int64
+
+func (p *PreparePromptOptimizationResponse) GetPromptID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptID() {
+		return PreparePromptOptimizationResponse_PromptID_DEFAULT
+	}
+	return *p.PromptID
+}
+
+var PreparePromptOptimizationResponse_PromptKey_DEFAULT string
+
+func (p *PreparePromptOptimizationResponse) GetPromptKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptKey() {
+		return PreparePromptOptimizationResponse_PromptKey_DEFAULT
+	}
+	return *p.PromptKey
+}
+
+var PreparePromptOptimizationResponse_PromptName_DEFAULT string
+
+func (p *PreparePromptOptimizationResponse) GetPromptName() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptName() {
+		return PreparePromptOptimizationResponse_PromptName_DEFAULT
+	}
+	return *p.PromptName
+}
+
+var PreparePromptOptimizationResponse_SourcePromptVersion_DEFAULT string
+
+func (p *PreparePromptOptimizationResponse) GetSourcePromptVersion() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSourcePromptVersion() {
+		return PreparePromptOptimizationResponse_SourcePromptVersion_DEFAULT
+	}
+	return *p.SourcePromptVersion
+}
+
+var PreparePromptOptimizationResponse_PromptVariables_DEFAULT []*PromptOptimizationVariable
+
+func (p *PreparePromptOptimizationResponse) GetPromptVariables() (v []*PromptOptimizationVariable) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptVariables() {
+		return PreparePromptOptimizationResponse_PromptVariables_DEFAULT
+	}
+	return p.PromptVariables
+}
+
+var PreparePromptOptimizationResponse_DatasetFields_DEFAULT []string
+
+func (p *PreparePromptOptimizationResponse) GetDatasetFields() (v []string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDatasetFields() {
+		return PreparePromptOptimizationResponse_DatasetFields_DEFAULT
+	}
+	return p.DatasetFields
+}
+
+var PreparePromptOptimizationResponse_TargetOutputFields_DEFAULT []string
+
+func (p *PreparePromptOptimizationResponse) GetTargetOutputFields() (v []string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTargetOutputFields() {
+		return PreparePromptOptimizationResponse_TargetOutputFields_DEFAULT
+	}
+	return p.TargetOutputFields
+}
+
+var PreparePromptOptimizationResponse_Evaluators_DEFAULT []*evaluator.Evaluator
+
+func (p *PreparePromptOptimizationResponse) GetEvaluators() (v []*evaluator.Evaluator) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetEvaluators() {
+		return PreparePromptOptimizationResponse_Evaluators_DEFAULT
+	}
+	return p.Evaluators
+}
+
+var PreparePromptOptimizationResponse_SuggestedVariableMappings_DEFAULT map[string]string
+
+func (p *PreparePromptOptimizationResponse) GetSuggestedVariableMappings() (v map[string]string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuggestedVariableMappings() {
+		return PreparePromptOptimizationResponse_SuggestedVariableMappings_DEFAULT
+	}
+	return p.SuggestedVariableMappings
+}
+
+var PreparePromptOptimizationResponse_SuggestedModelAnswerField_DEFAULT string
+
+func (p *PreparePromptOptimizationResponse) GetSuggestedModelAnswerField() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuggestedModelAnswerField() {
+		return PreparePromptOptimizationResponse_SuggestedModelAnswerField_DEFAULT
+	}
+	return *p.SuggestedModelAnswerField
+}
+
+var PreparePromptOptimizationResponse_SuggestedReferenceAnswerField_DEFAULT string
+
+func (p *PreparePromptOptimizationResponse) GetSuggestedReferenceAnswerField() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuggestedReferenceAnswerField() {
+		return PreparePromptOptimizationResponse_SuggestedReferenceAnswerField_DEFAULT
+	}
+	return *p.SuggestedReferenceAnswerField
+}
+
+var PreparePromptOptimizationResponse_ModeOptions_DEFAULT []*PromptOptimizationModeOption
+
+func (p *PreparePromptOptimizationResponse) GetModeOptions() (v []*PromptOptimizationModeOption) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetModeOptions() {
+		return PreparePromptOptimizationResponse_ModeOptions_DEFAULT
+	}
+	return p.ModeOptions
+}
+
+var PreparePromptOptimizationResponse_MaxSampleCount_DEFAULT int32
+
+func (p *PreparePromptOptimizationResponse) GetMaxSampleCount() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetMaxSampleCount() {
+		return PreparePromptOptimizationResponse_MaxSampleCount_DEFAULT
+	}
+	return *p.MaxSampleCount
+}
+
+var PreparePromptOptimizationResponse_DefaultSampleCount_DEFAULT int32
+
+func (p *PreparePromptOptimizationResponse) GetDefaultSampleCount() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDefaultSampleCount() {
+		return PreparePromptOptimizationResponse_DefaultSampleCount_DEFAULT
+	}
+	return *p.DefaultSampleCount
+}
+
+var PreparePromptOptimizationResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *PreparePromptOptimizationResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return PreparePromptOptimizationResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *PreparePromptOptimizationResponse) SetEligible(val *bool) {
+	p.Eligible = val
+}
+func (p *PreparePromptOptimizationResponse) SetIneligibleReason(val *string) {
+	p.IneligibleReason = val
+}
+func (p *PreparePromptOptimizationResponse) SetExperimentID(val *int64) {
+	p.ExperimentID = val
+}
+func (p *PreparePromptOptimizationResponse) SetExperimentName(val *string) {
+	p.ExperimentName = val
+}
+func (p *PreparePromptOptimizationResponse) SetPromptID(val *int64) {
+	p.PromptID = val
+}
+func (p *PreparePromptOptimizationResponse) SetPromptKey(val *string) {
+	p.PromptKey = val
+}
+func (p *PreparePromptOptimizationResponse) SetPromptName(val *string) {
+	p.PromptName = val
+}
+func (p *PreparePromptOptimizationResponse) SetSourcePromptVersion(val *string) {
+	p.SourcePromptVersion = val
+}
+func (p *PreparePromptOptimizationResponse) SetPromptVariables(val []*PromptOptimizationVariable) {
+	p.PromptVariables = val
+}
+func (p *PreparePromptOptimizationResponse) SetDatasetFields(val []string) {
+	p.DatasetFields = val
+}
+func (p *PreparePromptOptimizationResponse) SetTargetOutputFields(val []string) {
+	p.TargetOutputFields = val
+}
+func (p *PreparePromptOptimizationResponse) SetEvaluators(val []*evaluator.Evaluator) {
+	p.Evaluators = val
+}
+func (p *PreparePromptOptimizationResponse) SetSuggestedVariableMappings(val map[string]string) {
+	p.SuggestedVariableMappings = val
+}
+func (p *PreparePromptOptimizationResponse) SetSuggestedModelAnswerField(val *string) {
+	p.SuggestedModelAnswerField = val
+}
+func (p *PreparePromptOptimizationResponse) SetSuggestedReferenceAnswerField(val *string) {
+	p.SuggestedReferenceAnswerField = val
+}
+func (p *PreparePromptOptimizationResponse) SetModeOptions(val []*PromptOptimizationModeOption) {
+	p.ModeOptions = val
+}
+func (p *PreparePromptOptimizationResponse) SetMaxSampleCount(val *int32) {
+	p.MaxSampleCount = val
+}
+func (p *PreparePromptOptimizationResponse) SetDefaultSampleCount(val *int32) {
+	p.DefaultSampleCount = val
+}
+func (p *PreparePromptOptimizationResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_PreparePromptOptimizationResponse = map[int16]string{
+	1:   "eligible",
+	2:   "ineligible_reason",
+	3:   "experiment_id",
+	4:   "experiment_name",
+	5:   "prompt_id",
+	6:   "prompt_key",
+	7:   "prompt_name",
+	8:   "source_prompt_version",
+	9:   "prompt_variables",
+	10:  "dataset_fields",
+	11:  "target_output_fields",
+	12:  "evaluators",
+	13:  "suggested_variable_mappings",
+	14:  "suggested_model_answer_field",
+	15:  "suggested_reference_answer_field",
+	16:  "mode_options",
+	17:  "max_sample_count",
+	18:  "default_sample_count",
+	255: "BaseResp",
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetEligible() bool {
+	return p.Eligible != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetIneligibleReason() bool {
+	return p.IneligibleReason != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetExperimentID() bool {
+	return p.ExperimentID != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetExperimentName() bool {
+	return p.ExperimentName != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetPromptID() bool {
+	return p.PromptID != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetPromptKey() bool {
+	return p.PromptKey != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetPromptName() bool {
+	return p.PromptName != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetSourcePromptVersion() bool {
+	return p.SourcePromptVersion != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetPromptVariables() bool {
+	return p.PromptVariables != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetDatasetFields() bool {
+	return p.DatasetFields != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetTargetOutputFields() bool {
+	return p.TargetOutputFields != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetEvaluators() bool {
+	return p.Evaluators != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetSuggestedVariableMappings() bool {
+	return p.SuggestedVariableMappings != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetSuggestedModelAnswerField() bool {
+	return p.SuggestedModelAnswerField != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetSuggestedReferenceAnswerField() bool {
+	return p.SuggestedReferenceAnswerField != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetModeOptions() bool {
+	return p.ModeOptions != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetMaxSampleCount() bool {
+	return p.MaxSampleCount != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetDefaultSampleCount() bool {
+	return p.DefaultSampleCount != nil
+}
+
+func (p *PreparePromptOptimizationResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *PreparePromptOptimizationResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.BOOL {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 8:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField8(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 9:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField9(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 10:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 11:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 12:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField12(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 13:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField13(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 14:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField14(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 15:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField15(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 16:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField16(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 17:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField17(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 18:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField18(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PreparePromptOptimizationResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *PreparePromptOptimizationResponse) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *bool
+	if v, err := iprot.ReadBool(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Eligible = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.IneligibleReason = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ExperimentID = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ExperimentName = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptID = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField6(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptKey = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptName = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField8(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.SourcePromptVersion = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField9(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptOptimizationVariable, 0, size)
+	values := make([]PromptOptimizationVariable, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.PromptVariables = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField10(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]string, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.DatasetFields = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField11(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]string, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.TargetOutputFields = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField12(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*evaluator.Evaluator, 0, size)
+	values := make([]evaluator.Evaluator, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Evaluators = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField13(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.SuggestedVariableMappings = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField14(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.SuggestedModelAnswerField = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField15(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.SuggestedReferenceAnswerField = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField16(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptOptimizationModeOption, 0, size)
+	values := make([]PromptOptimizationModeOption, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.ModeOptions = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField17(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.MaxSampleCount = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField18(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.DefaultSampleCount = _field
+	return nil
+}
+func (p *PreparePromptOptimizationResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *PreparePromptOptimizationResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PreparePromptOptimizationResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
+			goto WriteFieldError
+		}
+		if err = p.writeField8(oprot); err != nil {
+			fieldId = 8
+			goto WriteFieldError
+		}
+		if err = p.writeField9(oprot); err != nil {
+			fieldId = 9
+			goto WriteFieldError
+		}
+		if err = p.writeField10(oprot); err != nil {
+			fieldId = 10
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+		if err = p.writeField12(oprot); err != nil {
+			fieldId = 12
+			goto WriteFieldError
+		}
+		if err = p.writeField13(oprot); err != nil {
+			fieldId = 13
+			goto WriteFieldError
+		}
+		if err = p.writeField14(oprot); err != nil {
+			fieldId = 14
+			goto WriteFieldError
+		}
+		if err = p.writeField15(oprot); err != nil {
+			fieldId = 15
+			goto WriteFieldError
+		}
+		if err = p.writeField16(oprot); err != nil {
+			fieldId = 16
+			goto WriteFieldError
+		}
+		if err = p.writeField17(oprot); err != nil {
+			fieldId = 17
+			goto WriteFieldError
+		}
+		if err = p.writeField18(oprot); err != nil {
+			fieldId = 18
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *PreparePromptOptimizationResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetEligible() {
+		if err = oprot.WriteFieldBegin("eligible", thrift.BOOL, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBool(*p.Eligible); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetIneligibleReason() {
+		if err = oprot.WriteFieldBegin("ineligible_reason", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.IneligibleReason); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetExperimentID() {
+		if err = oprot.WriteFieldBegin("experiment_id", thrift.I64, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.ExperimentID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetExperimentName() {
+		if err = oprot.WriteFieldBegin("experiment_name", thrift.STRING, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ExperimentName); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptID() {
+		if err = oprot.WriteFieldBegin("prompt_id", thrift.I64, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.PromptID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField6(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptKey() {
+		if err = oprot.WriteFieldBegin("prompt_key", thrift.STRING, 6); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.PromptKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptName() {
+		if err = oprot.WriteFieldBegin("prompt_name", thrift.STRING, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.PromptName); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField8(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSourcePromptVersion() {
+		if err = oprot.WriteFieldBegin("source_prompt_version", thrift.STRING, 8); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.SourcePromptVersion); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField9(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptVariables() {
+		if err = oprot.WriteFieldBegin("prompt_variables", thrift.LIST, 9); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.PromptVariables)); err != nil {
+			return err
+		}
+		for _, v := range p.PromptVariables {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField10(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDatasetFields() {
+		if err = oprot.WriteFieldBegin("dataset_fields", thrift.LIST, 10); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.DatasetFields)); err != nil {
+			return err
+		}
+		for _, v := range p.DatasetFields {
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTargetOutputFields() {
+		if err = oprot.WriteFieldBegin("target_output_fields", thrift.LIST, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.TargetOutputFields)); err != nil {
+			return err
+		}
+		for _, v := range p.TargetOutputFields {
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField12(oprot thrift.TProtocol) (err error) {
+	if p.IsSetEvaluators() {
+		if err = oprot.WriteFieldBegin("evaluators", thrift.LIST, 12); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Evaluators)); err != nil {
+			return err
+		}
+		for _, v := range p.Evaluators {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField13(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuggestedVariableMappings() {
+		if err = oprot.WriteFieldBegin("suggested_variable_mappings", thrift.MAP, 13); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.SuggestedVariableMappings)); err != nil {
+			return err
+		}
+		for k, v := range p.SuggestedVariableMappings {
+			if err := oprot.WriteString(k); err != nil {
+				return err
+			}
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField14(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuggestedModelAnswerField() {
+		if err = oprot.WriteFieldBegin("suggested_model_answer_field", thrift.STRING, 14); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.SuggestedModelAnswerField); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 14 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 14 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField15(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuggestedReferenceAnswerField() {
+		if err = oprot.WriteFieldBegin("suggested_reference_answer_field", thrift.STRING, 15); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.SuggestedReferenceAnswerField); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 15 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 15 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField16(oprot thrift.TProtocol) (err error) {
+	if p.IsSetModeOptions() {
+		if err = oprot.WriteFieldBegin("mode_options", thrift.LIST, 16); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.ModeOptions)); err != nil {
+			return err
+		}
+		for _, v := range p.ModeOptions {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 16 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 16 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField17(oprot thrift.TProtocol) (err error) {
+	if p.IsSetMaxSampleCount() {
+		if err = oprot.WriteFieldBegin("max_sample_count", thrift.I32, 17); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.MaxSampleCount); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 17 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 17 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField18(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDefaultSampleCount() {
+		if err = oprot.WriteFieldBegin("default_sample_count", thrift.I32, 18); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.DefaultSampleCount); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 18 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 18 end error: ", p), err)
+}
+func (p *PreparePromptOptimizationResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.BaseResp.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *PreparePromptOptimizationResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PreparePromptOptimizationResponse(%+v)", *p)
+
+}
+
+func (p *PreparePromptOptimizationResponse) DeepEqual(ano *PreparePromptOptimizationResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Eligible) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.IneligibleReason) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.ExperimentID) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.ExperimentName) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.PromptID) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.PromptKey) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.PromptName) {
+		return false
+	}
+	if !p.Field8DeepEqual(ano.SourcePromptVersion) {
+		return false
+	}
+	if !p.Field9DeepEqual(ano.PromptVariables) {
+		return false
+	}
+	if !p.Field10DeepEqual(ano.DatasetFields) {
+		return false
+	}
+	if !p.Field11DeepEqual(ano.TargetOutputFields) {
+		return false
+	}
+	if !p.Field12DeepEqual(ano.Evaluators) {
+		return false
+	}
+	if !p.Field13DeepEqual(ano.SuggestedVariableMappings) {
+		return false
+	}
+	if !p.Field14DeepEqual(ano.SuggestedModelAnswerField) {
+		return false
+	}
+	if !p.Field15DeepEqual(ano.SuggestedReferenceAnswerField) {
+		return false
+	}
+	if !p.Field16DeepEqual(ano.ModeOptions) {
+		return false
+	}
+	if !p.Field17DeepEqual(ano.MaxSampleCount) {
+		return false
+	}
+	if !p.Field18DeepEqual(ano.DefaultSampleCount) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *PreparePromptOptimizationResponse) Field1DeepEqual(src *bool) bool {
+
+	if p.Eligible == src {
+		return true
+	} else if p.Eligible == nil || src == nil {
+		return false
+	}
+	if *p.Eligible != *src {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field2DeepEqual(src *string) bool {
+
+	if p.IneligibleReason == src {
+		return true
+	} else if p.IneligibleReason == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.IneligibleReason, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field3DeepEqual(src *int64) bool {
+
+	if p.ExperimentID == src {
+		return true
+	} else if p.ExperimentID == nil || src == nil {
+		return false
+	}
+	if *p.ExperimentID != *src {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field4DeepEqual(src *string) bool {
+
+	if p.ExperimentName == src {
+		return true
+	} else if p.ExperimentName == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ExperimentName, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field5DeepEqual(src *int64) bool {
+
+	if p.PromptID == src {
+		return true
+	} else if p.PromptID == nil || src == nil {
+		return false
+	}
+	if *p.PromptID != *src {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field6DeepEqual(src *string) bool {
+
+	if p.PromptKey == src {
+		return true
+	} else if p.PromptKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.PromptKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field7DeepEqual(src *string) bool {
+
+	if p.PromptName == src {
+		return true
+	} else if p.PromptName == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.PromptName, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field8DeepEqual(src *string) bool {
+
+	if p.SourcePromptVersion == src {
+		return true
+	} else if p.SourcePromptVersion == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.SourcePromptVersion, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field9DeepEqual(src []*PromptOptimizationVariable) bool {
+
+	if len(p.PromptVariables) != len(src) {
+		return false
+	}
+	for i, v := range p.PromptVariables {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field10DeepEqual(src []string) bool {
+
+	if len(p.DatasetFields) != len(src) {
+		return false
+	}
+	for i, v := range p.DatasetFields {
+		_src := src[i]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field11DeepEqual(src []string) bool {
+
+	if len(p.TargetOutputFields) != len(src) {
+		return false
+	}
+	for i, v := range p.TargetOutputFields {
+		_src := src[i]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field12DeepEqual(src []*evaluator.Evaluator) bool {
+
+	if len(p.Evaluators) != len(src) {
+		return false
+	}
+	for i, v := range p.Evaluators {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field13DeepEqual(src map[string]string) bool {
+
+	if len(p.SuggestedVariableMappings) != len(src) {
+		return false
+	}
+	for k, v := range p.SuggestedVariableMappings {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field14DeepEqual(src *string) bool {
+
+	if p.SuggestedModelAnswerField == src {
+		return true
+	} else if p.SuggestedModelAnswerField == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.SuggestedModelAnswerField, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field15DeepEqual(src *string) bool {
+
+	if p.SuggestedReferenceAnswerField == src {
+		return true
+	} else if p.SuggestedReferenceAnswerField == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.SuggestedReferenceAnswerField, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field16DeepEqual(src []*PromptOptimizationModeOption) bool {
+
+	if len(p.ModeOptions) != len(src) {
+		return false
+	}
+	for i, v := range p.ModeOptions {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field17DeepEqual(src *int32) bool {
+
+	if p.MaxSampleCount == src {
+		return true
+	} else if p.MaxSampleCount == nil || src == nil {
+		return false
+	}
+	if *p.MaxSampleCount != *src {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field18DeepEqual(src *int32) bool {
+
+	if p.DefaultSampleCount == src {
+		return true
+	} else if p.DefaultSampleCount == nil || src == nil {
+		return false
+	}
+	if *p.DefaultSampleCount != *src {
+		return false
+	}
+	return true
+}
+func (p *PreparePromptOptimizationResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type CreatePromptOptimizationRequest struct {
+	WorkspaceID          int64                          `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
+	ExptID               int64                          `thrift:"expt_id,2,required" frugal:"2,required,i64" json:"expt_id" path:"expt_id,required" `
+	Samples              []*PromptOptimizationSampleRef `thrift:"samples,3,required" frugal:"3,required,list<PromptOptimizationSampleRef>" form:"samples,required" json:"samples,required"`
+	VariableMappings     map[string]string              `thrift:"variable_mappings,4,required" frugal:"4,required,map<string:string>" form:"variable_mappings,required" json:"variable_mappings,required"`
+	ModelAnswerField     *string                        `thrift:"model_answer_field,5,optional" frugal:"5,optional,string" form:"model_answer_field" json:"model_answer_field,omitempty"`
+	ReferenceAnswerField *string                        `thrift:"reference_answer_field,6,optional" frugal:"6,optional,string" form:"reference_answer_field" json:"reference_answer_field,omitempty"`
+	Mode                 *PromptOptimizationMode        `thrift:"mode,7,optional" frugal:"7,optional,string" form:"mode" json:"mode,omitempty"`
+	MaxIterations        *int32                         `thrift:"max_iterations,8,optional" frugal:"8,optional,i32" form:"max_iterations" json:"max_iterations,omitempty"`
+	Name                 *string                        `thrift:"name,9,optional" frugal:"9,optional,string" form:"name" json:"name,omitempty"`
+	IdempotencyKey       *string                        `thrift:"idempotency_key,10,optional" frugal:"10,optional,string" form:"idempotency_key" json:"idempotency_key,omitempty"`
+}
+
+func NewCreatePromptOptimizationRequest() *CreatePromptOptimizationRequest {
+	return &CreatePromptOptimizationRequest{}
+}
+
+func (p *CreatePromptOptimizationRequest) InitDefault() {
+}
+
+func (p *CreatePromptOptimizationRequest) GetWorkspaceID() (v int64) {
+	if p != nil {
+		return p.WorkspaceID
+	}
+	return
+}
+
+func (p *CreatePromptOptimizationRequest) GetExptID() (v int64) {
+	if p != nil {
+		return p.ExptID
+	}
+	return
+}
+
+func (p *CreatePromptOptimizationRequest) GetSamples() (v []*PromptOptimizationSampleRef) {
+	if p != nil {
+		return p.Samples
+	}
+	return
+}
+
+func (p *CreatePromptOptimizationRequest) GetVariableMappings() (v map[string]string) {
+	if p != nil {
+		return p.VariableMappings
+	}
+	return
+}
+
+var CreatePromptOptimizationRequest_ModelAnswerField_DEFAULT string
+
+func (p *CreatePromptOptimizationRequest) GetModelAnswerField() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetModelAnswerField() {
+		return CreatePromptOptimizationRequest_ModelAnswerField_DEFAULT
+	}
+	return *p.ModelAnswerField
+}
+
+var CreatePromptOptimizationRequest_ReferenceAnswerField_DEFAULT string
+
+func (p *CreatePromptOptimizationRequest) GetReferenceAnswerField() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReferenceAnswerField() {
+		return CreatePromptOptimizationRequest_ReferenceAnswerField_DEFAULT
+	}
+	return *p.ReferenceAnswerField
+}
+
+var CreatePromptOptimizationRequest_Mode_DEFAULT PromptOptimizationMode
+
+func (p *CreatePromptOptimizationRequest) GetMode() (v PromptOptimizationMode) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetMode() {
+		return CreatePromptOptimizationRequest_Mode_DEFAULT
+	}
+	return *p.Mode
+}
+
+var CreatePromptOptimizationRequest_MaxIterations_DEFAULT int32
+
+func (p *CreatePromptOptimizationRequest) GetMaxIterations() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetMaxIterations() {
+		return CreatePromptOptimizationRequest_MaxIterations_DEFAULT
+	}
+	return *p.MaxIterations
+}
+
+var CreatePromptOptimizationRequest_Name_DEFAULT string
+
+func (p *CreatePromptOptimizationRequest) GetName() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetName() {
+		return CreatePromptOptimizationRequest_Name_DEFAULT
+	}
+	return *p.Name
+}
+
+var CreatePromptOptimizationRequest_IdempotencyKey_DEFAULT string
+
+func (p *CreatePromptOptimizationRequest) GetIdempotencyKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetIdempotencyKey() {
+		return CreatePromptOptimizationRequest_IdempotencyKey_DEFAULT
+	}
+	return *p.IdempotencyKey
+}
+func (p *CreatePromptOptimizationRequest) SetWorkspaceID(val int64) {
+	p.WorkspaceID = val
+}
+func (p *CreatePromptOptimizationRequest) SetExptID(val int64) {
+	p.ExptID = val
+}
+func (p *CreatePromptOptimizationRequest) SetSamples(val []*PromptOptimizationSampleRef) {
+	p.Samples = val
+}
+func (p *CreatePromptOptimizationRequest) SetVariableMappings(val map[string]string) {
+	p.VariableMappings = val
+}
+func (p *CreatePromptOptimizationRequest) SetModelAnswerField(val *string) {
+	p.ModelAnswerField = val
+}
+func (p *CreatePromptOptimizationRequest) SetReferenceAnswerField(val *string) {
+	p.ReferenceAnswerField = val
+}
+func (p *CreatePromptOptimizationRequest) SetMode(val *PromptOptimizationMode) {
+	p.Mode = val
+}
+func (p *CreatePromptOptimizationRequest) SetMaxIterations(val *int32) {
+	p.MaxIterations = val
+}
+func (p *CreatePromptOptimizationRequest) SetName(val *string) {
+	p.Name = val
+}
+func (p *CreatePromptOptimizationRequest) SetIdempotencyKey(val *string) {
+	p.IdempotencyKey = val
+}
+
+var fieldIDToName_CreatePromptOptimizationRequest = map[int16]string{
+	1:  "workspace_id",
+	2:  "expt_id",
+	3:  "samples",
+	4:  "variable_mappings",
+	5:  "model_answer_field",
+	6:  "reference_answer_field",
+	7:  "mode",
+	8:  "max_iterations",
+	9:  "name",
+	10: "idempotency_key",
+}
+
+func (p *CreatePromptOptimizationRequest) IsSetModelAnswerField() bool {
+	return p.ModelAnswerField != nil
+}
+
+func (p *CreatePromptOptimizationRequest) IsSetReferenceAnswerField() bool {
+	return p.ReferenceAnswerField != nil
+}
+
+func (p *CreatePromptOptimizationRequest) IsSetMode() bool {
+	return p.Mode != nil
+}
+
+func (p *CreatePromptOptimizationRequest) IsSetMaxIterations() bool {
+	return p.MaxIterations != nil
+}
+
+func (p *CreatePromptOptimizationRequest) IsSetName() bool {
+	return p.Name != nil
+}
+
+func (p *CreatePromptOptimizationRequest) IsSetIdempotencyKey() bool {
+	return p.IdempotencyKey != nil
+}
+
+func (p *CreatePromptOptimizationRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetExptID bool = false
+	var issetSamples bool = false
+	var issetVariableMappings bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetExptID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetSamples = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.MAP {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetVariableMappings = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 8:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField8(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 9:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField9(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 10:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetExptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetSamples {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetVariableMappings {
+		fieldId = 4
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CreatePromptOptimizationRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_CreatePromptOptimizationRequest[fieldId]))
+}
+
+func (p *CreatePromptOptimizationRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ExptID = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField3(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptOptimizationSampleRef, 0, size)
+	values := make([]PromptOptimizationSampleRef, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Samples = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField4(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return err
+	}
+	_field := make(map[string]string, size)
+	for i := 0; i < size; i++ {
+		var _key string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_key = v
+		}
+
+		var _val string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_val = v
+		}
+
+		_field[_key] = _val
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return err
+	}
+	p.VariableMappings = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ModelAnswerField = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField6(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ReferenceAnswerField = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field *PromptOptimizationMode
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Mode = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField8(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.MaxIterations = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField9(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Name = _field
+	return nil
+}
+func (p *CreatePromptOptimizationRequest) ReadField10(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.IdempotencyKey = _field
+	return nil
+}
+
+func (p *CreatePromptOptimizationRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CreatePromptOptimizationRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
+			goto WriteFieldError
+		}
+		if err = p.writeField8(oprot); err != nil {
+			fieldId = 8
+			goto WriteFieldError
+		}
+		if err = p.writeField9(oprot); err != nil {
+			fieldId = 9
+			goto WriteFieldError
+		}
+		if err = p.writeField10(oprot); err != nil {
+			fieldId = 10
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *CreatePromptOptimizationRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.WorkspaceID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("expt_id", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.ExptID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("samples", thrift.LIST, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Samples)); err != nil {
+		return err
+	}
+	for _, v := range p.Samples {
+		if err := v.Write(oprot); err != nil {
+			return err
+		}
+	}
+	if err := oprot.WriteListEnd(); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("variable_mappings", thrift.MAP, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.VariableMappings)); err != nil {
+		return err
+	}
+	for k, v := range p.VariableMappings {
+		if err := oprot.WriteString(k); err != nil {
+			return err
+		}
+		if err := oprot.WriteString(v); err != nil {
+			return err
+		}
+	}
+	if err := oprot.WriteMapEnd(); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetModelAnswerField() {
+		if err = oprot.WriteFieldBegin("model_answer_field", thrift.STRING, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ModelAnswerField); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField6(oprot thrift.TProtocol) (err error) {
+	if p.IsSetReferenceAnswerField() {
+		if err = oprot.WriteFieldBegin("reference_answer_field", thrift.STRING, 6); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ReferenceAnswerField); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetMode() {
+		if err = oprot.WriteFieldBegin("mode", thrift.STRING, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Mode); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField8(oprot thrift.TProtocol) (err error) {
+	if p.IsSetMaxIterations() {
+		if err = oprot.WriteFieldBegin("max_iterations", thrift.I32, 8); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.MaxIterations); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField9(oprot thrift.TProtocol) (err error) {
+	if p.IsSetName() {
+		if err = oprot.WriteFieldBegin("name", thrift.STRING, 9); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Name); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 9 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationRequest) writeField10(oprot thrift.TProtocol) (err error) {
+	if p.IsSetIdempotencyKey() {
+		if err = oprot.WriteFieldBegin("idempotency_key", thrift.STRING, 10); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.IdempotencyKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
+}
+
+func (p *CreatePromptOptimizationRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CreatePromptOptimizationRequest(%+v)", *p)
+
+}
+
+func (p *CreatePromptOptimizationRequest) DeepEqual(ano *CreatePromptOptimizationRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ExptID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Samples) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.VariableMappings) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.ModelAnswerField) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.ReferenceAnswerField) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.Mode) {
+		return false
+	}
+	if !p.Field8DeepEqual(ano.MaxIterations) {
+		return false
+	}
+	if !p.Field9DeepEqual(ano.Name) {
+		return false
+	}
+	if !p.Field10DeepEqual(ano.IdempotencyKey) {
+		return false
+	}
+	return true
+}
+
+func (p *CreatePromptOptimizationRequest) Field1DeepEqual(src int64) bool {
+
+	if p.WorkspaceID != src {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field2DeepEqual(src int64) bool {
+
+	if p.ExptID != src {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field3DeepEqual(src []*PromptOptimizationSampleRef) bool {
+
+	if len(p.Samples) != len(src) {
+		return false
+	}
+	for i, v := range p.Samples {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field4DeepEqual(src map[string]string) bool {
+
+	if len(p.VariableMappings) != len(src) {
+		return false
+	}
+	for k, v := range p.VariableMappings {
+		_src := src[k]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field5DeepEqual(src *string) bool {
+
+	if p.ModelAnswerField == src {
+		return true
+	} else if p.ModelAnswerField == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ModelAnswerField, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field6DeepEqual(src *string) bool {
+
+	if p.ReferenceAnswerField == src {
+		return true
+	} else if p.ReferenceAnswerField == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.ReferenceAnswerField, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field7DeepEqual(src *PromptOptimizationMode) bool {
+
+	if p.Mode == src {
+		return true
+	} else if p.Mode == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Mode, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field8DeepEqual(src *int32) bool {
+
+	if p.MaxIterations == src {
+		return true
+	} else if p.MaxIterations == nil || src == nil {
+		return false
+	}
+	if *p.MaxIterations != *src {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field9DeepEqual(src *string) bool {
+
+	if p.Name == src {
+		return true
+	} else if p.Name == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Name, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationRequest) Field10DeepEqual(src *string) bool {
+
+	if p.IdempotencyKey == src {
+		return true
+	} else if p.IdempotencyKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.IdempotencyKey, *src) != 0 {
+		return false
+	}
+	return true
+}
+
+type CreatePromptOptimizationResponse struct {
+	Task     *PromptOptimizationTask `thrift:"task,1,optional" frugal:"1,optional,PromptOptimizationTask" form:"task" json:"task,omitempty" query:"task"`
+	BaseResp *base.BaseResp          `thrift:"BaseResp,255" frugal:"255,default,base.BaseResp" form:"BaseResp" json:"BaseResp" query:"BaseResp"`
+}
+
+func NewCreatePromptOptimizationResponse() *CreatePromptOptimizationResponse {
+	return &CreatePromptOptimizationResponse{}
+}
+
+func (p *CreatePromptOptimizationResponse) InitDefault() {
+}
+
+var CreatePromptOptimizationResponse_Task_DEFAULT *PromptOptimizationTask
+
+func (p *CreatePromptOptimizationResponse) GetTask() (v *PromptOptimizationTask) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTask() {
+		return CreatePromptOptimizationResponse_Task_DEFAULT
+	}
+	return p.Task
+}
+
+var CreatePromptOptimizationResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *CreatePromptOptimizationResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return CreatePromptOptimizationResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *CreatePromptOptimizationResponse) SetTask(val *PromptOptimizationTask) {
+	p.Task = val
+}
+func (p *CreatePromptOptimizationResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_CreatePromptOptimizationResponse = map[int16]string{
+	1:   "task",
+	255: "BaseResp",
+}
+
+func (p *CreatePromptOptimizationResponse) IsSetTask() bool {
+	return p.Task != nil
+}
+
+func (p *CreatePromptOptimizationResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *CreatePromptOptimizationResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CreatePromptOptimizationResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *CreatePromptOptimizationResponse) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewPromptOptimizationTask()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Task = _field
+	return nil
+}
+func (p *CreatePromptOptimizationResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *CreatePromptOptimizationResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CreatePromptOptimizationResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *CreatePromptOptimizationResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTask() {
+		if err = oprot.WriteFieldBegin("task", thrift.STRUCT, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Task.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *CreatePromptOptimizationResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.BaseResp.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *CreatePromptOptimizationResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CreatePromptOptimizationResponse(%+v)", *p)
+
+}
+
+func (p *CreatePromptOptimizationResponse) DeepEqual(ano *CreatePromptOptimizationResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Task) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *CreatePromptOptimizationResponse) Field1DeepEqual(src *PromptOptimizationTask) bool {
+
+	if !p.Task.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *CreatePromptOptimizationResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type GetPromptOptimizationRequest struct {
+	WorkspaceID       int64 `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" query:"workspace_id,required" `
+	ExptID            int64 `thrift:"expt_id,2,required" frugal:"2,required,i64" json:"expt_id" path:"expt_id,required" `
+	OptimizationID    int64 `thrift:"optimization_id,3,required" frugal:"3,required,i64" json:"optimization_id" path:"optimization_id,required" `
+	WithIterations    *bool `thrift:"with_iterations,4,optional" frugal:"4,optional,bool" json:"with_iterations,omitempty" query:"with_iterations"`
+	WithSampleResults *bool `thrift:"with_sample_results,5,optional" frugal:"5,optional,bool" json:"with_sample_results,omitempty" query:"with_sample_results"`
+}
+
+func NewGetPromptOptimizationRequest() *GetPromptOptimizationRequest {
+	return &GetPromptOptimizationRequest{}
+}
+
+func (p *GetPromptOptimizationRequest) InitDefault() {
+}
+
+func (p *GetPromptOptimizationRequest) GetWorkspaceID() (v int64) {
+	if p != nil {
+		return p.WorkspaceID
+	}
+	return
+}
+
+func (p *GetPromptOptimizationRequest) GetExptID() (v int64) {
+	if p != nil {
+		return p.ExptID
+	}
+	return
+}
+
+func (p *GetPromptOptimizationRequest) GetOptimizationID() (v int64) {
+	if p != nil {
+		return p.OptimizationID
+	}
+	return
+}
+
+var GetPromptOptimizationRequest_WithIterations_DEFAULT bool
+
+func (p *GetPromptOptimizationRequest) GetWithIterations() (v bool) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetWithIterations() {
+		return GetPromptOptimizationRequest_WithIterations_DEFAULT
+	}
+	return *p.WithIterations
+}
+
+var GetPromptOptimizationRequest_WithSampleResults_DEFAULT bool
+
+func (p *GetPromptOptimizationRequest) GetWithSampleResults() (v bool) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetWithSampleResults() {
+		return GetPromptOptimizationRequest_WithSampleResults_DEFAULT
+	}
+	return *p.WithSampleResults
+}
+func (p *GetPromptOptimizationRequest) SetWorkspaceID(val int64) {
+	p.WorkspaceID = val
+}
+func (p *GetPromptOptimizationRequest) SetExptID(val int64) {
+	p.ExptID = val
+}
+func (p *GetPromptOptimizationRequest) SetOptimizationID(val int64) {
+	p.OptimizationID = val
+}
+func (p *GetPromptOptimizationRequest) SetWithIterations(val *bool) {
+	p.WithIterations = val
+}
+func (p *GetPromptOptimizationRequest) SetWithSampleResults(val *bool) {
+	p.WithSampleResults = val
+}
+
+var fieldIDToName_GetPromptOptimizationRequest = map[int16]string{
+	1: "workspace_id",
+	2: "expt_id",
+	3: "optimization_id",
+	4: "with_iterations",
+	5: "with_sample_results",
+}
+
+func (p *GetPromptOptimizationRequest) IsSetWithIterations() bool {
+	return p.WithIterations != nil
+}
+
+func (p *GetPromptOptimizationRequest) IsSetWithSampleResults() bool {
+	return p.WithSampleResults != nil
+}
+
+func (p *GetPromptOptimizationRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetExptID bool = false
+	var issetOptimizationID bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetExptID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetOptimizationID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.BOOL {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.BOOL {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetExptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetOptimizationID {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptOptimizationRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_GetPromptOptimizationRequest[fieldId]))
+}
+
+func (p *GetPromptOptimizationRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *GetPromptOptimizationRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ExptID = _field
+	return nil
+}
+func (p *GetPromptOptimizationRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.OptimizationID = _field
+	return nil
+}
+func (p *GetPromptOptimizationRequest) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *bool
+	if v, err := iprot.ReadBool(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.WithIterations = _field
+	return nil
+}
+func (p *GetPromptOptimizationRequest) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field *bool
+	if v, err := iprot.ReadBool(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.WithSampleResults = _field
+	return nil
+}
+
+func (p *GetPromptOptimizationRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptOptimizationRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetPromptOptimizationRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.WorkspaceID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *GetPromptOptimizationRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("expt_id", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.ExptID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *GetPromptOptimizationRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("optimization_id", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.OptimizationID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *GetPromptOptimizationRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetWithIterations() {
+		if err = oprot.WriteFieldBegin("with_iterations", thrift.BOOL, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBool(*p.WithIterations); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *GetPromptOptimizationRequest) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetWithSampleResults() {
+		if err = oprot.WriteFieldBegin("with_sample_results", thrift.BOOL, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBool(*p.WithSampleResults); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+
+func (p *GetPromptOptimizationRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPromptOptimizationRequest(%+v)", *p)
+
+}
+
+func (p *GetPromptOptimizationRequest) DeepEqual(ano *GetPromptOptimizationRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ExptID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.OptimizationID) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.WithIterations) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.WithSampleResults) {
+		return false
+	}
+	return true
+}
+
+func (p *GetPromptOptimizationRequest) Field1DeepEqual(src int64) bool {
+
+	if p.WorkspaceID != src {
+		return false
+	}
+	return true
+}
+func (p *GetPromptOptimizationRequest) Field2DeepEqual(src int64) bool {
+
+	if p.ExptID != src {
+		return false
+	}
+	return true
+}
+func (p *GetPromptOptimizationRequest) Field3DeepEqual(src int64) bool {
+
+	if p.OptimizationID != src {
+		return false
+	}
+	return true
+}
+func (p *GetPromptOptimizationRequest) Field4DeepEqual(src *bool) bool {
+
+	if p.WithIterations == src {
+		return true
+	} else if p.WithIterations == nil || src == nil {
+		return false
+	}
+	if *p.WithIterations != *src {
+		return false
+	}
+	return true
+}
+func (p *GetPromptOptimizationRequest) Field5DeepEqual(src *bool) bool {
+
+	if p.WithSampleResults == src {
+		return true
+	} else if p.WithSampleResults == nil || src == nil {
+		return false
+	}
+	if *p.WithSampleResults != *src {
+		return false
+	}
+	return true
+}
+
+type GetPromptOptimizationResponse struct {
+	Task     *PromptOptimizationTask `thrift:"task,1,optional" frugal:"1,optional,PromptOptimizationTask" form:"task" json:"task,omitempty" query:"task"`
+	BaseResp *base.BaseResp          `thrift:"BaseResp,255" frugal:"255,default,base.BaseResp" form:"BaseResp" json:"BaseResp" query:"BaseResp"`
+}
+
+func NewGetPromptOptimizationResponse() *GetPromptOptimizationResponse {
+	return &GetPromptOptimizationResponse{}
+}
+
+func (p *GetPromptOptimizationResponse) InitDefault() {
+}
+
+var GetPromptOptimizationResponse_Task_DEFAULT *PromptOptimizationTask
+
+func (p *GetPromptOptimizationResponse) GetTask() (v *PromptOptimizationTask) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTask() {
+		return GetPromptOptimizationResponse_Task_DEFAULT
+	}
+	return p.Task
+}
+
+var GetPromptOptimizationResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *GetPromptOptimizationResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return GetPromptOptimizationResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *GetPromptOptimizationResponse) SetTask(val *PromptOptimizationTask) {
+	p.Task = val
+}
+func (p *GetPromptOptimizationResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_GetPromptOptimizationResponse = map[int16]string{
+	1:   "task",
+	255: "BaseResp",
+}
+
+func (p *GetPromptOptimizationResponse) IsSetTask() bool {
+	return p.Task != nil
+}
+
+func (p *GetPromptOptimizationResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *GetPromptOptimizationResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptOptimizationResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *GetPromptOptimizationResponse) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewPromptOptimizationTask()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Task = _field
+	return nil
+}
+func (p *GetPromptOptimizationResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *GetPromptOptimizationResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptOptimizationResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetPromptOptimizationResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTask() {
+		if err = oprot.WriteFieldBegin("task", thrift.STRUCT, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Task.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *GetPromptOptimizationResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.BaseResp.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *GetPromptOptimizationResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPromptOptimizationResponse(%+v)", *p)
+
+}
+
+func (p *GetPromptOptimizationResponse) DeepEqual(ano *GetPromptOptimizationResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Task) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *GetPromptOptimizationResponse) Field1DeepEqual(src *PromptOptimizationTask) bool {
+
+	if !p.Task.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *GetPromptOptimizationResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ListPromptOptimizationsRequest struct {
+	WorkspaceID int64                      `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
+	ExptID      int64                      `thrift:"expt_id,2,required" frugal:"2,required,i64" json:"expt_id" path:"expt_id,required" `
+	PageNumber  *int32                     `thrift:"page_number,3,optional" frugal:"3,optional,i32" form:"page_number" json:"page_number,omitempty"`
+	PageSize    *int32                     `thrift:"page_size,4,optional" frugal:"4,optional,i32" form:"page_size" json:"page_size,omitempty"`
+	Statuses    []PromptOptimizationStatus `thrift:"statuses,5,optional" frugal:"5,optional,list<string>" form:"statuses" json:"statuses,omitempty"`
+}
+
+func NewListPromptOptimizationsRequest() *ListPromptOptimizationsRequest {
+	return &ListPromptOptimizationsRequest{}
+}
+
+func (p *ListPromptOptimizationsRequest) InitDefault() {
+}
+
+func (p *ListPromptOptimizationsRequest) GetWorkspaceID() (v int64) {
+	if p != nil {
+		return p.WorkspaceID
+	}
+	return
+}
+
+func (p *ListPromptOptimizationsRequest) GetExptID() (v int64) {
+	if p != nil {
+		return p.ExptID
+	}
+	return
+}
+
+var ListPromptOptimizationsRequest_PageNumber_DEFAULT int32
+
+func (p *ListPromptOptimizationsRequest) GetPageNumber() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPageNumber() {
+		return ListPromptOptimizationsRequest_PageNumber_DEFAULT
+	}
+	return *p.PageNumber
+}
+
+var ListPromptOptimizationsRequest_PageSize_DEFAULT int32
+
+func (p *ListPromptOptimizationsRequest) GetPageSize() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPageSize() {
+		return ListPromptOptimizationsRequest_PageSize_DEFAULT
+	}
+	return *p.PageSize
+}
+
+var ListPromptOptimizationsRequest_Statuses_DEFAULT []PromptOptimizationStatus
+
+func (p *ListPromptOptimizationsRequest) GetStatuses() (v []PromptOptimizationStatus) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetStatuses() {
+		return ListPromptOptimizationsRequest_Statuses_DEFAULT
+	}
+	return p.Statuses
+}
+func (p *ListPromptOptimizationsRequest) SetWorkspaceID(val int64) {
+	p.WorkspaceID = val
+}
+func (p *ListPromptOptimizationsRequest) SetExptID(val int64) {
+	p.ExptID = val
+}
+func (p *ListPromptOptimizationsRequest) SetPageNumber(val *int32) {
+	p.PageNumber = val
+}
+func (p *ListPromptOptimizationsRequest) SetPageSize(val *int32) {
+	p.PageSize = val
+}
+func (p *ListPromptOptimizationsRequest) SetStatuses(val []PromptOptimizationStatus) {
+	p.Statuses = val
+}
+
+var fieldIDToName_ListPromptOptimizationsRequest = map[int16]string{
+	1: "workspace_id",
+	2: "expt_id",
+	3: "page_number",
+	4: "page_size",
+	5: "statuses",
+}
+
+func (p *ListPromptOptimizationsRequest) IsSetPageNumber() bool {
+	return p.PageNumber != nil
+}
+
+func (p *ListPromptOptimizationsRequest) IsSetPageSize() bool {
+	return p.PageSize != nil
+}
+
+func (p *ListPromptOptimizationsRequest) IsSetStatuses() bool {
+	return p.Statuses != nil
+}
+
+func (p *ListPromptOptimizationsRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetExptID bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetExptID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetExptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptOptimizationsRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ListPromptOptimizationsRequest[fieldId]))
+}
+
+func (p *ListPromptOptimizationsRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *ListPromptOptimizationsRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ExptID = _field
+	return nil
+}
+func (p *ListPromptOptimizationsRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PageNumber = _field
+	return nil
+}
+func (p *ListPromptOptimizationsRequest) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PageSize = _field
+	return nil
+}
+func (p *ListPromptOptimizationsRequest) ReadField5(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]PromptOptimizationStatus, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem PromptOptimizationStatus
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Statuses = _field
+	return nil
+}
+
+func (p *ListPromptOptimizationsRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptOptimizationsRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ListPromptOptimizationsRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.WorkspaceID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *ListPromptOptimizationsRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("expt_id", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.ExptID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *ListPromptOptimizationsRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPageNumber() {
+		if err = oprot.WriteFieldBegin("page_number", thrift.I32, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.PageNumber); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *ListPromptOptimizationsRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPageSize() {
+		if err = oprot.WriteFieldBegin("page_size", thrift.I32, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.PageSize); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *ListPromptOptimizationsRequest) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetStatuses() {
+		if err = oprot.WriteFieldBegin("statuses", thrift.LIST, 5); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.Statuses)); err != nil {
+			return err
+		}
+		for _, v := range p.Statuses {
+			if err := oprot.WriteString(v); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+
+func (p *ListPromptOptimizationsRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListPromptOptimizationsRequest(%+v)", *p)
+
+}
+
+func (p *ListPromptOptimizationsRequest) DeepEqual(ano *ListPromptOptimizationsRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ExptID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.PageNumber) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.PageSize) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.Statuses) {
+		return false
+	}
+	return true
+}
+
+func (p *ListPromptOptimizationsRequest) Field1DeepEqual(src int64) bool {
+
+	if p.WorkspaceID != src {
+		return false
+	}
+	return true
+}
+func (p *ListPromptOptimizationsRequest) Field2DeepEqual(src int64) bool {
+
+	if p.ExptID != src {
+		return false
+	}
+	return true
+}
+func (p *ListPromptOptimizationsRequest) Field3DeepEqual(src *int32) bool {
+
+	if p.PageNumber == src {
+		return true
+	} else if p.PageNumber == nil || src == nil {
+		return false
+	}
+	if *p.PageNumber != *src {
+		return false
+	}
+	return true
+}
+func (p *ListPromptOptimizationsRequest) Field4DeepEqual(src *int32) bool {
+
+	if p.PageSize == src {
+		return true
+	} else if p.PageSize == nil || src == nil {
+		return false
+	}
+	if *p.PageSize != *src {
+		return false
+	}
+	return true
+}
+func (p *ListPromptOptimizationsRequest) Field5DeepEqual(src []PromptOptimizationStatus) bool {
+
+	if len(p.Statuses) != len(src) {
+		return false
+	}
+	for i, v := range p.Statuses {
+		_src := src[i]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+type ListPromptOptimizationsResponse struct {
+	Tasks    []*PromptOptimizationTask `thrift:"tasks,1,optional" frugal:"1,optional,list<PromptOptimizationTask>" form:"tasks" json:"tasks,omitempty" query:"tasks"`
+	Total    *int64                    `thrift:"total,2,optional" frugal:"2,optional,i64" json:"total" form:"total" query:"total"`
+	BaseResp *base.BaseResp            `thrift:"BaseResp,255" frugal:"255,default,base.BaseResp" form:"BaseResp" json:"BaseResp" query:"BaseResp"`
+}
+
+func NewListPromptOptimizationsResponse() *ListPromptOptimizationsResponse {
+	return &ListPromptOptimizationsResponse{}
+}
+
+func (p *ListPromptOptimizationsResponse) InitDefault() {
+}
+
+var ListPromptOptimizationsResponse_Tasks_DEFAULT []*PromptOptimizationTask
+
+func (p *ListPromptOptimizationsResponse) GetTasks() (v []*PromptOptimizationTask) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTasks() {
+		return ListPromptOptimizationsResponse_Tasks_DEFAULT
+	}
+	return p.Tasks
+}
+
+var ListPromptOptimizationsResponse_Total_DEFAULT int64
+
+func (p *ListPromptOptimizationsResponse) GetTotal() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTotal() {
+		return ListPromptOptimizationsResponse_Total_DEFAULT
+	}
+	return *p.Total
+}
+
+var ListPromptOptimizationsResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *ListPromptOptimizationsResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return ListPromptOptimizationsResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *ListPromptOptimizationsResponse) SetTasks(val []*PromptOptimizationTask) {
+	p.Tasks = val
+}
+func (p *ListPromptOptimizationsResponse) SetTotal(val *int64) {
+	p.Total = val
+}
+func (p *ListPromptOptimizationsResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_ListPromptOptimizationsResponse = map[int16]string{
+	1:   "tasks",
+	2:   "total",
+	255: "BaseResp",
+}
+
+func (p *ListPromptOptimizationsResponse) IsSetTasks() bool {
+	return p.Tasks != nil
+}
+
+func (p *ListPromptOptimizationsResponse) IsSetTotal() bool {
+	return p.Total != nil
+}
+
+func (p *ListPromptOptimizationsResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *ListPromptOptimizationsResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptOptimizationsResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ListPromptOptimizationsResponse) ReadField1(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptOptimizationTask, 0, size)
+	values := make([]PromptOptimizationTask, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Tasks = _field
+	return nil
+}
+func (p *ListPromptOptimizationsResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Total = _field
+	return nil
+}
+func (p *ListPromptOptimizationsResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *ListPromptOptimizationsResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptOptimizationsResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ListPromptOptimizationsResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTasks() {
+		if err = oprot.WriteFieldBegin("tasks", thrift.LIST, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Tasks)); err != nil {
+			return err
+		}
+		for _, v := range p.Tasks {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *ListPromptOptimizationsResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTotal() {
+		if err = oprot.WriteFieldBegin("total", thrift.I64, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.Total); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *ListPromptOptimizationsResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.BaseResp.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *ListPromptOptimizationsResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListPromptOptimizationsResponse(%+v)", *p)
+
+}
+
+func (p *ListPromptOptimizationsResponse) DeepEqual(ano *ListPromptOptimizationsResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Tasks) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Total) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *ListPromptOptimizationsResponse) Field1DeepEqual(src []*PromptOptimizationTask) bool {
+
+	if len(p.Tasks) != len(src) {
+		return false
+	}
+	for i, v := range p.Tasks {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *ListPromptOptimizationsResponse) Field2DeepEqual(src *int64) bool {
+
+	if p.Total == src {
+		return true
+	} else if p.Total == nil || src == nil {
+		return false
+	}
+	if *p.Total != *src {
+		return false
+	}
+	return true
+}
+func (p *ListPromptOptimizationsResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type CancelPromptOptimizationRequest struct {
+	WorkspaceID    int64 `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
+	ExptID         int64 `thrift:"expt_id,2,required" frugal:"2,required,i64" json:"expt_id" path:"expt_id,required" `
+	OptimizationID int64 `thrift:"optimization_id,3,required" frugal:"3,required,i64" json:"optimization_id" path:"optimization_id,required" `
+}
+
+func NewCancelPromptOptimizationRequest() *CancelPromptOptimizationRequest {
+	return &CancelPromptOptimizationRequest{}
+}
+
+func (p *CancelPromptOptimizationRequest) InitDefault() {
+}
+
+func (p *CancelPromptOptimizationRequest) GetWorkspaceID() (v int64) {
+	if p != nil {
+		return p.WorkspaceID
+	}
+	return
+}
+
+func (p *CancelPromptOptimizationRequest) GetExptID() (v int64) {
+	if p != nil {
+		return p.ExptID
+	}
+	return
+}
+
+func (p *CancelPromptOptimizationRequest) GetOptimizationID() (v int64) {
+	if p != nil {
+		return p.OptimizationID
+	}
+	return
+}
+func (p *CancelPromptOptimizationRequest) SetWorkspaceID(val int64) {
+	p.WorkspaceID = val
+}
+func (p *CancelPromptOptimizationRequest) SetExptID(val int64) {
+	p.ExptID = val
+}
+func (p *CancelPromptOptimizationRequest) SetOptimizationID(val int64) {
+	p.OptimizationID = val
+}
+
+var fieldIDToName_CancelPromptOptimizationRequest = map[int16]string{
+	1: "workspace_id",
+	2: "expt_id",
+	3: "optimization_id",
+}
+
+func (p *CancelPromptOptimizationRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetExptID bool = false
+	var issetOptimizationID bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetExptID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetOptimizationID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetExptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetOptimizationID {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CancelPromptOptimizationRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_CancelPromptOptimizationRequest[fieldId]))
+}
+
+func (p *CancelPromptOptimizationRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *CancelPromptOptimizationRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ExptID = _field
+	return nil
+}
+func (p *CancelPromptOptimizationRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.OptimizationID = _field
+	return nil
+}
+
+func (p *CancelPromptOptimizationRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CancelPromptOptimizationRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *CancelPromptOptimizationRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.WorkspaceID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *CancelPromptOptimizationRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("expt_id", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.ExptID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *CancelPromptOptimizationRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("optimization_id", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.OptimizationID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *CancelPromptOptimizationRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CancelPromptOptimizationRequest(%+v)", *p)
+
+}
+
+func (p *CancelPromptOptimizationRequest) DeepEqual(ano *CancelPromptOptimizationRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ExptID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.OptimizationID) {
+		return false
+	}
+	return true
+}
+
+func (p *CancelPromptOptimizationRequest) Field1DeepEqual(src int64) bool {
+
+	if p.WorkspaceID != src {
+		return false
+	}
+	return true
+}
+func (p *CancelPromptOptimizationRequest) Field2DeepEqual(src int64) bool {
+
+	if p.ExptID != src {
+		return false
+	}
+	return true
+}
+func (p *CancelPromptOptimizationRequest) Field3DeepEqual(src int64) bool {
+
+	if p.OptimizationID != src {
+		return false
+	}
+	return true
+}
+
+type CancelPromptOptimizationResponse struct {
+	Task     *PromptOptimizationTask `thrift:"task,1,optional" frugal:"1,optional,PromptOptimizationTask" form:"task" json:"task,omitempty" query:"task"`
+	BaseResp *base.BaseResp          `thrift:"BaseResp,255" frugal:"255,default,base.BaseResp" form:"BaseResp" json:"BaseResp" query:"BaseResp"`
+}
+
+func NewCancelPromptOptimizationResponse() *CancelPromptOptimizationResponse {
+	return &CancelPromptOptimizationResponse{}
+}
+
+func (p *CancelPromptOptimizationResponse) InitDefault() {
+}
+
+var CancelPromptOptimizationResponse_Task_DEFAULT *PromptOptimizationTask
+
+func (p *CancelPromptOptimizationResponse) GetTask() (v *PromptOptimizationTask) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTask() {
+		return CancelPromptOptimizationResponse_Task_DEFAULT
+	}
+	return p.Task
+}
+
+var CancelPromptOptimizationResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *CancelPromptOptimizationResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return CancelPromptOptimizationResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *CancelPromptOptimizationResponse) SetTask(val *PromptOptimizationTask) {
+	p.Task = val
+}
+func (p *CancelPromptOptimizationResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_CancelPromptOptimizationResponse = map[int16]string{
+	1:   "task",
+	255: "BaseResp",
+}
+
+func (p *CancelPromptOptimizationResponse) IsSetTask() bool {
+	return p.Task != nil
+}
+
+func (p *CancelPromptOptimizationResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *CancelPromptOptimizationResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CancelPromptOptimizationResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *CancelPromptOptimizationResponse) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewPromptOptimizationTask()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Task = _field
+	return nil
+}
+func (p *CancelPromptOptimizationResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *CancelPromptOptimizationResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CancelPromptOptimizationResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *CancelPromptOptimizationResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTask() {
+		if err = oprot.WriteFieldBegin("task", thrift.STRUCT, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Task.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *CancelPromptOptimizationResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.BaseResp.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *CancelPromptOptimizationResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CancelPromptOptimizationResponse(%+v)", *p)
+
+}
+
+func (p *CancelPromptOptimizationResponse) DeepEqual(ano *CancelPromptOptimizationResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Task) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *CancelPromptOptimizationResponse) Field1DeepEqual(src *PromptOptimizationTask) bool {
+
+	if !p.Task.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *CancelPromptOptimizationResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ApplyPromptOptimizationToDraftRequest struct {
+	WorkspaceID    int64 `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
+	ExptID         int64 `thrift:"expt_id,2,required" frugal:"2,required,i64" json:"expt_id" path:"expt_id,required" `
+	OptimizationID int64 `thrift:"optimization_id,3,required" frugal:"3,required,i64" json:"optimization_id" path:"optimization_id,required" `
+	// Applying replaces the current user's editable draft. Require an explicit
+	// acknowledgement when a draft already exists to prevent silent data loss.
+	OverwriteExistingDraft *bool `thrift:"overwrite_existing_draft,4,optional" frugal:"4,optional,bool" form:"overwrite_existing_draft" json:"overwrite_existing_draft,omitempty"`
+}
+
+func NewApplyPromptOptimizationToDraftRequest() *ApplyPromptOptimizationToDraftRequest {
+	return &ApplyPromptOptimizationToDraftRequest{}
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) InitDefault() {
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) GetWorkspaceID() (v int64) {
+	if p != nil {
+		return p.WorkspaceID
+	}
+	return
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) GetExptID() (v int64) {
+	if p != nil {
+		return p.ExptID
+	}
+	return
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) GetOptimizationID() (v int64) {
+	if p != nil {
+		return p.OptimizationID
+	}
+	return
+}
+
+var ApplyPromptOptimizationToDraftRequest_OverwriteExistingDraft_DEFAULT bool
+
+func (p *ApplyPromptOptimizationToDraftRequest) GetOverwriteExistingDraft() (v bool) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOverwriteExistingDraft() {
+		return ApplyPromptOptimizationToDraftRequest_OverwriteExistingDraft_DEFAULT
+	}
+	return *p.OverwriteExistingDraft
+}
+func (p *ApplyPromptOptimizationToDraftRequest) SetWorkspaceID(val int64) {
+	p.WorkspaceID = val
+}
+func (p *ApplyPromptOptimizationToDraftRequest) SetExptID(val int64) {
+	p.ExptID = val
+}
+func (p *ApplyPromptOptimizationToDraftRequest) SetOptimizationID(val int64) {
+	p.OptimizationID = val
+}
+func (p *ApplyPromptOptimizationToDraftRequest) SetOverwriteExistingDraft(val *bool) {
+	p.OverwriteExistingDraft = val
+}
+
+var fieldIDToName_ApplyPromptOptimizationToDraftRequest = map[int16]string{
+	1: "workspace_id",
+	2: "expt_id",
+	3: "optimization_id",
+	4: "overwrite_existing_draft",
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) IsSetOverwriteExistingDraft() bool {
+	return p.OverwriteExistingDraft != nil
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetExptID bool = false
+	var issetOptimizationID bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetExptID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetOptimizationID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.BOOL {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetExptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetOptimizationID {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ApplyPromptOptimizationToDraftRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ApplyPromptOptimizationToDraftRequest[fieldId]))
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *ApplyPromptOptimizationToDraftRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ExptID = _field
+	return nil
+}
+func (p *ApplyPromptOptimizationToDraftRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.OptimizationID = _field
+	return nil
+}
+func (p *ApplyPromptOptimizationToDraftRequest) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *bool
+	if v, err := iprot.ReadBool(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.OverwriteExistingDraft = _field
+	return nil
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ApplyPromptOptimizationToDraftRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.WorkspaceID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *ApplyPromptOptimizationToDraftRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("expt_id", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.ExptID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *ApplyPromptOptimizationToDraftRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("optimization_id", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.OptimizationID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *ApplyPromptOptimizationToDraftRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOverwriteExistingDraft() {
+		if err = oprot.WriteFieldBegin("overwrite_existing_draft", thrift.BOOL, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBool(*p.OverwriteExistingDraft); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ApplyPromptOptimizationToDraftRequest(%+v)", *p)
+
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) DeepEqual(ano *ApplyPromptOptimizationToDraftRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ExptID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.OptimizationID) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.OverwriteExistingDraft) {
+		return false
+	}
+	return true
+}
+
+func (p *ApplyPromptOptimizationToDraftRequest) Field1DeepEqual(src int64) bool {
+
+	if p.WorkspaceID != src {
+		return false
+	}
+	return true
+}
+func (p *ApplyPromptOptimizationToDraftRequest) Field2DeepEqual(src int64) bool {
+
+	if p.ExptID != src {
+		return false
+	}
+	return true
+}
+func (p *ApplyPromptOptimizationToDraftRequest) Field3DeepEqual(src int64) bool {
+
+	if p.OptimizationID != src {
+		return false
+	}
+	return true
+}
+func (p *ApplyPromptOptimizationToDraftRequest) Field4DeepEqual(src *bool) bool {
+
+	if p.OverwriteExistingDraft == src {
+		return true
+	} else if p.OverwriteExistingDraft == nil || src == nil {
+		return false
+	}
+	if *p.OverwriteExistingDraft != *src {
+		return false
+	}
+	return true
+}
+
+type ApplyPromptOptimizationToDraftResponse struct {
+	PromptID            *int64         `thrift:"prompt_id,1,optional" frugal:"1,optional,i64" json:"prompt_id" form:"prompt_id" query:"prompt_id"`
+	SourcePromptVersion *string        `thrift:"source_prompt_version,2,optional" frugal:"2,optional,string" form:"source_prompt_version" json:"source_prompt_version,omitempty" query:"source_prompt_version"`
+	DraftBaseVersion    *string        `thrift:"draft_base_version,3,optional" frugal:"3,optional,string" form:"draft_base_version" json:"draft_base_version,omitempty" query:"draft_base_version"`
+	NextAction          *string        `thrift:"next_action,4,optional" frugal:"4,optional,string" form:"next_action" json:"next_action,omitempty" query:"next_action"`
+	BaseResp            *base.BaseResp `thrift:"BaseResp,255" frugal:"255,default,base.BaseResp" form:"BaseResp" json:"BaseResp" query:"BaseResp"`
+}
+
+func NewApplyPromptOptimizationToDraftResponse() *ApplyPromptOptimizationToDraftResponse {
+	return &ApplyPromptOptimizationToDraftResponse{}
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) InitDefault() {
+}
+
+var ApplyPromptOptimizationToDraftResponse_PromptID_DEFAULT int64
+
+func (p *ApplyPromptOptimizationToDraftResponse) GetPromptID() (v int64) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetPromptID() {
+		return ApplyPromptOptimizationToDraftResponse_PromptID_DEFAULT
+	}
+	return *p.PromptID
+}
+
+var ApplyPromptOptimizationToDraftResponse_SourcePromptVersion_DEFAULT string
+
+func (p *ApplyPromptOptimizationToDraftResponse) GetSourcePromptVersion() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSourcePromptVersion() {
+		return ApplyPromptOptimizationToDraftResponse_SourcePromptVersion_DEFAULT
+	}
+	return *p.SourcePromptVersion
+}
+
+var ApplyPromptOptimizationToDraftResponse_DraftBaseVersion_DEFAULT string
+
+func (p *ApplyPromptOptimizationToDraftResponse) GetDraftBaseVersion() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDraftBaseVersion() {
+		return ApplyPromptOptimizationToDraftResponse_DraftBaseVersion_DEFAULT
+	}
+	return *p.DraftBaseVersion
+}
+
+var ApplyPromptOptimizationToDraftResponse_NextAction_DEFAULT string
+
+func (p *ApplyPromptOptimizationToDraftResponse) GetNextAction() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetNextAction() {
+		return ApplyPromptOptimizationToDraftResponse_NextAction_DEFAULT
+	}
+	return *p.NextAction
+}
+
+var ApplyPromptOptimizationToDraftResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *ApplyPromptOptimizationToDraftResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return ApplyPromptOptimizationToDraftResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *ApplyPromptOptimizationToDraftResponse) SetPromptID(val *int64) {
+	p.PromptID = val
+}
+func (p *ApplyPromptOptimizationToDraftResponse) SetSourcePromptVersion(val *string) {
+	p.SourcePromptVersion = val
+}
+func (p *ApplyPromptOptimizationToDraftResponse) SetDraftBaseVersion(val *string) {
+	p.DraftBaseVersion = val
+}
+func (p *ApplyPromptOptimizationToDraftResponse) SetNextAction(val *string) {
+	p.NextAction = val
+}
+func (p *ApplyPromptOptimizationToDraftResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_ApplyPromptOptimizationToDraftResponse = map[int16]string{
+	1:   "prompt_id",
+	2:   "source_prompt_version",
+	3:   "draft_base_version",
+	4:   "next_action",
+	255: "BaseResp",
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) IsSetPromptID() bool {
+	return p.PromptID != nil
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) IsSetSourcePromptVersion() bool {
+	return p.SourcePromptVersion != nil
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) IsSetDraftBaseVersion() bool {
+	return p.DraftBaseVersion != nil
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) IsSetNextAction() bool {
+	return p.NextAction != nil
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ApplyPromptOptimizationToDraftResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.PromptID = _field
+	return nil
+}
+func (p *ApplyPromptOptimizationToDraftResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.SourcePromptVersion = _field
+	return nil
+}
+func (p *ApplyPromptOptimizationToDraftResponse) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.DraftBaseVersion = _field
+	return nil
+}
+func (p *ApplyPromptOptimizationToDraftResponse) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.NextAction = _field
+	return nil
+}
+func (p *ApplyPromptOptimizationToDraftResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ApplyPromptOptimizationToDraftResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetPromptID() {
+		if err = oprot.WriteFieldBegin("prompt_id", thrift.I64, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.PromptID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *ApplyPromptOptimizationToDraftResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSourcePromptVersion() {
+		if err = oprot.WriteFieldBegin("source_prompt_version", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.SourcePromptVersion); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *ApplyPromptOptimizationToDraftResponse) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDraftBaseVersion() {
+		if err = oprot.WriteFieldBegin("draft_base_version", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.DraftBaseVersion); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+func (p *ApplyPromptOptimizationToDraftResponse) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetNextAction() {
+		if err = oprot.WriteFieldBegin("next_action", thrift.STRING, 4); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.NextAction); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+func (p *ApplyPromptOptimizationToDraftResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.BaseResp.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ApplyPromptOptimizationToDraftResponse(%+v)", *p)
+
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) DeepEqual(ano *ApplyPromptOptimizationToDraftResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.PromptID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.SourcePromptVersion) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.DraftBaseVersion) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.NextAction) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *ApplyPromptOptimizationToDraftResponse) Field1DeepEqual(src *int64) bool {
+
+	if p.PromptID == src {
+		return true
+	} else if p.PromptID == nil || src == nil {
+		return false
+	}
+	if *p.PromptID != *src {
+		return false
+	}
+	return true
+}
+func (p *ApplyPromptOptimizationToDraftResponse) Field2DeepEqual(src *string) bool {
+
+	if p.SourcePromptVersion == src {
+		return true
+	} else if p.SourcePromptVersion == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.SourcePromptVersion, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ApplyPromptOptimizationToDraftResponse) Field3DeepEqual(src *string) bool {
+
+	if p.DraftBaseVersion == src {
+		return true
+	} else if p.DraftBaseVersion == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.DraftBaseVersion, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ApplyPromptOptimizationToDraftResponse) Field4DeepEqual(src *string) bool {
+
+	if p.NextAction == src {
+		return true
+	} else if p.NextAction == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.NextAction, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ApplyPromptOptimizationToDraftResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
 type ExperimentService interface {
 	CheckExperimentName(ctx context.Context, req *CheckExperimentNameRequest) (r *CheckExperimentNameResponse, err error)
 	// CreateExperiment 只创建，不提交运行
@@ -43702,6 +55436,18 @@ type ExperimentService interface {
 	KillExperiment(ctx context.Context, req *KillExperimentRequest) (r *KillExperimentResponse, err error)
 	// MGetExperimentResult 获取实验结果
 	BatchGetExperimentResult_(ctx context.Context, req *BatchGetExperimentResultRequest) (r *BatchGetExperimentResultResponse, err error)
+	// 智能优化：基于已完成的评测实验优化该实验所使用的 Prompt。
+	PreparePromptOptimization(ctx context.Context, req *PreparePromptOptimizationRequest) (r *PreparePromptOptimizationResponse, err error)
+
+	CreatePromptOptimization(ctx context.Context, req *CreatePromptOptimizationRequest) (r *CreatePromptOptimizationResponse, err error)
+
+	GetPromptOptimization(ctx context.Context, req *GetPromptOptimizationRequest) (r *GetPromptOptimizationResponse, err error)
+
+	ListPromptOptimizations(ctx context.Context, req *ListPromptOptimizationsRequest) (r *ListPromptOptimizationsResponse, err error)
+
+	CancelPromptOptimization(ctx context.Context, req *CancelPromptOptimizationRequest) (r *CancelPromptOptimizationResponse, err error)
+
+	ApplyPromptOptimizationToDraft(ctx context.Context, req *ApplyPromptOptimizationToDraftRequest) (r *ApplyPromptOptimizationToDraftResponse, err error)
 
 	MGetExperimentStandardEvalOutputs(ctx context.Context, req *MGetExperimentStandardEvalOutputsRequest) (r *MGetExperimentStandardEvalOutputsResponse, err error)
 
@@ -43921,6 +55667,60 @@ func (p *ExperimentServiceClient) BatchGetExperimentResult_(ctx context.Context,
 	_args.Req = req
 	var _result ExperimentServiceBatchGetExperimentResultResult
 	if err = p.Client_().Call(ctx, "BatchGetExperimentResult", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *ExperimentServiceClient) PreparePromptOptimization(ctx context.Context, req *PreparePromptOptimizationRequest) (r *PreparePromptOptimizationResponse, err error) {
+	var _args ExperimentServicePreparePromptOptimizationArgs
+	_args.Req = req
+	var _result ExperimentServicePreparePromptOptimizationResult
+	if err = p.Client_().Call(ctx, "PreparePromptOptimization", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *ExperimentServiceClient) CreatePromptOptimization(ctx context.Context, req *CreatePromptOptimizationRequest) (r *CreatePromptOptimizationResponse, err error) {
+	var _args ExperimentServiceCreatePromptOptimizationArgs
+	_args.Req = req
+	var _result ExperimentServiceCreatePromptOptimizationResult
+	if err = p.Client_().Call(ctx, "CreatePromptOptimization", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *ExperimentServiceClient) GetPromptOptimization(ctx context.Context, req *GetPromptOptimizationRequest) (r *GetPromptOptimizationResponse, err error) {
+	var _args ExperimentServiceGetPromptOptimizationArgs
+	_args.Req = req
+	var _result ExperimentServiceGetPromptOptimizationResult
+	if err = p.Client_().Call(ctx, "GetPromptOptimization", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *ExperimentServiceClient) ListPromptOptimizations(ctx context.Context, req *ListPromptOptimizationsRequest) (r *ListPromptOptimizationsResponse, err error) {
+	var _args ExperimentServiceListPromptOptimizationsArgs
+	_args.Req = req
+	var _result ExperimentServiceListPromptOptimizationsResult
+	if err = p.Client_().Call(ctx, "ListPromptOptimizations", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *ExperimentServiceClient) CancelPromptOptimization(ctx context.Context, req *CancelPromptOptimizationRequest) (r *CancelPromptOptimizationResponse, err error) {
+	var _args ExperimentServiceCancelPromptOptimizationArgs
+	_args.Req = req
+	var _result ExperimentServiceCancelPromptOptimizationResult
+	if err = p.Client_().Call(ctx, "CancelPromptOptimization", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *ExperimentServiceClient) ApplyPromptOptimizationToDraft(ctx context.Context, req *ApplyPromptOptimizationToDraftRequest) (r *ApplyPromptOptimizationToDraftResponse, err error) {
+	var _args ExperimentServiceApplyPromptOptimizationToDraftArgs
+	_args.Req = req
+	var _result ExperimentServiceApplyPromptOptimizationToDraftResult
+	if err = p.Client_().Call(ctx, "ApplyPromptOptimizationToDraft", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
@@ -44231,6 +56031,12 @@ func NewExperimentServiceProcessor(handler ExperimentService) *ExperimentService
 	self.AddToProcessorMap("RetryExperiment", &experimentServiceProcessorRetryExperiment{handler: handler})
 	self.AddToProcessorMap("KillExperiment", &experimentServiceProcessorKillExperiment{handler: handler})
 	self.AddToProcessorMap("BatchGetExperimentResult", &experimentServiceProcessorBatchGetExperimentResult_{handler: handler})
+	self.AddToProcessorMap("PreparePromptOptimization", &experimentServiceProcessorPreparePromptOptimization{handler: handler})
+	self.AddToProcessorMap("CreatePromptOptimization", &experimentServiceProcessorCreatePromptOptimization{handler: handler})
+	self.AddToProcessorMap("GetPromptOptimization", &experimentServiceProcessorGetPromptOptimization{handler: handler})
+	self.AddToProcessorMap("ListPromptOptimizations", &experimentServiceProcessorListPromptOptimizations{handler: handler})
+	self.AddToProcessorMap("CancelPromptOptimization", &experimentServiceProcessorCancelPromptOptimization{handler: handler})
+	self.AddToProcessorMap("ApplyPromptOptimizationToDraft", &experimentServiceProcessorApplyPromptOptimizationToDraft{handler: handler})
 	self.AddToProcessorMap("MGetExperimentStandardEvalOutputs", &experimentServiceProcessorMGetExperimentStandardEvalOutputs{handler: handler})
 	self.AddToProcessorMap("ListExperimentStandardEvalOutputs", &experimentServiceProcessorListExperimentStandardEvalOutputs{handler: handler})
 	self.AddToProcessorMap("CalculateExperimentAggrResult", &experimentServiceProcessorCalculateExperimentAggrResult_{handler: handler})
@@ -44984,6 +56790,294 @@ func (p *experimentServiceProcessorBatchGetExperimentResult_) Process(ctx contex
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("BatchGetExperimentResult", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type experimentServiceProcessorPreparePromptOptimization struct {
+	handler ExperimentService
+}
+
+func (p *experimentServiceProcessorPreparePromptOptimization) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ExperimentServicePreparePromptOptimizationArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("PreparePromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ExperimentServicePreparePromptOptimizationResult{}
+	var retval *PreparePromptOptimizationResponse
+	if retval, err2 = p.handler.PreparePromptOptimization(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing PreparePromptOptimization: "+err2.Error())
+		oprot.WriteMessageBegin("PreparePromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("PreparePromptOptimization", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type experimentServiceProcessorCreatePromptOptimization struct {
+	handler ExperimentService
+}
+
+func (p *experimentServiceProcessorCreatePromptOptimization) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ExperimentServiceCreatePromptOptimizationArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("CreatePromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ExperimentServiceCreatePromptOptimizationResult{}
+	var retval *CreatePromptOptimizationResponse
+	if retval, err2 = p.handler.CreatePromptOptimization(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing CreatePromptOptimization: "+err2.Error())
+		oprot.WriteMessageBegin("CreatePromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("CreatePromptOptimization", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type experimentServiceProcessorGetPromptOptimization struct {
+	handler ExperimentService
+}
+
+func (p *experimentServiceProcessorGetPromptOptimization) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ExperimentServiceGetPromptOptimizationArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("GetPromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ExperimentServiceGetPromptOptimizationResult{}
+	var retval *GetPromptOptimizationResponse
+	if retval, err2 = p.handler.GetPromptOptimization(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetPromptOptimization: "+err2.Error())
+		oprot.WriteMessageBegin("GetPromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("GetPromptOptimization", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type experimentServiceProcessorListPromptOptimizations struct {
+	handler ExperimentService
+}
+
+func (p *experimentServiceProcessorListPromptOptimizations) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ExperimentServiceListPromptOptimizationsArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("ListPromptOptimizations", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ExperimentServiceListPromptOptimizationsResult{}
+	var retval *ListPromptOptimizationsResponse
+	if retval, err2 = p.handler.ListPromptOptimizations(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ListPromptOptimizations: "+err2.Error())
+		oprot.WriteMessageBegin("ListPromptOptimizations", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("ListPromptOptimizations", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type experimentServiceProcessorCancelPromptOptimization struct {
+	handler ExperimentService
+}
+
+func (p *experimentServiceProcessorCancelPromptOptimization) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ExperimentServiceCancelPromptOptimizationArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("CancelPromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ExperimentServiceCancelPromptOptimizationResult{}
+	var retval *CancelPromptOptimizationResponse
+	if retval, err2 = p.handler.CancelPromptOptimization(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing CancelPromptOptimization: "+err2.Error())
+		oprot.WriteMessageBegin("CancelPromptOptimization", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("CancelPromptOptimization", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type experimentServiceProcessorApplyPromptOptimizationToDraft struct {
+	handler ExperimentService
+}
+
+func (p *experimentServiceProcessorApplyPromptOptimizationToDraft) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ExperimentServiceApplyPromptOptimizationToDraftArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("ApplyPromptOptimizationToDraft", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ExperimentServiceApplyPromptOptimizationToDraftResult{}
+	var retval *ApplyPromptOptimizationToDraftResponse
+	if retval, err2 = p.handler.ApplyPromptOptimizationToDraft(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ApplyPromptOptimizationToDraft: "+err2.Error())
+		oprot.WriteMessageBegin("ApplyPromptOptimizationToDraft", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("ApplyPromptOptimizationToDraft", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -51594,6 +63688,2070 @@ func (p *ExperimentServiceBatchGetExperimentResultResult) DeepEqual(ano *Experim
 }
 
 func (p *ExperimentServiceBatchGetExperimentResultResult) Field0DeepEqual(src *BatchGetExperimentResultResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServicePreparePromptOptimizationArgs struct {
+	Req *PreparePromptOptimizationRequest `thrift:"req,1" frugal:"1,default,PreparePromptOptimizationRequest"`
+}
+
+func NewExperimentServicePreparePromptOptimizationArgs() *ExperimentServicePreparePromptOptimizationArgs {
+	return &ExperimentServicePreparePromptOptimizationArgs{}
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) InitDefault() {
+}
+
+var ExperimentServicePreparePromptOptimizationArgs_Req_DEFAULT *PreparePromptOptimizationRequest
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) GetReq() (v *PreparePromptOptimizationRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return ExperimentServicePreparePromptOptimizationArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *ExperimentServicePreparePromptOptimizationArgs) SetReq(val *PreparePromptOptimizationRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_ExperimentServicePreparePromptOptimizationArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServicePreparePromptOptimizationArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewPreparePromptOptimizationRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PreparePromptOptimization_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServicePreparePromptOptimizationArgs(%+v)", *p)
+
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) DeepEqual(ano *ExperimentServicePreparePromptOptimizationArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServicePreparePromptOptimizationArgs) Field1DeepEqual(src *PreparePromptOptimizationRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServicePreparePromptOptimizationResult struct {
+	Success *PreparePromptOptimizationResponse `thrift:"success,0,optional" frugal:"0,optional,PreparePromptOptimizationResponse"`
+}
+
+func NewExperimentServicePreparePromptOptimizationResult() *ExperimentServicePreparePromptOptimizationResult {
+	return &ExperimentServicePreparePromptOptimizationResult{}
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) InitDefault() {
+}
+
+var ExperimentServicePreparePromptOptimizationResult_Success_DEFAULT *PreparePromptOptimizationResponse
+
+func (p *ExperimentServicePreparePromptOptimizationResult) GetSuccess() (v *PreparePromptOptimizationResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return ExperimentServicePreparePromptOptimizationResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *ExperimentServicePreparePromptOptimizationResult) SetSuccess(x interface{}) {
+	p.Success = x.(*PreparePromptOptimizationResponse)
+}
+
+var fieldIDToName_ExperimentServicePreparePromptOptimizationResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServicePreparePromptOptimizationResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewPreparePromptOptimizationResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PreparePromptOptimization_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServicePreparePromptOptimizationResult(%+v)", *p)
+
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) DeepEqual(ano *ExperimentServicePreparePromptOptimizationResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServicePreparePromptOptimizationResult) Field0DeepEqual(src *PreparePromptOptimizationResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceCreatePromptOptimizationArgs struct {
+	Req *CreatePromptOptimizationRequest `thrift:"req,1" frugal:"1,default,CreatePromptOptimizationRequest"`
+}
+
+func NewExperimentServiceCreatePromptOptimizationArgs() *ExperimentServiceCreatePromptOptimizationArgs {
+	return &ExperimentServiceCreatePromptOptimizationArgs{}
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) InitDefault() {
+}
+
+var ExperimentServiceCreatePromptOptimizationArgs_Req_DEFAULT *CreatePromptOptimizationRequest
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) GetReq() (v *CreatePromptOptimizationRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return ExperimentServiceCreatePromptOptimizationArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *ExperimentServiceCreatePromptOptimizationArgs) SetReq(val *CreatePromptOptimizationRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_ExperimentServiceCreatePromptOptimizationArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCreatePromptOptimizationArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewCreatePromptOptimizationRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CreatePromptOptimization_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceCreatePromptOptimizationArgs(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) DeepEqual(ano *ExperimentServiceCreatePromptOptimizationArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationArgs) Field1DeepEqual(src *CreatePromptOptimizationRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceCreatePromptOptimizationResult struct {
+	Success *CreatePromptOptimizationResponse `thrift:"success,0,optional" frugal:"0,optional,CreatePromptOptimizationResponse"`
+}
+
+func NewExperimentServiceCreatePromptOptimizationResult() *ExperimentServiceCreatePromptOptimizationResult {
+	return &ExperimentServiceCreatePromptOptimizationResult{}
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) InitDefault() {
+}
+
+var ExperimentServiceCreatePromptOptimizationResult_Success_DEFAULT *CreatePromptOptimizationResponse
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) GetSuccess() (v *CreatePromptOptimizationResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return ExperimentServiceCreatePromptOptimizationResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *ExperimentServiceCreatePromptOptimizationResult) SetSuccess(x interface{}) {
+	p.Success = x.(*CreatePromptOptimizationResponse)
+}
+
+var fieldIDToName_ExperimentServiceCreatePromptOptimizationResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCreatePromptOptimizationResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewCreatePromptOptimizationResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CreatePromptOptimization_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceCreatePromptOptimizationResult(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) DeepEqual(ano *ExperimentServiceCreatePromptOptimizationResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceCreatePromptOptimizationResult) Field0DeepEqual(src *CreatePromptOptimizationResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceGetPromptOptimizationArgs struct {
+	Req *GetPromptOptimizationRequest `thrift:"req,1" frugal:"1,default,GetPromptOptimizationRequest"`
+}
+
+func NewExperimentServiceGetPromptOptimizationArgs() *ExperimentServiceGetPromptOptimizationArgs {
+	return &ExperimentServiceGetPromptOptimizationArgs{}
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) InitDefault() {
+}
+
+var ExperimentServiceGetPromptOptimizationArgs_Req_DEFAULT *GetPromptOptimizationRequest
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) GetReq() (v *GetPromptOptimizationRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return ExperimentServiceGetPromptOptimizationArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *ExperimentServiceGetPromptOptimizationArgs) SetReq(val *GetPromptOptimizationRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_ExperimentServiceGetPromptOptimizationArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceGetPromptOptimizationArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewGetPromptOptimizationRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptOptimization_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceGetPromptOptimizationArgs(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) DeepEqual(ano *ExperimentServiceGetPromptOptimizationArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceGetPromptOptimizationArgs) Field1DeepEqual(src *GetPromptOptimizationRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceGetPromptOptimizationResult struct {
+	Success *GetPromptOptimizationResponse `thrift:"success,0,optional" frugal:"0,optional,GetPromptOptimizationResponse"`
+}
+
+func NewExperimentServiceGetPromptOptimizationResult() *ExperimentServiceGetPromptOptimizationResult {
+	return &ExperimentServiceGetPromptOptimizationResult{}
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) InitDefault() {
+}
+
+var ExperimentServiceGetPromptOptimizationResult_Success_DEFAULT *GetPromptOptimizationResponse
+
+func (p *ExperimentServiceGetPromptOptimizationResult) GetSuccess() (v *GetPromptOptimizationResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return ExperimentServiceGetPromptOptimizationResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *ExperimentServiceGetPromptOptimizationResult) SetSuccess(x interface{}) {
+	p.Success = x.(*GetPromptOptimizationResponse)
+}
+
+var fieldIDToName_ExperimentServiceGetPromptOptimizationResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceGetPromptOptimizationResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewGetPromptOptimizationResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetPromptOptimization_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceGetPromptOptimizationResult(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) DeepEqual(ano *ExperimentServiceGetPromptOptimizationResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceGetPromptOptimizationResult) Field0DeepEqual(src *GetPromptOptimizationResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceListPromptOptimizationsArgs struct {
+	Req *ListPromptOptimizationsRequest `thrift:"req,1" frugal:"1,default,ListPromptOptimizationsRequest"`
+}
+
+func NewExperimentServiceListPromptOptimizationsArgs() *ExperimentServiceListPromptOptimizationsArgs {
+	return &ExperimentServiceListPromptOptimizationsArgs{}
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) InitDefault() {
+}
+
+var ExperimentServiceListPromptOptimizationsArgs_Req_DEFAULT *ListPromptOptimizationsRequest
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) GetReq() (v *ListPromptOptimizationsRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return ExperimentServiceListPromptOptimizationsArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *ExperimentServiceListPromptOptimizationsArgs) SetReq(val *ListPromptOptimizationsRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_ExperimentServiceListPromptOptimizationsArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceListPromptOptimizationsArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewListPromptOptimizationsRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptOptimizations_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceListPromptOptimizationsArgs(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) DeepEqual(ano *ExperimentServiceListPromptOptimizationsArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceListPromptOptimizationsArgs) Field1DeepEqual(src *ListPromptOptimizationsRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceListPromptOptimizationsResult struct {
+	Success *ListPromptOptimizationsResponse `thrift:"success,0,optional" frugal:"0,optional,ListPromptOptimizationsResponse"`
+}
+
+func NewExperimentServiceListPromptOptimizationsResult() *ExperimentServiceListPromptOptimizationsResult {
+	return &ExperimentServiceListPromptOptimizationsResult{}
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) InitDefault() {
+}
+
+var ExperimentServiceListPromptOptimizationsResult_Success_DEFAULT *ListPromptOptimizationsResponse
+
+func (p *ExperimentServiceListPromptOptimizationsResult) GetSuccess() (v *ListPromptOptimizationsResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return ExperimentServiceListPromptOptimizationsResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *ExperimentServiceListPromptOptimizationsResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ListPromptOptimizationsResponse)
+}
+
+var fieldIDToName_ExperimentServiceListPromptOptimizationsResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceListPromptOptimizationsResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewListPromptOptimizationsResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ListPromptOptimizations_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceListPromptOptimizationsResult(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) DeepEqual(ano *ExperimentServiceListPromptOptimizationsResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceListPromptOptimizationsResult) Field0DeepEqual(src *ListPromptOptimizationsResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceCancelPromptOptimizationArgs struct {
+	Req *CancelPromptOptimizationRequest `thrift:"req,1" frugal:"1,default,CancelPromptOptimizationRequest"`
+}
+
+func NewExperimentServiceCancelPromptOptimizationArgs() *ExperimentServiceCancelPromptOptimizationArgs {
+	return &ExperimentServiceCancelPromptOptimizationArgs{}
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) InitDefault() {
+}
+
+var ExperimentServiceCancelPromptOptimizationArgs_Req_DEFAULT *CancelPromptOptimizationRequest
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) GetReq() (v *CancelPromptOptimizationRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return ExperimentServiceCancelPromptOptimizationArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *ExperimentServiceCancelPromptOptimizationArgs) SetReq(val *CancelPromptOptimizationRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_ExperimentServiceCancelPromptOptimizationArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCancelPromptOptimizationArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewCancelPromptOptimizationRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CancelPromptOptimization_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceCancelPromptOptimizationArgs(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) DeepEqual(ano *ExperimentServiceCancelPromptOptimizationArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationArgs) Field1DeepEqual(src *CancelPromptOptimizationRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceCancelPromptOptimizationResult struct {
+	Success *CancelPromptOptimizationResponse `thrift:"success,0,optional" frugal:"0,optional,CancelPromptOptimizationResponse"`
+}
+
+func NewExperimentServiceCancelPromptOptimizationResult() *ExperimentServiceCancelPromptOptimizationResult {
+	return &ExperimentServiceCancelPromptOptimizationResult{}
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) InitDefault() {
+}
+
+var ExperimentServiceCancelPromptOptimizationResult_Success_DEFAULT *CancelPromptOptimizationResponse
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) GetSuccess() (v *CancelPromptOptimizationResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return ExperimentServiceCancelPromptOptimizationResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *ExperimentServiceCancelPromptOptimizationResult) SetSuccess(x interface{}) {
+	p.Success = x.(*CancelPromptOptimizationResponse)
+}
+
+var fieldIDToName_ExperimentServiceCancelPromptOptimizationResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCancelPromptOptimizationResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewCancelPromptOptimizationResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CancelPromptOptimization_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceCancelPromptOptimizationResult(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) DeepEqual(ano *ExperimentServiceCancelPromptOptimizationResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceCancelPromptOptimizationResult) Field0DeepEqual(src *CancelPromptOptimizationResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceApplyPromptOptimizationToDraftArgs struct {
+	Req *ApplyPromptOptimizationToDraftRequest `thrift:"req,1" frugal:"1,default,ApplyPromptOptimizationToDraftRequest"`
+}
+
+func NewExperimentServiceApplyPromptOptimizationToDraftArgs() *ExperimentServiceApplyPromptOptimizationToDraftArgs {
+	return &ExperimentServiceApplyPromptOptimizationToDraftArgs{}
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) InitDefault() {
+}
+
+var ExperimentServiceApplyPromptOptimizationToDraftArgs_Req_DEFAULT *ApplyPromptOptimizationToDraftRequest
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) GetReq() (v *ApplyPromptOptimizationToDraftRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return ExperimentServiceApplyPromptOptimizationToDraftArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) SetReq(val *ApplyPromptOptimizationToDraftRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_ExperimentServiceApplyPromptOptimizationToDraftArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceApplyPromptOptimizationToDraftArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewApplyPromptOptimizationToDraftRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ApplyPromptOptimizationToDraft_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceApplyPromptOptimizationToDraftArgs(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) DeepEqual(ano *ExperimentServiceApplyPromptOptimizationToDraftArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) Field1DeepEqual(src *ApplyPromptOptimizationToDraftRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceApplyPromptOptimizationToDraftResult struct {
+	Success *ApplyPromptOptimizationToDraftResponse `thrift:"success,0,optional" frugal:"0,optional,ApplyPromptOptimizationToDraftResponse"`
+}
+
+func NewExperimentServiceApplyPromptOptimizationToDraftResult() *ExperimentServiceApplyPromptOptimizationToDraftResult {
+	return &ExperimentServiceApplyPromptOptimizationToDraftResult{}
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) InitDefault() {
+}
+
+var ExperimentServiceApplyPromptOptimizationToDraftResult_Success_DEFAULT *ApplyPromptOptimizationToDraftResponse
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) GetSuccess() (v *ApplyPromptOptimizationToDraftResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return ExperimentServiceApplyPromptOptimizationToDraftResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ApplyPromptOptimizationToDraftResponse)
+}
+
+var fieldIDToName_ExperimentServiceApplyPromptOptimizationToDraftResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceApplyPromptOptimizationToDraftResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewApplyPromptOptimizationToDraftResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ApplyPromptOptimizationToDraft_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceApplyPromptOptimizationToDraftResult(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) DeepEqual(ano *ExperimentServiceApplyPromptOptimizationToDraftResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) Field0DeepEqual(src *ApplyPromptOptimizationToDraftResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

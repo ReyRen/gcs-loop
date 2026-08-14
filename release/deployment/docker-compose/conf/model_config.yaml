@@ -18,9 +18,9 @@ models:
         max_image_count: 20 # Optional. Default value is 0, which means count is not limited.
   frame: "eino" # Required. Options Include [eino]
   protocol: "deepseek" # Required. Options Include [ark, openai, deepseek, qwen, qianfan, ollama, gemini, claude, arkbot]
-  protocol_config: # Required.
+  protocol_config: &gpt_gateway # Required. Shared by models served through the same OpenAI-compatible gateway.
     base_url: "https://api.gpt.ge/v1" # Optional. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
-    api_key: ""
+    api_key: "" # Configure the real key only in the deployment environment. Never commit credentials.
     model: "DeepSeek-V4-Flash" # Required. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
     protocol_config_deepseek: #Optional
       response_format_type: "" # Optional. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
@@ -90,6 +90,158 @@ models:
         label: "presence_penalty"  # Displayed as a name on the front end
         desc: "Penalizes all tokens that have appeared, preventing the same content from appearing repeatedly and increasing content diversity." # Displayed as a description on the front end
         type: "float" # Required. Must be float, int, bool, string
+        min: "0"
+        max: "2.0"
+        default_val: "0"
+
+- id: 2
+  name: "豆包·1.5·Pro·视觉理解"
+  desc: "Doubao 1.5 Pro vision model for image understanding and visual question answering."
+  ability:
+    max_context_tokens: 32768
+    max_input_tokens: 32768
+    max_output_tokens: 4096
+    function_call: true
+    json_mode: false
+    multi_modal: true
+    ability_multi_modal:
+      image: true
+      ability_image:
+        url_enabled: true
+        binary_enabled: true
+        max_image_size: 20
+        max_image_count: 20
+  frame: "eino"
+  # The configured gateway exposes an OpenAI-compatible Chat Completions API.
+  protocol: "openai"
+  protocol_config:
+    <<: *gpt_gateway
+    model: "doubao-1-5-vision-pro-32k"
+    protocol_config_openai:
+      response_format_type: ""
+      response_format_json_schema: ""
+  scenario_configs:
+    default:
+      scenario: "default"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    prompt_debug:
+      scenario: "prompt_debug"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    eval_target:
+      scenario: "eval_target"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    evaluator:
+      scenario: "evaluator"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+  param_config:
+    param_schemas:
+      - name: "temperature"
+        label: "temperature"
+        desc: "Controls generation randomness."
+        type: "float"
+        min: "0"
+        max: "1.0"
+        default_val: "0.7"
+      - name: "max_tokens"
+        label: "max_tokens"
+        desc: "Controls the maximum number of output tokens."
+        type: "int"
+        min: "1"
+        max: "4096"
+        default_val: "2048"
+      - name: "top_p"
+        label: "top_p"
+        desc: "Controls nucleus sampling."
+        type: "float"
+        min: "0.001"
+        max: "1.0"
+        default_val: "0.7"
+      - name: "frequency_penalty"
+        label: "frequency_penalty"
+        desc: "Penalizes repeated tokens according to frequency."
+        type: "float"
+        min: "0"
+        max: "2.0"
+        default_val: "0"
+      - name: "presence_penalty"
+        label: "presence_penalty"
+        desc: "Penalizes tokens that have already appeared."
+        type: "float"
+        min: "0"
+        max: "2.0"
+        default_val: "0"
+
+- id: 3
+  name: "Qwen3.7-Plus"
+  desc: "Qwen 3.7 general-purpose model with long context, reasoning, tool calling, and structured output."
+  ability:
+    max_context_tokens: 1000000
+    max_input_tokens: 1000000
+    max_output_tokens: 65536
+    function_call: true
+    json_mode: true
+    multi_modal: false
+    thinking: true
+  frame: "eino"
+  protocol: "qwen"
+  protocol_config:
+    <<: *gpt_gateway
+    model: "Qwen3.7-Plus"
+  scenario_configs:
+    default:
+      scenario: "default"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    prompt_debug:
+      scenario: "prompt_debug"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    eval_target:
+      scenario: "eval_target"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    evaluator:
+      scenario: "evaluator"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+  param_config:
+    param_schemas:
+      - name: "temperature"
+        label: "temperature"
+        desc: "Controls generation randomness."
+        type: "float"
+        min: "0"
+        max: "1.0"
+        default_val: "0.7"
+      - name: "max_tokens"
+        label: "max_tokens"
+        desc: "Controls the maximum number of output tokens."
+        type: "int"
+        min: "1"
+        max: "65536"
+        default_val: "4096"
+      - name: "top_p"
+        label: "top_p"
+        desc: "Controls nucleus sampling."
+        type: "float"
+        min: "0.001"
+        max: "1.0"
+        default_val: "0.7"
+      - name: "frequency_penalty"
+        label: "frequency_penalty"
+        desc: "Penalizes repeated tokens according to frequency."
+        type: "float"
+        min: "0"
+        max: "2.0"
+        default_val: "0"
+      - name: "presence_penalty"
+        label: "presence_penalty"
+        desc: "Penalizes tokens that have already appeared."
+        type: "float"
         min: "0"
         max: "2.0"
         default_val: "0"

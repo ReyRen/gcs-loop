@@ -1435,6 +1435,20 @@ func (p *ListPersonalAccessTokenResponse) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
+		case 2:
+			if fieldTypeId == thrift.I32 {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
 		case 255:
 			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField255(buf[offset:])
@@ -1492,6 +1506,20 @@ func (p *ListPersonalAccessTokenResponse) FastReadField1(buf []byte) (int, error
 	return offset, nil
 }
 
+func (p *ListPersonalAccessTokenResponse) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int32
+	if v, l, err := thrift.Binary.ReadI32(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Total = _field
+	return offset, nil
+}
+
 func (p *ListPersonalAccessTokenResponse) FastReadField255(buf []byte) (int, error) {
 	offset := 0
 	_field := base.NewBaseResp()
@@ -1511,6 +1539,7 @@ func (p *ListPersonalAccessTokenResponse) FastWrite(buf []byte) int {
 func (p *ListPersonalAccessTokenResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
+		offset += p.fastWriteField2(buf[offset:], w)
 		offset += p.fastWriteField1(buf[offset:], w)
 		offset += p.fastWriteField255(buf[offset:], w)
 	}
@@ -1522,6 +1551,7 @@ func (p *ListPersonalAccessTokenResponse) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
+		l += p.field2Length()
 		l += p.field255Length()
 	}
 	l += thrift.Binary.FieldStopLength()
@@ -1544,6 +1574,15 @@ func (p *ListPersonalAccessTokenResponse) fastWriteField1(buf []byte, w thrift.N
 	return offset
 }
 
+func (p *ListPersonalAccessTokenResponse) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTotal() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 2)
+		offset += thrift.Binary.WriteI32(buf[offset:], *p.Total)
+	}
+	return offset
+}
+
 func (p *ListPersonalAccessTokenResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetBaseResp() {
@@ -1562,6 +1601,15 @@ func (p *ListPersonalAccessTokenResponse) field1Length() int {
 			_ = v
 			l += v.BLength()
 		}
+	}
+	return l
+}
+
+func (p *ListPersonalAccessTokenResponse) field2Length() int {
+	l := 0
+	if p.IsSetTotal() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I32Length()
 	}
 	return l
 }
@@ -1594,6 +1642,11 @@ func (p *ListPersonalAccessTokenResponse) DeepCopy(s interface{}) error {
 
 			p.PersonalAccessTokens = append(p.PersonalAccessTokens, _elem)
 		}
+	}
+
+	if src.Total != nil {
+		tmp := *src.Total
+		p.Total = &tmp
 	}
 
 	var _baseResp *base.BaseResp

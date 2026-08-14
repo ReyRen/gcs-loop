@@ -5,6 +5,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/bytedance/gg/gptr"
@@ -21,7 +22,16 @@ import (
 )
 
 type DatasetRPCAdapter struct {
-	client datasetservice.Client
+	client       datasetservice.Client
+	fileProvider rpc.IFileProvider
+	mediaFetcher remoteMediaFetcher
+}
+
+func (a *DatasetRPCAdapter) getMediaFetcher() remoteMediaFetcher {
+	if a.mediaFetcher == nil {
+		return safeRemoteMediaFetcher{}
+	}
+	return a.mediaFetcher
 }
 
 func resolveDatasetWorkspaceID(spaceID *int64, sharedOption *entity.SharedResourceOption) *int64 {
@@ -31,18 +41,29 @@ func resolveDatasetWorkspaceID(spaceID *int64, sharedOption *entity.SharedResour
 	return spaceID
 }
 
-func NewDatasetRPCAdapter(client datasetservice.Client) rpc.IDatasetRPCAdapter {
+func NewDatasetRPCAdapter(client datasetservice.Client, fileProvider rpc.IFileProvider) rpc.IDatasetRPCAdapter {
 	return &DatasetRPCAdapter{
-		client: client,
+		client:       client,
+		fileProvider: fileProvider,
+		mediaFetcher: safeRemoteMediaFetcher{},
 	}
 }
 
 func (a *DatasetRPCAdapter) CreateDataset(ctx context.Context, param *rpc.CreateDatasetParam) (id int64, err error) {
 	fields := make([]*domain_dataset.FieldSchema, 0)
+	multiModal := false
 	if param.EvaluationSetItems != nil {
 		fields, err = convert2DatasetFieldSchemas(ctx, param.EvaluationSetItems.FieldSchemas)
 		if err != nil {
 			return 0, err
+		}
+		for _, field := range fields {
+			if field != nil && field.ContentType != nil && (*field.ContentType == domain_dataset.ContentType_Image ||
+				*field.ContentType == domain_dataset.ContentType_Audio || *field.ContentType == domain_dataset.ContentType_Video ||
+				*field.ContentType == domain_dataset.ContentType_MultiPart) {
+				multiModal = true
+				break
+			}
 		}
 	}
 	resp, err := a.client.CreateDataset(ctx, &datasetdto.CreateDatasetRequest{
@@ -56,6 +77,7 @@ func (a *DatasetRPCAdapter) CreateDataset(ctx context.Context, param *rpc.Create
 		Fields:      fields,
 		Features: &domain_dataset.DatasetFeatures{
 			EditSchema: gptr.Of(true),
+			MultiModal: gptr.Of(multiModal),
 		},
 		DatasetKey: param.DatasetKey,
 	})
@@ -119,8 +141,66 @@ func (a *DatasetRPCAdapter) ParseImportSourceFile(ctx context.Context, param *en
 }
 
 func (a *DatasetRPCAdapter) ValidateMultiPartData(ctx context.Context, spaceID int64, previewData []string, storeOption *entity.MultiModalStoreOption) ([]*entity.UploadAttachmentDetail, error) {
-	// notice: only implement in commercial
-	return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("ValidateMultiPartData not implemented"))
+	results := make([]*entity.UploadAttachmentDetail, 0, len(previewData))
+	strategy := entity.MultiModalStoreStrategyStore
+	var expectedType entity.ContentType
+	if storeOption != nil {
+		if storeOption.MultiModalStoreStrategy != nil {
+			strategy = *storeOption.MultiModalStoreStrategy
+		}
+		if storeOption.ContentType != nil {
+			expectedType = *storeOption.ContentType
+		}
+	}
+	if strategy != entity.MultiModalStoreStrategyStore && strategy != entity.MultiModalStoreStrategyPassthrough {
+		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg(fmt.Sprintf("unsupported multi-modal store strategy: %s", strategy)))
+	}
+	for _, rawURL := range previewData {
+		fetched, fetchErr := a.getMediaFetcher().Fetch(ctx, rawURL, maxRemoteMediaBytes)
+		if fetchErr != nil {
+			detail := newOriginMedia(expectedType, rawURL, "")
+			setMediaValidationError(detail, entity.ItemErrorType_GetImageFailed, fetchErr)
+			results = append(results, detail)
+			continue
+		}
+		contentType, typeErr := mediaContentTypeFromMIME(fetched.ContentType)
+		detail := newOriginMedia(contentType, rawURL, fetched.Name)
+		if typeErr == nil && expectedType != "" && expectedType != contentType {
+			typeErr = fmt.Errorf("media content type mismatch, expected=%s, actual=%s", expectedType, contentType)
+		}
+		if typeErr != nil {
+			setMediaValidationError(detail, entity.ItemErrorType_IllegalExtension, typeErr)
+			results = append(results, detail)
+			continue
+		}
+
+		if strategy == entity.MultiModalStoreStrategyPassthrough {
+			setStoredMedia(detail, contentType, fetched.Name, rawURL, rawURL, entity.StorageProvider_ExternalUrl)
+			results = append(results, detail)
+			continue
+		}
+		if a.fileProvider == nil {
+			setMediaValidationError(detail, entity.ItemErrorType_UploadImageFailed, errors.New("file provider is unavailable"))
+			results = append(results, detail)
+			continue
+		}
+
+		key, uploadErr := a.fileProvider.UploadFileForServer(ctx, fetched.ContentType, fetched.Body, spaceID)
+		if uploadErr != nil {
+			setMediaValidationError(detail, entity.ItemErrorType_UploadImageFailed, uploadErr)
+			results = append(results, detail)
+			continue
+		}
+		urls, signErr := a.fileProvider.MGetFileURL(ctx, []string{key})
+		if signErr != nil {
+			setMediaValidationError(detail, entity.ItemErrorType_UploadImageFailed, signErr)
+			results = append(results, detail)
+			continue
+		}
+		setStoredMedia(detail, contentType, fetched.Name, key, urls[key], entity.StorageProvider_S3)
+		results = append(results, detail)
+	}
+	return results, nil
 }
 
 func (a *DatasetRPCAdapter) UpdateDataset(ctx context.Context, spaceID, evaluationSetID int64, name, desc *string, tags []*entity.ResourceTagRef) (err error) {
@@ -439,7 +519,11 @@ func (a *DatasetRPCAdapter) ListDatasetItems(ctx context.Context, param *rpc.Lis
 	if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
 		return nil, nil, nil, nil, errorx.NewByCode(resp.BaseResp.StatusCode, errorx.WithExtraMsg(resp.BaseResp.StatusMessage))
 	}
-	return convert2EvaluationSetItems(ctx, resp.Items), resp.Total, resp.FilterTotal, resp.NextPageToken, nil
+	items = convert2EvaluationSetItems(ctx, resp.Items)
+	if err := a.fillEvaluationSetItemMediaURLs(ctx, items); err != nil {
+		return nil, nil, nil, nil, err
+	}
+	return items, resp.Total, resp.FilterTotal, resp.NextPageToken, nil
 }
 
 func (a *DatasetRPCAdapter) ListDatasetItemsByVersion(ctx context.Context, param *rpc.ListDatasetItemsParam) (items []*entity.EvaluationSetItem, total, filterTotal *int64, nextPageToken *string, err error) {
@@ -463,7 +547,11 @@ func (a *DatasetRPCAdapter) ListDatasetItemsByVersion(ctx context.Context, param
 	if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
 		return nil, nil, nil, nil, errorx.NewByCode(resp.BaseResp.StatusCode, errorx.WithExtraMsg(resp.BaseResp.StatusMessage))
 	}
-	return convert2EvaluationSetItems(ctx, resp.Items), resp.Total, resp.FilterTotal, resp.NextPageToken, nil
+	items = convert2EvaluationSetItems(ctx, resp.Items)
+	if err := a.fillEvaluationSetItemMediaURLs(ctx, items); err != nil {
+		return nil, nil, nil, nil, err
+	}
+	return items, resp.Total, resp.FilterTotal, resp.NextPageToken, nil
 }
 
 func (a *DatasetRPCAdapter) BatchGetDatasetItems(ctx context.Context, param *rpc.BatchGetDatasetItemsParam) (items []*entity.EvaluationSetItem, err error) {
@@ -481,7 +569,11 @@ func (a *DatasetRPCAdapter) BatchGetDatasetItems(ctx context.Context, param *rpc
 	if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
 		return nil, errorx.NewByCode(resp.BaseResp.StatusCode, errorx.WithExtraMsg(resp.BaseResp.StatusMessage))
 	}
-	return convert2EvaluationSetItems(ctx, resp.Items), nil
+	items = convert2EvaluationSetItems(ctx, resp.Items)
+	if err := a.fillEvaluationSetItemMediaURLs(ctx, items); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func (a *DatasetRPCAdapter) BatchGetDatasetItemsByVersion(ctx context.Context, param *rpc.BatchGetDatasetItemsParam) (items []*entity.EvaluationSetItem, err error) {
@@ -500,7 +592,11 @@ func (a *DatasetRPCAdapter) BatchGetDatasetItemsByVersion(ctx context.Context, p
 	if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
 		return nil, errorx.NewByCode(resp.BaseResp.StatusCode, errorx.WithExtraMsg(resp.BaseResp.StatusMessage))
 	}
-	return convert2EvaluationSetItems(ctx, resp.Items), nil
+	items = convert2EvaluationSetItems(ctx, resp.Items)
+	if err := a.fillEvaluationSetItemMediaURLs(ctx, items); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func (a *DatasetRPCAdapter) ClearEvaluationSetDraftItem(ctx context.Context, spaceID, evaluationSetID int64) (err error) {

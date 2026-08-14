@@ -1274,7 +1274,11 @@ def main() -> int:
             return 1
     else:
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(content, encoding="utf-8", newline="\n")
+        # pathlib.Path.write_text only gained the newline argument in newer
+        # Python releases. Keep the deployment generator compatible with the
+        # Python 3.8/3.9 commonly bundled on Docker Compose hosts.
+        with output.open("w", encoding="utf-8", newline="\n") as output_file:
+            output_file.write(content)
 
     print(
         "generated "

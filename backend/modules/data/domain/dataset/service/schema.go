@@ -15,6 +15,26 @@ import (
 )
 
 func (s *DatasetServiceImpl) UpdateSchema(ctx context.Context, ds *entity.Dataset, fields []*entity.FieldSchema, updatedBy string) error {
+	// Evaluation sets created before multi-modal support may still carry the old
+	// feature flag. Enable it lazily when their schema first adds a media field.
+	// This keeps existing text-only datasets untouched and makes schema editing
+	// backward compatible without a one-off database migration.
+	enableMultiModal := false
+	if ds.Category == entity.DatasetCategoryEvaluation && (ds.Features == nil || !ds.Features.MultiModal) {
+		for _, field := range fields {
+			if field != nil && field.Available() && field.ContentType.IsMultiModal() {
+				enableMultiModal = true
+				break
+			}
+		}
+	}
+	if enableMultiModal {
+		if ds.Features == nil {
+			ds.Features = &entity.DatasetFeatures{}
+		}
+		ds.Features.MultiModal = true
+	}
+
 	// 拼装 + 校验
 	preSchema, err := s.repo.GetSchema(ctx, ds.SpaceID, ds.SchemaID)
 	if err != nil {
@@ -42,6 +62,14 @@ func (s *DatasetServiceImpl) UpdateSchema(ctx context.Context, ds *entity.Datase
 		return err
 	}
 	defer release()
+	if enableMultiModal {
+		if err := s.repo.PatchDataset(ctx,
+			&entity.Dataset{Features: ds.Features, UpdatedBy: updatedBy},
+			repo.NewDatasetWhere(ds.SpaceID, ds.ID),
+		); err != nil {
+			return err
+		}
+	}
 
 	// 原地更新
 	if !preSchema.Immutable {

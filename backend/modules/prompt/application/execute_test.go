@@ -9,7 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bytedance/gg/gptr"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
@@ -347,6 +349,49 @@ func TestPromptExecuteApplicationImpl_ExecuteInternal(t *testing.T) {
 			assert.Equal(t, tt.wantR, gotR)
 		})
 	}
+}
+
+func TestPromptExecuteApplicationImpl_ExecuteInternal_UsesInMemoryTemplateOverride(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	startTime := time.Now()
+	promptDO := &entity.Prompt{
+		ID: 123, SpaceID: 456, PromptKey: "optimized_prompt",
+		PromptBasic: &entity.PromptBasic{LatestVersion: "1.0.0"},
+		PromptCommit: &entity.PromptCommit{
+			CommitInfo: &entity.CommitInfo{Version: "1.0.0", CommittedAt: startTime},
+			PromptDetail: &entity.PromptDetail{
+				PromptTemplate: &entity.PromptTemplate{Messages: []*entity.Message{{Role: entity.RoleSystem, Content: ptr.Of("original")}}},
+				ModelConfig:    &entity.ModelConfig{ModelID: 789},
+			},
+		},
+	}
+	manageRepo := repomocks.NewMockIManageRepo(ctrl)
+	manageRepo.EXPECT().GetPrompt(gomock.Any(), gomock.Any()).Return(promptDO, nil)
+	promptService := servicemocks.NewMockIPromptService(ctrl)
+	promptService.EXPECT().ExpandSnippets(gomock.Any(), promptDO).Return(nil)
+	promptService.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, param service.ExecuteParam) (*entity.Reply, error) {
+			require.NotNil(t, param.Prompt)
+			require.NotNil(t, param.Prompt.PromptCommit)
+			require.NotNil(t, param.Prompt.PromptCommit.PromptDetail)
+			require.Len(t, param.Prompt.PromptCommit.PromptDetail.PromptTemplate.Messages, 1)
+			assert.Equal(t, "optimized {{topic}}", gptr.Indirect(param.Prompt.PromptCommit.PromptDetail.PromptTemplate.Messages[0].Content))
+			return &entity.Reply{Item: &entity.ReplyItem{Message: &entity.Message{Role: entity.RoleAssistant, Content: ptr.Of("ok")}}}, nil
+		},
+	)
+	promptService.EXPECT().MConvertBase64DataURLToFileURL(gomock.Any(), gomock.Any(), int64(456)).Return(nil)
+	app := &PromptExecuteApplicationImpl{promptService: promptService, manageRepo: manageRepo}
+
+	response, err := app.ExecuteInternal(context.Background(), &execute.ExecuteInternalRequest{
+		PromptID: gptr.Of(int64(123)), WorkspaceID: gptr.Of(int64(456)), Version: gptr.Of("1.0.0"),
+		OverridePromptTemplate: &prompt.PromptTemplate{
+			Messages: []*prompt.Message{{Role: gptr.Of(prompt.RoleSystem), Content: gptr.Of("optimized {{topic}}")}},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, response.Message)
+	assert.Equal(t, "ok", response.Message.GetContent())
 }
 
 func TestOverrideParamsConvert(t *testing.T) {

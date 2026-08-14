@@ -5,13 +5,16 @@ package producer
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
 	mqmocks "github.com/coze-dev/coze-loop/backend/infra/mq/mocks"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
@@ -98,4 +101,30 @@ func TestBatchSendWithRetry(t *testing.T) {
 			assert.GreaterOrEqual(t, int(callCount.Load()), tt.wantMinCalls)
 		})
 	}
+}
+
+func TestPublishExptTurnResultFilterEvent_AttachesSession(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockProducer := mqmocks.NewMockIProducer(ctrl)
+	mockProducer.EXPECT().SendBatch(gomock.Any(), gomock.Len(1)).DoAndReturn(
+		func(_ context.Context, messages []*mq.Message) (mq.SendResponse, error) {
+			var got entity.ExptTurnResultFilterEvent
+			require.NoError(t, json.Unmarshal(messages[0].Body, &got))
+			require.NotNil(t, got.Session)
+			assert.Equal(t, "123", got.Session.UserID)
+			return mq.SendResponse{MessageID: "message-id"}, nil
+		},
+	)
+
+	pub := &exptEventPublisher{producers: map[string]*producer{
+		rocket.ExptTurnResultFilterRMQKey: {
+			cfg: rocket.RMQConf{Topic: "filter-topic"},
+			p:   mockProducer,
+		},
+	}}
+	event := &entity.ExptTurnResultFilterEvent{ExperimentID: 1, SpaceID: 2}
+	ctx := session.WithCtxUser(context.Background(), &session.User{ID: "123"})
+
+	require.NoError(t, pub.PublishExptTurnResultFilterEvent(ctx, event, nil))
+	assert.Nil(t, event.Session, "publisher must not mutate the caller-owned event")
 }

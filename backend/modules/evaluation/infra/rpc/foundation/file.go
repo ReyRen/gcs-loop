@@ -26,6 +26,9 @@ func NewFileRPCProvider(client fileservice.Client) rpc.IFileProvider {
 }
 
 func (f *FileRPCAdapter) MGetFileURL(ctx context.Context, keys []string) (urls map[string]string, err error) {
+	if len(keys) == 0 {
+		return map[string]string{}, nil
+	}
 	var ttl int64 = 24 * 60 * 60 * 7
 	req := &file.SignDownloadFileRequest{
 		Keys: keys,
@@ -46,6 +49,24 @@ func (f *FileRPCAdapter) MGetFileURL(ctx context.Context, keys []string) (urls m
 		urls[key] = resp.Uris[idx]
 	}
 	return urls, nil
+}
+
+func (f *FileRPCAdapter) UploadFileForServer(ctx context.Context, mimeType string, body []byte, workspaceID int64) (string, error) {
+	resp, err := f.client.UploadFileForServer(ctx, &file.UploadFileForServerRequest{
+		MimeType:    mimeType,
+		Body:        body,
+		WorkspaceID: workspaceID,
+	})
+	if err != nil {
+		return "", err
+	}
+	if resp == nil || resp.Data == nil || resp.Data.GetFileName() == "" {
+		return "", errorx.New("upload file response is empty")
+	}
+	if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
+		return "", errorx.New("%s", resp.BaseResp.StatusMessage)
+	}
+	return resp.Data.GetFileName(), nil
 }
 
 func (f FileRPCAdapter) UploadLoopFileInner(ctx context.Context, req *file.UploadLoopFileInnerRequest, callOptions ...callopt.Option) (r *file.UploadLoopFileInnerResponse, err error) {

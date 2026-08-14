@@ -354,3 +354,39 @@ func GetExperimentIDsByGroup(ctx context.Context, c *app.RequestContext) {
 func UpdateExptRunConf(ctx context.Context, c *app.RequestContext) {
 	invokeAndRender(ctx, c, localExptSvc.UpdateExptRunConf)
 }
+
+// PreparePromptOptimization .
+// @router /api/evaluation/v1/experiments/:expt_id/prompt_optimizations/prepare [GET]
+func PreparePromptOptimization(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.PreparePromptOptimization)
+}
+
+// CreatePromptOptimization .
+// @router /api/evaluation/v1/experiments/:expt_id/prompt_optimizations [POST]
+func CreatePromptOptimization(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.CreatePromptOptimization)
+}
+
+// GetPromptOptimization .
+// @router /api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id [GET]
+func GetPromptOptimization(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.GetPromptOptimization)
+}
+
+// ListPromptOptimizations .
+// @router /api/evaluation/v1/experiments/:expt_id/prompt_optimizations/list [POST]
+func ListPromptOptimizations(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.ListPromptOptimizations)
+}
+
+// CancelPromptOptimization .
+// @router /api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/cancel [POST]
+func CancelPromptOptimization(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.CancelPromptOptimization)
+}
+
+// ApplyPromptOptimizationToDraft .
+// @router /api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/apply_to_draft [POST]
+func ApplyPromptOptimizationToDraft(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.ApplyPromptOptimizationToDraft)
+}

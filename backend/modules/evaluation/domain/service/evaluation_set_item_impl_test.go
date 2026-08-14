@@ -437,6 +437,42 @@ func TestEvaluationSetItemServiceImpl_BatchGetEvaluationSetItems(t *testing.T) {
 	}
 }
 
+func TestEvaluationSetItemServiceImpl_BatchGetEvaluationSetItems_VersionQueriesProjectItemIDs(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	evaluationSetItemServiceOnce = sync.Once{}
+	mockDatasetRPCAdapter := mocks.NewMockIDatasetRPCAdapter(ctrl)
+	service := NewEvaluationSetItemServiceImpl(mockDatasetRPCAdapter)
+
+	queries := []*entity.EvaluationItemVersionRef{
+		{ItemID: 11, ItemVersionID: gptr.Of[int64](101)},
+		nil,
+		{ItemID: 12},
+	}
+	mockDatasetRPCAdapter.EXPECT().
+		BatchGetDatasetItemsByVersion(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, got *rpc.BatchGetDatasetItemsParam) ([]*entity.EvaluationSetItem, error) {
+			assert.Equal(t, []int64{11, 12}, got.ItemIDs)
+			assert.Equal(t, queries, got.ItemVersionQueries)
+			return []*entity.EvaluationSetItem{
+				{ID: 11, ItemKey: "item11"},
+				{ID: 12, ItemKey: "item12"},
+			}, nil
+		})
+
+	items, err := service.BatchGetEvaluationSetItems(context.Background(), &entity.BatchGetEvaluationSetItemsParam{
+		SpaceID:            1,
+		EvaluationSetID:    100,
+		VersionID:          gptr.Of[int64](10),
+		ItemVersionQueries: queries,
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, []*entity.EvaluationSetItem{
+		{ID: 11, ItemKey: "item11"},
+		{ID: 12, ItemKey: "item12"},
+	}, items)
+}
+
 func TestEvaluationSetItemServiceImpl_BatchUpdateEvaluationSetItems(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

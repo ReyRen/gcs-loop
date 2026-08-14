@@ -14,6 +14,10 @@ struct ExecuteInternalRequest {
     4: optional list<prompt.Message> messages
     5: optional list<prompt.VariableVal> variable_vals
     6: optional prompt.OverridePromptParams override_prompt_params
+    // Internal-only candidate template used by evaluation-driven Prompt
+    // optimization. The committed Prompt still supplies model/tools/config;
+    // only the template is replaced for this execution and nothing is saved.
+    7: optional prompt.PromptTemplate override_prompt_template
 
     101: optional prompt.Scenario scenario
 
@@ -27,4 +31,3 @@ struct ExecuteInternalResponse {
 
     255: optional base.BaseResp BaseResp
 }
-

@@ -365,6 +365,11 @@ func (e ExptResultExportService) DoExportCSV(ctx context.Context, spaceID, exptI
 	if err = helper.uploadCSVFile(ctx, fileName, file); err != nil {
 		return fmt.Errorf("uploadFile error: %v", err)
 	}
+	// Windows does not allow removing an open file. Close it explicitly after
+	// the synchronous upload instead of relying only on the deferred close.
+	if err = file.Close(); err != nil {
+		return err
+	}
 	return os.Remove(fileName)
 }
 

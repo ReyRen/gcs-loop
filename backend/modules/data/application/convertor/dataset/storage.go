@@ -20,6 +20,8 @@ func StorageProviderDTO2DO(s dataset.StorageProvider) entity.Provider {
 		return entity.ProviderImageX
 	case dataset.StorageProvider_S3:
 		return entity.ProviderS3
+	case dataset.StorageProvider_ExternalUrl:
+		return entity.ProviderExternalURL
 	case dataset.StorageProvider_LocalFS:
 		return entity.ProviderLocalFS
 	case dataset.StorageProvider_Abase:
@@ -41,6 +43,8 @@ func ProviderDO2DTO(sp entity.Provider) dataset.StorageProvider {
 		return dataset.StorageProvider_ImageX
 	case entity.ProviderS3:
 		return dataset.StorageProvider_S3
+	case entity.ProviderExternalURL:
+		return dataset.StorageProvider_ExternalUrl
 	case entity.ProviderLocalFS:
 		return dataset.StorageProvider_LocalFS
 	case entity.ProviderAbase:

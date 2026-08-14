@@ -6,15 +6,16 @@ package entity
 type Provider string
 
 const (
-	ProviderUnknown Provider = ""
-	ProviderTOS     Provider = "TOS"
-	ProviderVETOS   Provider = "VETOS"
-	ProviderHDFS    Provider = "HDFS"
-	ProviderImageX  Provider = "ImageX"
-	ProviderS3      Provider = "S3"
-	ProviderLocalFS Provider = "LocalFS"
-	ProviderAbase   Provider = "Abase"
-	ProviderRDS     Provider = "RDS"
+	ProviderUnknown     Provider = ""
+	ProviderTOS         Provider = "TOS"
+	ProviderVETOS       Provider = "VETOS"
+	ProviderHDFS        Provider = "HDFS"
+	ProviderImageX      Provider = "ImageX"
+	ProviderS3          Provider = "S3"
+	ProviderExternalURL Provider = "ExternalUrl"
+	ProviderLocalFS     Provider = "LocalFS"
+	ProviderAbase       Provider = "Abase"
+	ProviderRDS         Provider = "RDS"
 )
 
 type UploadToken struct {

@@ -759,6 +759,12 @@ func (app *PromptManageApplicationImpl) SaveDraft(ctx context.Context, request *
 	}
 	savingPromptDTO.PromptDraft.DraftInfo.UserID = ptr.Of(userID)
 	savingPromptDO := convertor.PromptDTO2DO(savingPromptDTO)
+	if promptDO.PromptBasic == nil || promptDO.PromptBasic.PromptType != entity.PromptTypeSnippet {
+		savingPromptDO, _, err = ensurePromptModelConfig(ctx, savingPromptDO, app.configProvider)
+		if err != nil {
+			return r, err
+		}
+	}
 
 	// save draft
 	draftInfoDO, err := app.promptService.SaveDraft(ctx, savingPromptDO)
@@ -802,6 +808,19 @@ func (app *PromptManageApplicationImpl) CommitDraft(ctx context.Context, request
 	err = app.authRPCProvider.MCheckPromptPermission(ctx, promptDO.SpaceID, []int64{request.GetPromptID()}, consts.ActionLoopPromptEdit)
 	if err != nil {
 		return r, err
+	}
+	if promptDO.PromptDraft != nil && (promptDO.PromptBasic == nil || promptDO.PromptBasic.PromptType != entity.PromptTypeSnippet) {
+		var changed bool
+		promptDO, changed, err = ensurePromptModelConfig(ctx, promptDO, app.configProvider)
+		defaultErr := err
+		if defaultErr != nil {
+			return r, defaultErr
+		}
+		if changed {
+			if _, err = app.promptService.SaveDraft(ctx, promptDO); err != nil {
+				return r, err
+			}
+		}
 	}
 
 	// Bind the repository transaction to the exact content and base version

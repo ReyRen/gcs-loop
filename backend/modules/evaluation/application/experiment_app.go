@@ -13,6 +13,7 @@ import (
 	"github.com/bytedance/gg/gptr"
 
 	"github.com/coze-dev/coze-loop/backend/infra/backoff"
+	"github.com/coze-dev/coze-loop/backend/infra/db"
 	"github.com/coze-dev/coze-loop/backend/infra/idgen"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/base"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation"
@@ -84,6 +85,8 @@ type experimentApplication struct {
 
 	// 沙箱 agent 稳定性打点（experiment_started / experiment_finished / experiment_duration）
 	sandboxAgentMetrics metricscomp.SandboxAgentMetrics
+
+	promptOptimization *promptOptimizationExecutor
 }
 
 const sandboxSchedulerInitTimeout = 5 * time.Second
@@ -110,7 +113,7 @@ func NewExperimentApplication(
 	lifecycleEventHandler service.ExptLifecycleEventHandler,
 	sandboxSchedulerAdapter rpc.ISandboxSchedulerAdapter,
 	sandboxAgentMetrics metricscomp.SandboxAgentMetrics,
-) IExperimentApplication {
+) *experimentApplication {
 	return &experimentApplication{
 		resultSvc:                   resultSvc,
 		manager:                     manager,
@@ -134,6 +137,18 @@ func NewExperimentApplication(
 		sandboxSchedulerAdapter:     sandboxSchedulerAdapter,
 		sandboxAgentMetrics:         sandboxAgentMetrics,
 	}
+}
+
+// NewExperimentApplicationWithPromptOptimization decorates the existing
+// experiment application with the durable asynchronous prompt optimizer.
+func NewExperimentApplicationWithPromptOptimization(
+	ctx context.Context,
+	app *experimentApplication,
+	provider db.Provider,
+	llm rpc.ILLMProvider,
+	prompt rpc.IPromptRPCAdapter,
+) IExperimentApplication {
+	return attachPromptOptimization(ctx, app, provider, llm, prompt)
 }
 
 func (e *experimentApplication) CreateExperiment(ctx context.Context, req *expt.CreateExperimentRequest) (r *expt.CreateExperimentResponse, err error) {
@@ -1981,6 +1996,26 @@ func (e *experimentApplication) UpsertExptTurnResultFilter(ctx context.Context, 
 	}
 
 	return &expt.UpsertExptTurnResultFilterResponse{}, nil
+}
+
+// ResolveExptTurnResultFilterUser restores the user identity for legacy filter
+// events published before ExptTurnResultFilterEvent started carrying Session.
+// It is intentionally limited to the internal MQ consumer path.
+func (e *experimentApplication) ResolveExptTurnResultFilterUser(ctx context.Context, experimentID, spaceID int64) (string, error) {
+	experiments, err := e.manager.MGetBasicByID(ctx, []int64{experimentID})
+	if err != nil {
+		return "", err
+	}
+	if len(experiments) != 1 || experiments[0] == nil || experiments[0].SpaceID != spaceID {
+		return "", errorx.NewByCode(errno.ResourceNotFoundCode,
+			errorx.WithExtraMsg(fmt.Sprintf("experiment %d not found in workspace %d", experimentID, spaceID)))
+	}
+	userID := strings.TrimSpace(experiments[0].CreatedBy)
+	if userID == "" {
+		return "", errorx.NewByCode(errno.CommonInvalidParamCode,
+			errorx.WithExtraMsg(fmt.Sprintf("experiment %d has no creator", experimentID)))
+	}
+	return userID, nil
 }
 
 func hasDuplicates(slice []int64) bool {

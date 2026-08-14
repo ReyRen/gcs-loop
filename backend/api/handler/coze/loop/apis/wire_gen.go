@@ -129,7 +129,7 @@ func InitLLMHandler(ctx context.Context, idgen2 idgen.IIDGenerator, db2 db.Provi
 }
 
 func InitEvaluationHandler(ctx context.Context, idgen2 idgen.IIDGenerator, db2 db.Provider, ckDb ck.Provider, cmdable redis.Cmdable, configFactory conf.IConfigLoaderFactory, mqFactory mq.IFactory, client datasetservice.Client, promptClient promptmanageservice.Client, pec promptexecuteservice.Client, authClient authservice.Client, meter metrics.Meter, auditClient audit.IAuditService, llmClient llmruntimeservice.Client, userClient userservice.Client, benefitSvc benefit.IBenefitService, limiterFactory limiter.IRateLimiterFactory, fileClient fileservice.Client, tagClient tagservice.Client, objectStorage fileserver.ObjectStorage, batchObjectStorage fileserver.BatchObjectStorage, plainLimiterFactory limiter.IPlainRateLimiterFactory, tracerFactory func() observabilitytraceservice.Client, taskClientFactory func() taskservice.Client) (*EvaluationHandler, error) {
-	evaluationSetService, err := application4.InitEvaluationSetApplication(client, authClient, meter, userClient, configFactory)
+	evaluationSetService, err := application4.InitEvaluationSetApplication(client, authClient, meter, userClient, configFactory, fileClient)
 	if err != nil {
 		return nil, err
 	}

@@ -5,11 +5,12 @@ package consumer
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bytedance/sonic"
 
+	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
 	"github.com/coze-dev/coze-loop/backend/infra/mq"
-	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/expt"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
@@ -17,14 +18,25 @@ import (
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
 
-type ExptTurnResultFilterConsumer struct {
-	exptManager evaluation.ExperimentService
+type exptTurnResultFilterManager interface {
+	UpsertExptTurnResultFilter(ctx context.Context, req *expt.UpsertExptTurnResultFilterRequest) (*expt.UpsertExptTurnResultFilterResponse, error)
 }
 
-func NewExptTurnResultFilterConsumer(exptManager evaluation.ExperimentService) mq.IConsumerHandler {
-	return &ExptTurnResultFilterConsumer{
+type exptTurnResultFilterUserResolver interface {
+	ResolveExptTurnResultFilterUser(ctx context.Context, experimentID, spaceID int64) (string, error)
+}
+
+type ExptTurnResultFilterConsumer struct {
+	exptManager  exptTurnResultFilterManager
+	userResolver exptTurnResultFilterUserResolver
+}
+
+func NewExptTurnResultFilterConsumer(exptManager exptTurnResultFilterManager) mq.IConsumerHandler {
+	consumer := &ExptTurnResultFilterConsumer{
 		exptManager: exptManager,
 	}
+	consumer.userResolver, _ = exptManager.(exptTurnResultFilterUserResolver)
+	return consumer
 }
 
 func (c *ExptTurnResultFilterConsumer) HandleMessage(ctx context.Context, ext *mq.MessageExt) (err error) {
@@ -42,6 +54,21 @@ func (c *ExptTurnResultFilterConsumer) HandleMessage(ctx context.Context, ext *m
 	}
 
 	logs.CtxInfo(ctx, "ExptTurnResultFilterConsumer consume message, event: %v, msg_id: %v", string(body), ext.MsgID)
+	if event.Session != nil && event.Session.UserID != "" {
+		ctx = session.WithCtxUser(ctx, &session.User{ID: event.Session.UserID})
+	} else {
+		if c.userResolver == nil {
+			return fmt.Errorf("ExptTurnResultFilterEvent user session is missing")
+		}
+		userID, err := c.userResolver.ResolveExptTurnResultFilterUser(ctx, event.ExperimentID, event.SpaceID)
+		if err != nil {
+			return err
+		}
+		if userID == "" {
+			return fmt.Errorf("ExptTurnResultFilterEvent resolved empty user_id")
+		}
+		ctx = session.WithCtxUser(ctx, &session.User{ID: userID})
+	}
 
 	upsertExptTurnResultFilterRequest := &expt.UpsertExptTurnResultFilterRequest{
 		WorkspaceID:  ptr.Of(event.SpaceID),

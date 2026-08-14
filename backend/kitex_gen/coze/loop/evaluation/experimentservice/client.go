@@ -26,6 +26,12 @@ type Client interface {
 	RetryExperiment(ctx context.Context, req *expt.RetryExperimentRequest, callOptions ...callopt.Option) (r *expt.RetryExperimentResponse, err error)
 	KillExperiment(ctx context.Context, req *expt.KillExperimentRequest, callOptions ...callopt.Option) (r *expt.KillExperimentResponse, err error)
 	BatchGetExperimentResult_(ctx context.Context, req *expt.BatchGetExperimentResultRequest, callOptions ...callopt.Option) (r *expt.BatchGetExperimentResultResponse, err error)
+	PreparePromptOptimization(ctx context.Context, req *expt.PreparePromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.PreparePromptOptimizationResponse, err error)
+	CreatePromptOptimization(ctx context.Context, req *expt.CreatePromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.CreatePromptOptimizationResponse, err error)
+	GetPromptOptimization(ctx context.Context, req *expt.GetPromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.GetPromptOptimizationResponse, err error)
+	ListPromptOptimizations(ctx context.Context, req *expt.ListPromptOptimizationsRequest, callOptions ...callopt.Option) (r *expt.ListPromptOptimizationsResponse, err error)
+	CancelPromptOptimization(ctx context.Context, req *expt.CancelPromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.CancelPromptOptimizationResponse, err error)
+	ApplyPromptOptimizationToDraft(ctx context.Context, req *expt.ApplyPromptOptimizationToDraftRequest, callOptions ...callopt.Option) (r *expt.ApplyPromptOptimizationToDraftResponse, err error)
 	MGetExperimentStandardEvalOutputs(ctx context.Context, req *expt.MGetExperimentStandardEvalOutputsRequest, callOptions ...callopt.Option) (r *expt.MGetExperimentStandardEvalOutputsResponse, err error)
 	ListExperimentStandardEvalOutputs(ctx context.Context, req *expt.ListExperimentStandardEvalOutputsRequest, callOptions ...callopt.Option) (r *expt.ListExperimentStandardEvalOutputsResponse, err error)
 	CalculateExperimentAggrResult_(ctx context.Context, req *expt.CalculateExperimentAggrResultRequest, callOptions ...callopt.Option) (r *expt.CalculateExperimentAggrResultResponse, err error)
@@ -160,6 +166,36 @@ func (p *kExperimentServiceClient) KillExperiment(ctx context.Context, req *expt
 func (p *kExperimentServiceClient) BatchGetExperimentResult_(ctx context.Context, req *expt.BatchGetExperimentResultRequest, callOptions ...callopt.Option) (r *expt.BatchGetExperimentResultResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.BatchGetExperimentResult_(ctx, req)
+}
+
+func (p *kExperimentServiceClient) PreparePromptOptimization(ctx context.Context, req *expt.PreparePromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.PreparePromptOptimizationResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.PreparePromptOptimization(ctx, req)
+}
+
+func (p *kExperimentServiceClient) CreatePromptOptimization(ctx context.Context, req *expt.CreatePromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.CreatePromptOptimizationResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.CreatePromptOptimization(ctx, req)
+}
+
+func (p *kExperimentServiceClient) GetPromptOptimization(ctx context.Context, req *expt.GetPromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.GetPromptOptimizationResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetPromptOptimization(ctx, req)
+}
+
+func (p *kExperimentServiceClient) ListPromptOptimizations(ctx context.Context, req *expt.ListPromptOptimizationsRequest, callOptions ...callopt.Option) (r *expt.ListPromptOptimizationsResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ListPromptOptimizations(ctx, req)
+}
+
+func (p *kExperimentServiceClient) CancelPromptOptimization(ctx context.Context, req *expt.CancelPromptOptimizationRequest, callOptions ...callopt.Option) (r *expt.CancelPromptOptimizationResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.CancelPromptOptimization(ctx, req)
+}
+
+func (p *kExperimentServiceClient) ApplyPromptOptimizationToDraft(ctx context.Context, req *expt.ApplyPromptOptimizationToDraftRequest, callOptions ...callopt.Option) (r *expt.ApplyPromptOptimizationToDraftResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ApplyPromptOptimizationToDraft(ctx, req)
 }
 
 func (p *kExperimentServiceClient) MGetExperimentStandardEvalOutputs(ctx context.Context, req *expt.MGetExperimentStandardEvalOutputsRequest, callOptions ...callopt.Option) (r *expt.MGetExperimentStandardEvalOutputsResponse, err error) {

@@ -37,10 +37,25 @@ func ConvertToLoopPrompt(p *prompt.Prompt) *rpc.LoopPrompt {
 		},
 		PromptCommit: &rpc.PromptCommit{
 			Detail: &rpc.PromptDetail{
+				ModelConfig: &rpc.PromptModelConfig{
+					ModelID:     p.GetPromptCommit().GetDetail().GetModelConfig().GetModelID(),
+					MaxTokens:   p.GetPromptCommit().GetDetail().GetModelConfig().GetMaxTokens(),
+					Temperature: p.GetPromptCommit().GetDetail().GetModelConfig().GetTemperature(),
+					TopP:        p.GetPromptCommit().GetDetail().GetModelConfig().GetTopP(),
+				},
 				PromptTemplate: &rpc.PromptTemplate{
+					TemplateType: string(p.GetPromptCommit().GetDetail().GetPromptTemplate().GetTemplateType()),
+					HasSnippet:   p.GetPromptCommit().GetDetail().GetPromptTemplate().GetHasSnippet(),
+					Messages: gslice.Map(p.GetPromptCommit().GetDetail().GetPromptTemplate().GetMessages(), func(m *prompt.Message) *rpc.PromptMessage {
+						if m == nil {
+							return nil
+						}
+						return &rpc.PromptMessage{Role: string(m.GetRole()), Content: m.GetContent(), SkipRender: m.SkipRender}
+					}),
 					VariableDefs: gslice.Map(p.GetPromptCommit().GetDetail().GetPromptTemplate().GetVariableDefs(), func(p *prompt.VariableDef) *rpc.VariableDef {
 						return &rpc.VariableDef{
 							Key:      gptr.Of(p.GetKey()),
+							Desc:     p.Desc,
 							Type:     gptr.Of(p.GetType()),
 							TypeTags: p.TypeTags,
 						}
@@ -57,6 +72,33 @@ func ConvertToLoopPrompt(p *prompt.Prompt) *rpc.LoopPrompt {
 		},
 	}
 	return res
+}
+
+func ConvertPromptTemplate2DTO(from *rpc.PromptTemplate) *prompt.PromptTemplate {
+	if from == nil {
+		return nil
+	}
+	to := &prompt.PromptTemplate{
+		TemplateType: gptr.Of(prompt.TemplateType(from.TemplateType)),
+		HasSnippet:   gptr.Of(from.HasSnippet),
+		Messages: gslice.Map(from.Messages, func(m *rpc.PromptMessage) *prompt.Message {
+			if m == nil {
+				return nil
+			}
+			return &prompt.Message{
+				Role:       gptr.Of(prompt.Role(m.Role)),
+				Content:    gptr.Of(m.Content),
+				SkipRender: m.SkipRender,
+			}
+		}),
+		VariableDefs: gslice.Map(from.VariableDefs, func(v *rpc.VariableDef) *prompt.VariableDef {
+			if v == nil {
+				return nil
+			}
+			return &prompt.VariableDef{Key: v.Key, Desc: v.Desc, Type: v.Type, TypeTags: append([]string(nil), v.TypeTags...)}
+		}),
+	}
+	return to
 }
 
 func ConvertVariables2Prompt(fromVals []*entity.VariableVal) (toVals []*prompt.VariableVal) {

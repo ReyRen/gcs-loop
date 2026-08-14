@@ -12646,6 +12646,43 @@
         ],
         "type": "object"
       },
+      "coze.loop.evaluation.expt.ApplyPromptOptimizationToDraftResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "draft_base_version": {
+            "type": "string"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "next_action": {
+            "type": "string"
+          },
+          "prompt_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "source_prompt_version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
       "coze.loop.evaluation.expt.AssociateAnnotationTagResp": {
         "properties": {},
         "type": "object"
@@ -12857,6 +12894,33 @@
         ],
         "type": "object"
       },
+      "coze.loop.evaluation.expt.CancelPromptOptimizationResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "task": {
+            "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationTask"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
       "coze.loop.evaluation.expt.CheckExperimentNameResponse": {
         "properties": {
           "code": {
@@ -12972,6 +13036,33 @@
           },
           "msg": {
             "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.CreatePromptOptimizationResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "task": {
+            "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationTask"
           }
         },
         "required": [
@@ -13272,6 +13363,33 @@
         ],
         "type": "object"
       },
+      "coze.loop.evaluation.expt.GetPromptOptimizationResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "task": {
+            "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationTask"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
       "coze.loop.evaluation.expt.InsightAnalysisExperimentResponse": {
         "properties": {
           "code": {
@@ -13495,6 +13613,453 @@
           "code",
           "expt_result_export_records",
           "msg"
+        ],
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.ListPromptOptimizationsResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationTask"
+            },
+            "type": "array"
+          },
+          "total": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PreparePromptOptimizationResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "dataset_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "default_sample_count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "evaluators": {
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.evaluation.domain.evaluator.Evaluator"
+            },
+            "type": "array"
+          },
+          "experiment_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "experiment_name": {
+            "type": "string"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "ineligible_reason": {
+            "type": "string"
+          },
+          "max_sample_count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "mode_options": {
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationModeOption"
+            },
+            "type": "array"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "prompt_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "prompt_key": {
+            "type": "string"
+          },
+          "prompt_name": {
+            "type": "string"
+          },
+          "prompt_variables": {
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationVariable"
+            },
+            "type": "array"
+          },
+          "source_prompt_version": {
+            "type": "string"
+          },
+          "suggested_model_answer_field": {
+            "type": "string"
+          },
+          "suggested_reference_answer_field": {
+            "type": "string"
+          },
+          "suggested_variable_mappings": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "target_output_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PromptOptimizationIteration": {
+        "properties": {
+          "candidate_prompt_template": {
+            "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.PromptTemplate"
+          },
+          "created_at": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "iteration": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationMetrics"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "sample_results": {
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationSampleEvaluation"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PromptOptimizationMetrics": {
+        "properties": {
+          "average_score": {
+            "format": "double",
+            "type": "number"
+          },
+          "evaluator_average_scores": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "full_score_count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "improved_count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "output_tokens": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "regressed_count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sample_count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "unchanged_count": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PromptOptimizationModeOption": {
+        "properties": {
+          "default_max_iterations": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "description": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "mode": {
+            "description": "Prompt optimization based on a completed evaluation experiment.\nThe optimization result is intentionally stored as a durable task. It does\nnot overwrite or publish the source Prompt. The user must explicitly apply\nthe result to a draft and then use the existing Prompt version submission\nflow.",
+            "enum": [
+              "effect_first",
+              "cost_effective"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PromptOptimizationSampleEvaluation": {
+        "properties": {
+          "error_message": {
+            "type": "string"
+          },
+          "item_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "optimized_answer": {
+            "type": "string"
+          },
+          "optimized_evaluator_reasons": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "optimized_evaluator_scores": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "optimized_score": {
+            "format": "double",
+            "type": "number"
+          },
+          "original_answer": {
+            "type": "string"
+          },
+          "original_evaluator_reasons": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "original_evaluator_scores": {
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "original_score": {
+            "format": "double",
+            "type": "number"
+          },
+          "reference_answer": {
+            "type": "string"
+          },
+          "turn_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "variables": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PromptOptimizationSampleRef": {
+        "properties": {
+          "item_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "turn_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id"
+        ],
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PromptOptimizationTask": {
+        "properties": {
+          "applied_at": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "applied_to_draft": {
+            "type": "boolean"
+          },
+          "baseline_metrics": {
+            "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationMetrics"
+          },
+          "best_metrics": {
+            "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationMetrics"
+          },
+          "created_at": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "ended_at": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "experiment_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "iterations": {
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationIteration"
+            },
+            "type": "array"
+          },
+          "mode": {
+            "description": "Prompt optimization based on a completed evaluation experiment.\nThe optimization result is intentionally stored as a durable task. It does\nnot overwrite or publish the source Prompt. The user must explicitly apply\nthe result to a draft and then use the existing Prompt version submission\nflow.",
+            "enum": [
+              "effect_first",
+              "cost_effective"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "optimized_prompt_template": {
+            "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.PromptTemplate"
+          },
+          "original_prompt_template": {
+            "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.PromptTemplate"
+          },
+          "progress": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "prompt_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "prompt_key": {
+            "type": "string"
+          },
+          "source_prompt_version": {
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "preparing",
+              "analyzing",
+              "optimizing",
+              "evaluating",
+              "finalizing",
+              "completed"
+            ],
+            "type": "string"
+          },
+          "started_at": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "canceled"
+            ],
+            "type": "string"
+          },
+          "updated_at": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "workspace_id": {
+            "pattern": "^-?\\d+$",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "coze.loop.evaluation.expt.PromptOptimizationVariable": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "type_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "key"
         ],
         "type": "object"
       },
@@ -16055,6 +16620,11 @@
               "$ref": "#/components/schemas/coze.loop.foundation.domain.authn.PersonalAccessToken"
             },
             "type": "array"
+          },
+          "total": {
+            "description": "current user's normal PAT count before pagination",
+            "format": "int32",
+            "type": "integer"
           }
         },
         "required": [
@@ -16105,6 +16675,10 @@
           "last_used_at": {
             "description": "unix，秒，-1 表示未使用",
             "pattern": "^-?\\d+$",
+            "type": "string"
+          },
+          "masked_token": {
+            "description": "Masked preview for display only. It is never accepted as a bearer token.",
             "type": "string"
           },
           "name": {
@@ -34296,6 +34870,437 @@
         ]
       }
     },
+    "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations": {
+      "post": {
+        "operationId": "CreatePromptOptimization",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "expt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "idempotency_key": {
+                    "maxLength": 128,
+                    "type": "string"
+                  },
+                  "max_iterations": {
+                    "format": "int32",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "mode": {
+                    "description": "Prompt optimization based on a completed evaluation experiment.\nThe optimization result is intentionally stored as a durable task. It does\nnot overwrite or publish the source Prompt. The user must explicitly apply\nthe result to a draft and then use the existing Prompt version submission\nflow.",
+                    "enum": [
+                      "effect_first",
+                      "cost_effective"
+                    ],
+                    "type": "string"
+                  },
+                  "model_answer_field": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 128,
+                    "type": "string"
+                  },
+                  "reference_answer_field": {
+                    "type": "string"
+                  },
+                  "samples": {
+                    "items": {
+                      "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationSampleRef"
+                    },
+                    "maxItems": 20,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "variable_mappings": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "workspace_id": {
+                    "pattern": "^-?\\d+$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "samples",
+                  "variable_mappings",
+                  "workspace_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.evaluation.expt.CreatePromptOptimizationResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "CreatePromptOptimization",
+        "tags": [
+          "experiment"
+        ]
+      }
+    },
+    "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations/list": {
+      "post": {
+        "operationId": "ListPromptOptimizations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "expt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "page_number": {
+                    "format": "int32",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "page_size": {
+                    "format": "int32",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "statuses": {
+                    "items": {
+                      "enum": [
+                        "queued",
+                        "running",
+                        "succeeded",
+                        "failed",
+                        "canceled"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "workspace_id": {
+                    "pattern": "^-?\\d+$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workspace_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.evaluation.expt.ListPromptOptimizationsResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "ListPromptOptimizations",
+        "tags": [
+          "experiment"
+        ]
+      }
+    },
+    "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations/prepare": {
+      "get": {
+        "operationId": "PreparePromptOptimization",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "expt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.evaluation.expt.PreparePromptOptimizationResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "智能优化：基于已完成的评测实验优化该实验所使用的 Prompt。",
+        "tags": [
+          "experiment"
+        ]
+      }
+    },
+    "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations/{optimization_id}": {
+      "get": {
+        "operationId": "GetPromptOptimization",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "expt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "optimization_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "with_iterations",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "with_sample_results",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.evaluation.expt.GetPromptOptimizationResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "GetPromptOptimization",
+        "tags": [
+          "experiment"
+        ]
+      }
+    },
+    "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations/{optimization_id}/apply_to_draft": {
+      "post": {
+        "operationId": "ApplyPromptOptimizationToDraft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "expt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "optimization_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "overwrite_existing_draft": {
+                    "description": "Applying replaces the current user's editable draft. Require an explicit\nacknowledgement when a draft already exists to prevent silent data loss.",
+                    "type": "boolean"
+                  },
+                  "workspace_id": {
+                    "pattern": "^-?\\d+$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workspace_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.evaluation.expt.ApplyPromptOptimizationToDraftResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "ApplyPromptOptimizationToDraft",
+        "tags": [
+          "experiment"
+        ]
+      }
+    },
+    "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations/{optimization_id}/cancel": {
+      "post": {
+        "operationId": "CancelPromptOptimization",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "expt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "optimization_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "workspace_id": {
+                    "pattern": "^-?\\d+$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workspace_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.evaluation.expt.CancelPromptOptimizationResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "CancelPromptOptimization",
+        "tags": [
+          "experiment"
+        ]
+      }
+    },
     "/api/evaluation/v1/experiments/{expt_id}/results/export": {
       "post": {
         "operationId": "ExportExptResult",
@@ -45816,5 +46821,5 @@
       "name": "prompt"
     }
   ],
-  "x-generated-endpoint-count": 306
+  "x-generated-endpoint-count": 312
 }

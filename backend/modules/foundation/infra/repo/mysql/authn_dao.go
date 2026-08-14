@@ -17,7 +17,7 @@ type IAuthNDAO interface {
 	CreateAPIKey(ctx context.Context, apiKeyEntity *model.APIKey) (err error)
 	DeleteAPIKey(ctx context.Context, apiKeyID int64) (err error)
 	GetAPIKeyByIDs(ctx context.Context, apiKeyIDs []int64) (apiKeys []*model.APIKey, err error)
-	GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*model.APIKey, err error)
+	GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*model.APIKey, total int64, err error)
 	GetAPIKeyByKey(ctx context.Context, key string) (apiKey *model.APIKey, err error)
 	UpdateAPIKeyName(ctx context.Context, apiKeyID int64, name string) (err error)
 	FlushAPIKeyUsedTime(ctx context.Context, apiKeyID int64) (err error)
@@ -67,13 +67,11 @@ func (dao *AuthNDAOImpl) UpdateAPIKeyName(ctx context.Context, apiKeyID int64, n
 	return err
 }
 
-func (dao *AuthNDAOImpl) GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*model.APIKey, err error) {
+func (dao *AuthNDAOImpl) GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*model.APIKey, total int64, err error) {
 	return dao.query.APIKey.WithContext(ctx).
 		Where(dao.query.APIKey.UserID.Eq(userID)).
 		Where(dao.query.APIKey.Status.Eq(entity.APIKeyStatusNormal)).
-		Offset((pageNumber - 1) * pageSize).
-		Limit(pageSize).
-		Find()
+		FindByPage((pageNumber-1)*pageSize, pageSize)
 }
 
 func (dao *AuthNDAOImpl) GetAPIKeyByKey(ctx context.Context, key string) (apiKey *model.APIKey, err error) {

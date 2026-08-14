@@ -179,6 +179,7 @@ type ExptTurnResultFilterEvent struct {
 	ExperimentID int64
 	SpaceID      int64
 	ItemID       []int64
+	Session      *Session
 
 	RetryTimes *int32
 	FilterType *UpsertExptTurnResultFilterType

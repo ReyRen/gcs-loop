@@ -45,6 +45,11 @@ func (p *ExecuteInternalRequest) IsValid() error {
 			return fmt.Errorf("field OverridePromptParams not valid, %w", err)
 		}
 	}
+	if p.OverridePromptTemplate != nil {
+		if err := p.OverridePromptTemplate.IsValid(); err != nil {
+			return fmt.Errorf("field OverridePromptTemplate not valid, %w", err)
+		}
+	}
 	if p.Base != nil {
 		if err := p.Base.IsValid(); err != nil {
 			return fmt.Errorf("field Base not valid, %w", err)

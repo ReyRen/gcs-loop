@@ -155,6 +155,14 @@ func (e *exptEventPublisher) PublishExptOnlineEvalResult(ctx context.Context, ev
 }
 
 func (e *exptEventPublisher) PublishExptTurnResultFilterEvent(ctx context.Context, event *entity.ExptTurnResultFilterEvent, duration *time.Duration) error {
+	if event != nil && event.Session == nil {
+		eventSession := entity.NewSession(ctx)
+		if eventSession.UserID != "" {
+			copied := *event
+			copied.Session = eventSession
+			event = &copied
+		}
+	}
 	return e.batchSend(ctx, rocket.ExptTurnResultFilterRMQKey, []any{event}, duration)
 }
 

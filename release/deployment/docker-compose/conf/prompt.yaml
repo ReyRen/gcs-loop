@@ -26,6 +26,13 @@ prompt_label_version_cache:
   enable: true
   ttl_seconds: 60
 
+# Fallback used for legacy Prompt versions and drafts that were saved before
+# model configuration became mandatory. New drafts persist this model config,
+# so subsequent published versions remain reproducible.
+prompt_default_config:
+  model_config:
+    model_id: 1
+
 
 # Built-in Prompt template catalog copied from the Loop official template
 # catalog. Model ID 1 binds every template to the model configured locally;

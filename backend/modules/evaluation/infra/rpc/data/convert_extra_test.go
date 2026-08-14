@@ -63,6 +63,61 @@ func TestConvert2DatasetData(t *testing.T) {
 	})
 }
 
+func TestConvert2DatasetDataMultiPart(t *testing.T) {
+	ctx := context.Background()
+	provider := entity.StorageProvider_ImageX
+	turns := []*entity.Turn{{FieldDataList: []*entity.FieldData{{
+		Key: "input",
+		Content: &entity.Content{
+			ContentType: gptr.Of(entity.ContentTypeMultipart),
+			MultiPart: []*entity.Content{
+				{ContentType: gptr.Of(entity.ContentTypeText), Text: gptr.Of("describe this")},
+				{ContentType: gptr.Of(entity.ContentTypeImage), Image: &entity.Image{Name: gptr.Of("cat.png"), URI: gptr.Of("1/file/cat.png"), StorageProvider: &provider}},
+				{ContentType: gptr.Of(entity.ContentTypeAudio), Audio: &entity.Audio{Name: gptr.Of("voice.mp3"), URI: gptr.Of("1/file/voice.mp3"), StorageProvider: gptr.Of(entity.StorageProvider_S3)}},
+			},
+		},
+	}}}}
+
+	res, err := convert2DatasetData(ctx, turns)
+	assert.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, dataset.ContentType_MultiPart, res[0].GetContentType())
+	assert.Len(t, res[0].Parts, 3)
+	assert.Equal(t, "describe this", res[0].Parts[0].GetContent())
+	assert.Equal(t, dataset.ContentType_Image, res[0].Parts[1].GetContentType())
+	assert.Equal(t, dataset.StorageProvider_S3, res[0].Parts[1].Attachments[0].GetProvider())
+	assert.Equal(t, "1/file/cat.png", res[0].Parts[1].Attachments[0].GetURI())
+	assert.Equal(t, dataset.ContentType_Audio, res[0].Parts[2].GetContentType())
+}
+
+func TestConvertMultiPartSchemaDefaults(t *testing.T) {
+	res, err := convert2DatasetFieldSchemas(context.Background(), []*entity.FieldSchema{{
+		Key: "input", Name: "input", ContentType: entity.ContentTypeMultipart,
+	}})
+	assert.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.NotNil(t, res[0].MultiModelSpec)
+	assert.Equal(t, int64(20), res[0].MultiModelSpec.GetMaxFileCount())
+	assert.Equal(t, int32(50), res[0].MultiModelSpec.GetMaxPartCount())
+	assert.Contains(t, res[0].MultiModelSpec.SupportedFormatsByType[dataset.ContentType_Image], "png")
+	assert.Contains(t, res[0].MultiModelSpec.SupportedFormatsByType[dataset.ContentType_Audio], "mp3")
+	assert.Contains(t, res[0].MultiModelSpec.SupportedFormatsByType[dataset.ContentType_Video], "mp4")
+}
+
+func TestConvertMultiPartSchemaMergesPartialSpec(t *testing.T) {
+	res, err := convert2DatasetFieldSchemas(context.Background(), []*entity.FieldSchema{{
+		Key: "input", Name: "input", ContentType: entity.ContentTypeMultipart,
+		MultiModelSpec: &entity.MultiModalSpec{MaxFileCount: 3},
+	}})
+	assert.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.NotNil(t, res[0].MultiModelSpec)
+	assert.Equal(t, int64(3), res[0].MultiModelSpec.GetMaxFileCount())
+	assert.Equal(t, int64(20*1024*1024), res[0].MultiModelSpec.GetMaxFileSize())
+	assert.Equal(t, int32(50), res[0].MultiModelSpec.GetMaxPartCount())
+	assert.Contains(t, res[0].MultiModelSpec.SupportedFormatsByType[dataset.ContentType_Audio], "mp3")
+}
+
 func TestConvert2DatasetItems(t *testing.T) {
 	ctx := context.Background()
 	t.Run("empty", func(t *testing.T) {

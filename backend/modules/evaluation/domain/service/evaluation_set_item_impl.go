@@ -116,10 +116,22 @@ func (d *EvaluationSetItemServiceImpl) batchGetByVersionQueries(ctx context.Cont
 		if end > total {
 			end = total
 		}
+		queries := param.ItemVersionQueries[start:end]
+		// The OSS dataset RPC only accepts item_ids. Keep the richer version
+		// references for compatible providers, while always projecting their
+		// item IDs so the current dataset service does not receive an empty list.
+		itemIDs := make([]int64, 0, len(queries))
+		for _, query := range queries {
+			if query == nil || query.ItemID <= 0 {
+				continue
+			}
+			itemIDs = append(itemIDs, query.ItemID)
+		}
 		listParam := &rpc.BatchGetDatasetItemsParam{
 			SpaceID:            param.SpaceID,
 			EvaluationSetID:    param.EvaluationSetID,
-			ItemVersionQueries: param.ItemVersionQueries[start:end],
+			ItemIDs:            itemIDs,
+			ItemVersionQueries: queries,
 			VersionID:          param.VersionID,
 			Filter:             param.Filter,
 			TagFilter:          param.TagFilter,

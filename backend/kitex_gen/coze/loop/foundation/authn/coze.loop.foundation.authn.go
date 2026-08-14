@@ -1980,7 +1980,9 @@ func (p *ListPersonalAccessTokenRequest) Field255DeepEqual(src *base.Base) bool 
 
 type ListPersonalAccessTokenResponse struct {
 	PersonalAccessTokens []*authn.PersonalAccessToken `thrift:"personal_access_tokens,1,optional" frugal:"1,optional,list<authn.PersonalAccessToken>" form:"personal_access_tokens" json:"personal_access_tokens,omitempty" query:"personal_access_tokens"`
-	BaseResp             *base.BaseResp               `thrift:"BaseResp,255,optional" frugal:"255,optional,base.BaseResp" form:"BaseResp" json:"BaseResp,omitempty" query:"BaseResp"`
+	// current user's normal PAT count before pagination
+	Total    *int32         `thrift:"total,2,optional" frugal:"2,optional,i32" form:"total" json:"total,omitempty" query:"total"`
+	BaseResp *base.BaseResp `thrift:"BaseResp,255,optional" frugal:"255,optional,base.BaseResp" form:"BaseResp" json:"BaseResp,omitempty" query:"BaseResp"`
 }
 
 func NewListPersonalAccessTokenResponse() *ListPersonalAccessTokenResponse {
@@ -2002,6 +2004,18 @@ func (p *ListPersonalAccessTokenResponse) GetPersonalAccessTokens() (v []*authn.
 	return p.PersonalAccessTokens
 }
 
+var ListPersonalAccessTokenResponse_Total_DEFAULT int32
+
+func (p *ListPersonalAccessTokenResponse) GetTotal() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetTotal() {
+		return ListPersonalAccessTokenResponse_Total_DEFAULT
+	}
+	return *p.Total
+}
+
 var ListPersonalAccessTokenResponse_BaseResp_DEFAULT *base.BaseResp
 
 func (p *ListPersonalAccessTokenResponse) GetBaseResp() (v *base.BaseResp) {
@@ -2016,17 +2030,25 @@ func (p *ListPersonalAccessTokenResponse) GetBaseResp() (v *base.BaseResp) {
 func (p *ListPersonalAccessTokenResponse) SetPersonalAccessTokens(val []*authn.PersonalAccessToken) {
 	p.PersonalAccessTokens = val
 }
+func (p *ListPersonalAccessTokenResponse) SetTotal(val *int32) {
+	p.Total = val
+}
 func (p *ListPersonalAccessTokenResponse) SetBaseResp(val *base.BaseResp) {
 	p.BaseResp = val
 }
 
 var fieldIDToName_ListPersonalAccessTokenResponse = map[int16]string{
 	1:   "personal_access_tokens",
+	2:   "total",
 	255: "BaseResp",
 }
 
 func (p *ListPersonalAccessTokenResponse) IsSetPersonalAccessTokens() bool {
 	return p.PersonalAccessTokens != nil
+}
+
+func (p *ListPersonalAccessTokenResponse) IsSetTotal() bool {
+	return p.Total != nil
 }
 
 func (p *ListPersonalAccessTokenResponse) IsSetBaseResp() bool {
@@ -2054,6 +2076,14 @@ func (p *ListPersonalAccessTokenResponse) Read(iprot thrift.TProtocol) (err erro
 		case 1:
 			if fieldTypeId == thrift.LIST {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -2119,6 +2149,17 @@ func (p *ListPersonalAccessTokenResponse) ReadField1(iprot thrift.TProtocol) err
 	p.PersonalAccessTokens = _field
 	return nil
 }
+func (p *ListPersonalAccessTokenResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Total = _field
+	return nil
+}
 func (p *ListPersonalAccessTokenResponse) ReadField255(iprot thrift.TProtocol) error {
 	_field := base.NewBaseResp()
 	if err := _field.Read(iprot); err != nil {
@@ -2136,6 +2177,10 @@ func (p *ListPersonalAccessTokenResponse) Write(oprot thrift.TProtocol) (err err
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 		if err = p.writeField255(oprot); err != nil {
@@ -2186,6 +2231,24 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
+func (p *ListPersonalAccessTokenResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTotal() {
+		if err = oprot.WriteFieldBegin("total", thrift.I32, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.Total); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
 func (p *ListPersonalAccessTokenResponse) writeField255(oprot thrift.TProtocol) (err error) {
 	if p.IsSetBaseResp() {
 		if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
@@ -2222,6 +2285,9 @@ func (p *ListPersonalAccessTokenResponse) DeepEqual(ano *ListPersonalAccessToken
 	if !p.Field1DeepEqual(ano.PersonalAccessTokens) {
 		return false
 	}
+	if !p.Field2DeepEqual(ano.Total) {
+		return false
+	}
 	if !p.Field255DeepEqual(ano.BaseResp) {
 		return false
 	}
@@ -2238,6 +2304,18 @@ func (p *ListPersonalAccessTokenResponse) Field1DeepEqual(src []*authn.PersonalA
 		if !v.DeepEqual(_src) {
 			return false
 		}
+	}
+	return true
+}
+func (p *ListPersonalAccessTokenResponse) Field2DeepEqual(src *int32) bool {
+
+	if p.Total == src {
+		return true
+	} else if p.Total == nil || src == nil {
+		return false
+	}
+	if *p.Total != *src {
+		return false
 	}
 	return true
 }

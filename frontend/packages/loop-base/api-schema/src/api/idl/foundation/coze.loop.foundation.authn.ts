@@ -46,7 +46,9 @@ export interface ListPersonalAccessTokenRequest {
   page_number?: number,
 }
 export interface ListPersonalAccessTokenResponse {
-  personal_access_tokens?: authn.PersonalAccessToken[]
+  personal_access_tokens?: authn.PersonalAccessToken[],
+  /** current user's normal PAT count before pagination */
+  total?: number,
 }
 export interface UpdatePersonalAccessTokenRequest {
   /** PAT Id */

@@ -62,6 +62,7 @@ var (
 
 	experimentSet = wire.NewSet(
 		NewExperimentApplication,
+		NewExperimentApplicationWithPromptOptimization,
 		// Domain Service Sets
 		domainservice.ExperimentDomainServiceSet,
 		domainservice.EvaluationSetDomainServiceSet,
@@ -222,6 +223,7 @@ func InitEvaluationSetApplication(client datasetservice.Client,
 	meter metrics.Meter,
 	userClient userservice.Client,
 	configFactory conf.IConfigLoaderFactory,
+	fileClient fileservice.Client,
 ) (evaluation.EvaluationSetService, error) {
 	wire.Build(
 		evaluationSetSet,

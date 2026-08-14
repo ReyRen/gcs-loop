@@ -252,6 +252,13 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 					_expt_id.DELETE("/delete_tag", append(_deleteannotationtagMw(handler), apis.DeleteAnnotationTag)...)
 					_expt_id.POST("/insight_analysis", append(_insightanalysisexperimentMw(handler), apis.InsightAnalysisExperiment)...)
 					_expt_id.POST("/kill", append(_killexperimentMw(handler), apis.KillExperiment)...)
+					_expt_id.POST("/prompt_optimizations", append(_prompt_optimizationsMw(handler), apis.CreatePromptOptimization)...)
+					_prompt_optimizations := _expt_id.Group("/prompt_optimizations", _prompt_optimizationsMw(handler)...)
+					_prompt_optimizations.POST("/list", append(_listpromptoptimizationsMw(handler), apis.ListPromptOptimizations)...)
+					_prompt_optimizations.GET("/:optimization_id", append(_optimization_idMw(handler), apis.GetPromptOptimization)...)
+					_optimization_id := _prompt_optimizations.Group("/:optimization_id", _optimization_idMw(handler)...)
+					_optimization_id.POST("/apply_to_draft", append(_applypromptoptimizationtodraftMw(handler), apis.ApplyPromptOptimizationToDraft)...)
+					_optimization_id.POST("/cancel", append(_cancelpromptoptimizationMw(handler), apis.CancelPromptOptimization)...)
 					_expt_id.POST("/retry", append(_retryexperimentMw(handler), apis.RetryExperiment)...)
 					{
 						_annotate_record := _expt_id.Group("/annotate_record", _annotate_recordMw(handler)...)
@@ -274,6 +281,10 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 						}
 						_insight_analysis_records.POST("/:insight_analysis_record_id", append(_getexptinsightanalysisrecordMw(handler), apis.GetExptInsightAnalysisRecord)...)
 						_insight_analysis_records.POST("/list", append(_listexptinsightanalysisrecordMw(handler), apis.ListExptInsightAnalysisRecord)...)
+					}
+					{
+						_prompt_optimizations0 := _expt_id.Group("/prompt_optimizations", _prompt_optimizations0Mw(handler)...)
+						_prompt_optimizations0.GET("/prepare", append(_preparepromptoptimizationMw(handler), apis.PreparePromptOptimization)...)
 					}
 					{
 						_results := _expt_id.Group("/results", _resultsMw(handler)...)

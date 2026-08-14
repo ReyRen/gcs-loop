@@ -727,6 +727,10 @@ func (p *PromptOpenAPIApplicationImpl) doExecute(ctx context.Context, req *opena
 	if err != nil {
 		return promptDO, nil, err
 	}
+	promptDO, _, err = ensurePromptModelConfig(ctx, promptDO, p.config)
+	if err != nil {
+		return promptDO, nil, err
+	}
 
 	// 应用自定义覆盖参数（深拷贝以避免缓存污染）
 	promptDO, err = p.applyCustomOverrides(promptDO, req)
@@ -842,6 +846,10 @@ func (p *PromptOpenAPIApplicationImpl) doExecuteStreaming(ctx context.Context, r
 	}
 	// expand snippets
 	err = p.promptService.ExpandSnippets(ctx, promptDO)
+	if err != nil {
+		return promptDO, nil, err
+	}
+	promptDO, _, err = ensurePromptModelConfig(ctx, promptDO, p.config)
 	if err != nil {
 		return promptDO, nil, err
 	}

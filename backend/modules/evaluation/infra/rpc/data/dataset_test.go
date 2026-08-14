@@ -35,14 +35,24 @@ func TestValidateMultiPartData(t *testing.T) {
 	defer ctrl.Finish()
 
 	adapter, _ := newTestAdapter(ctrl)
+	adapter.mediaFetcher = fakeRemoteMediaFetcher{err: errors.New("invalid media url")}
 
 	strategy := entity.MultiModalStoreStrategyStore
 	result, err := adapter.ValidateMultiPartData(ctx, 1, []string{"data1"}, &entity.MultiModalStoreOption{
 		MultiModalStoreStrategy: &strategy,
 	})
-	assert.Nil(t, result)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "ValidateMultiPartData not implemented")
+	assert.NoError(t, err)
+	assert.Len(t, result, 1)
+	assert.Equal(t, entity.ItemErrorType_GetImageFailed, gptr.Indirect(result[0].ErrorType))
+}
+
+type fakeRemoteMediaFetcher struct {
+	media *fetchedRemoteMedia
+	err   error
+}
+
+func (f fakeRemoteMediaFetcher) Fetch(context.Context, string, int64) (*fetchedRemoteMedia, error) {
+	return f.media, f.err
 }
 
 func TestBatchCreateDatasetItems(t *testing.T) {
@@ -406,7 +416,7 @@ func TestNewDatasetRPCAdapter(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockClient := mocks.NewMockClient(ctrl)
-	adapter := NewDatasetRPCAdapter(mockClient)
+	adapter := NewDatasetRPCAdapter(mockClient, nil)
 	assert.NotNil(t, adapter)
 }
 
@@ -426,6 +436,8 @@ func TestCreateDataset(t *testing.T) {
 				assert.Equal(t, int64(100), req.WorkspaceID)
 				assert.Equal(t, "test_dataset", req.Name)
 				assert.Equal(t, domain_dataset.DatasetCategory_Evaluation, *req.Category)
+				assert.True(t, req.Features.GetEditSchema())
+				assert.True(t, req.Features.GetMultiModal())
 				return &datasetdto.CreateDatasetResponse{
 					DatasetID: gptr.Of(int64(999)),
 					BaseResp:  &base.BaseResp{StatusCode: 0},
@@ -438,7 +450,7 @@ func TestCreateDataset(t *testing.T) {
 			EvaluationSetItems: &entity.EvaluationSetSchema{
 				AppID: 1,
 				FieldSchemas: []*entity.FieldSchema{
-					{Key: "k1", Name: "n1", ContentType: "Text"},
+					{Key: "k1", Name: "n1", ContentType: "MultiPart"},
 				},
 			},
 		}

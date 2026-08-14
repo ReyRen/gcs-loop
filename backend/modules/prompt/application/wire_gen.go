@@ -137,7 +137,7 @@ func InitPromptExecuteApplication(idgen2 idgen.IIDGenerator, db2 db.Provider, re
 	iFileProvider := rpc.NewFileRPCProvider(fileClient)
 	snippetParser := service.NewCozeLoopSnippetParser()
 	iPromptService := service.NewPromptService(iPromptFormatter, iToolConfigProvider, iToolResultsCollector, idgen2, iDebugLogRepo, iDebugContextRepo, iManageRepo, iLabelRepo, iConfigProvider, illmProvider, iFileProvider, snippetParser)
-	promptExecuteService := NewPromptExecuteApplication(iPromptService, iManageRepo)
+	promptExecuteService := NewPromptExecuteApplication(iPromptService, iManageRepo, iConfigProvider)
 	return promptExecuteService, nil
 }
 

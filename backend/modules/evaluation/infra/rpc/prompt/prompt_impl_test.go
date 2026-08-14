@@ -10,6 +10,7 @@ import (
 	"github.com/bytedance/gg/gptr"
 	callopt "github.com/cloudwego/kitex/client/callopt"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/base"
@@ -138,6 +139,56 @@ func TestPromptRPCAdapter_GetPrompt(t *testing.T) {
 		res, err := adapter.GetPrompt(ctx, 1, 1, rpc.GetPromptParams{})
 		assert.NoError(t, err)
 		assert.Nil(t, res)
+	})
+}
+
+func TestPromptRPCAdapter_ApplyPromptTemplateToDraft(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockManage := mocks.NewMockPromptManageClient(ctrl)
+	mockExecute := mocks.NewMockPromptExecuteClient(ctrl)
+	adapter := NewPromptRPCAdapter(mockManage, mockExecute)
+	ctx := context.Background()
+	workspaceID, promptID := int64(10), int64(20)
+	source := &prompt.Prompt{
+		ID:          &promptID,
+		WorkspaceID: &workspaceID,
+		PromptCommit: &prompt.PromptCommit{Detail: &prompt.PromptDetail{
+			PromptTemplate: &prompt.PromptTemplate{Messages: []*prompt.Message{{Role: gptr.Of(prompt.RoleSystem), Content: gptr.Of("source")}}},
+			ModelConfig:    &prompt.ModelConfig{ModelID: gptr.Of(int64(30))},
+		}},
+	}
+	candidate := &rpc.PromptTemplate{Messages: []*rpc.PromptMessage{{Role: "system", Content: "optimized"}}}
+
+	t.Run("rejects silent overwrite", func(t *testing.T) {
+		withDraft := *source
+		withDraft.PromptDraft = &prompt.PromptDraft{Detail: &prompt.PromptDetail{}}
+		mockManage.EXPECT().GetPrompt(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, req *manage.GetPromptRequest, _ ...callopt.Option) (*manage.GetPromptResponse, error) {
+				assert.True(t, req.GetWithDraft())
+				assert.Equal(t, "1.0.0", req.GetCommitVersion())
+				return &manage.GetPromptResponse{Prompt: &withDraft}, nil
+			},
+		)
+		err := adapter.ApplyPromptTemplateToDraft(ctx, workspaceID, promptID, "1.0.0", candidate, false)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "overwrite_existing_draft")
+	})
+
+	t.Run("preserves source configuration and replaces template", func(t *testing.T) {
+		mockManage.EXPECT().GetPrompt(gomock.Any(), gomock.Any(), gomock.Any()).Return(&manage.GetPromptResponse{Prompt: source}, nil)
+		mockManage.EXPECT().SaveDraft(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, req *manage.SaveDraftRequest, _ ...callopt.Option) (*manage.SaveDraftResponse, error) {
+				require.NotNil(t, req.PromptDraft)
+				require.NotNil(t, req.PromptDraft.Detail)
+				assert.Equal(t, int64(30), req.PromptDraft.Detail.ModelConfig.GetModelID())
+				require.Len(t, req.PromptDraft.Detail.PromptTemplate.Messages, 1)
+				assert.Equal(t, "optimized", req.PromptDraft.Detail.PromptTemplate.Messages[0].GetContent())
+				assert.Equal(t, "1.0.0", req.PromptDraft.DraftInfo.GetBaseVersion())
+				return &manage.SaveDraftResponse{}, nil
+			},
+		)
+		err := adapter.ApplyPromptTemplateToDraft(ctx, workspaceID, promptID, "1.0.0", candidate, true)
+		require.NoError(t, err)
 	})
 }
 

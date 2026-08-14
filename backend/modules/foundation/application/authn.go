@@ -6,6 +6,7 @@ package application
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bytedance/gg/gptr"
@@ -25,6 +26,9 @@ import (
 const (
 	PageSizeDefault   = 10
 	PageNumberDefault = 1
+
+	personalAccessTokenVisibleChars = 4
+	personalAccessTokenMask         = "****"
 )
 
 type AuthNApplicationImpl struct {
@@ -83,12 +87,13 @@ func (a AuthNApplicationImpl) CreatePersonalAccessToken(ctx context.Context, req
 
 	return &authn.CreatePersonalAccessTokenResponse{
 		PersonalAccessToken: &authn2.PersonalAccessToken{
-			ID:         strconv.FormatInt(apiKeyID, 10),
-			Name:       req.Name,
-			CreatedAt:  now.Unix(),
-			UpdatedAt:  now.Unix(),
-			LastUsedAt: 0,
-			ExpireAt:   expireAt,
+			ID:          strconv.FormatInt(apiKeyID, 10),
+			Name:        req.Name,
+			CreatedAt:   now.Unix(),
+			UpdatedAt:   now.Unix(),
+			LastUsedAt:  0,
+			ExpireAt:    expireAt,
+			MaskedToken: maskedPersonalAccessTokenPtr(apiKey),
 		},
 		Token: lo.ToPtr(apiKey),
 	}, nil
@@ -177,12 +182,13 @@ func (a AuthNApplicationImpl) GetPersonalAccessToken(ctx context.Context, req *a
 
 	return &authn.GetPersonalAccessTokenResponse{
 		PersonalAccessToken: &authn2.PersonalAccessToken{
-			ID:         strconv.FormatInt(ds[0].ID, 10),
-			Name:       ds[0].Name,
-			CreatedAt:  ds[0].CreatedAt.Unix(),
-			UpdatedAt:  ds[0].UpdatedAt.Unix(),
-			LastUsedAt: ds[0].LastUsedAt,
-			ExpireAt:   ds[0].ExpiredAt,
+			ID:          strconv.FormatInt(ds[0].ID, 10),
+			Name:        ds[0].Name,
+			CreatedAt:   ds[0].CreatedAt.Unix(),
+			UpdatedAt:   ds[0].UpdatedAt.Unix(),
+			LastUsedAt:  ds[0].LastUsedAt,
+			ExpireAt:    ds[0].ExpiredAt,
+			MaskedToken: maskedPersonalAccessTokenPtr(ds[0].Key),
 		},
 	}, nil
 }
@@ -205,7 +211,7 @@ func (a AuthNApplicationImpl) ListPersonalAccessToken(ctx context.Context, req *
 	if req.PageSize != nil {
 		pageSize = int(*req.PageSize)
 	}
-	apiKeys, err := a.authNRepo.GetAPIKeyByUser(ctx, userIDInt, pageNumber, pageSize)
+	apiKeys, total, err := a.authNRepo.GetAPIKeyByUser(ctx, userIDInt, pageNumber, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -213,15 +219,32 @@ func (a AuthNApplicationImpl) ListPersonalAccessToken(ctx context.Context, req *
 	return &authn.ListPersonalAccessTokenResponse{
 		PersonalAccessTokens: lo.Map(apiKeys, func(item *entity.APIKey, index int) *authn2.PersonalAccessToken {
 			return &authn2.PersonalAccessToken{
-				ID:         strconv.FormatInt(item.ID, 10),
-				Name:       item.Name,
-				CreatedAt:  item.CreatedAt.Unix(),
-				UpdatedAt:  item.UpdatedAt.Unix(),
-				LastUsedAt: item.LastUsedAt,
-				ExpireAt:   item.ExpiredAt,
+				ID:          strconv.FormatInt(item.ID, 10),
+				Name:        item.Name,
+				CreatedAt:   item.CreatedAt.Unix(),
+				UpdatedAt:   item.UpdatedAt.Unix(),
+				LastUsedAt:  item.LastUsedAt,
+				ExpireAt:    item.ExpiredAt,
+				MaskedToken: maskedPersonalAccessTokenPtr(item.Key),
 			}
 		}),
+		Total: lo.ToPtr(int32(total)),
 	}, nil
+}
+
+func maskedPersonalAccessTokenPtr(token string) *string {
+	if token == "" {
+		return nil
+	}
+
+	visibleLength := personalAccessTokenVisibleChars * 2
+	if len(token) <= visibleLength {
+		masked := strings.Repeat("*", len(token))
+		return &masked
+	}
+
+	masked := token[:personalAccessTokenVisibleChars] + personalAccessTokenMask + token[len(token)-personalAccessTokenVisibleChars:]
+	return &masked
 }
 
 func (a AuthNApplicationImpl) GetPublicAPIConfig(ctx context.Context, _ *authn.GetPublicAPIConfigRequest) (r *authn.GetPublicAPIConfigResponse, err error) {

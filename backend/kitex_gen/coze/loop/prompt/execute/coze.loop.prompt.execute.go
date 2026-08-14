@@ -18,8 +18,12 @@ type ExecuteInternalRequest struct {
 	Messages             []*prompt.Message            `thrift:"messages,4,optional" frugal:"4,optional,list<prompt.Message>" form:"messages" json:"messages,omitempty" query:"messages"`
 	VariableVals         []*prompt.VariableVal        `thrift:"variable_vals,5,optional" frugal:"5,optional,list<prompt.VariableVal>" form:"variable_vals" json:"variable_vals,omitempty" query:"variable_vals"`
 	OverridePromptParams *prompt.OverridePromptParams `thrift:"override_prompt_params,6,optional" frugal:"6,optional,prompt.OverridePromptParams" form:"override_prompt_params" json:"override_prompt_params,omitempty" query:"override_prompt_params"`
-	Scenario             *prompt.Scenario             `thrift:"scenario,101,optional" frugal:"101,optional,string" form:"scenario" json:"scenario,omitempty" query:"scenario"`
-	Base                 *base.Base                   `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
+	// Internal-only candidate template used by evaluation-driven Prompt
+	// optimization. The committed Prompt still supplies model/tools/config;
+	// only the template is replaced for this execution and nothing is saved.
+	OverridePromptTemplate *prompt.PromptTemplate `thrift:"override_prompt_template,7,optional" frugal:"7,optional,prompt.PromptTemplate" form:"override_prompt_template" json:"override_prompt_template,omitempty" query:"override_prompt_template"`
+	Scenario               *prompt.Scenario       `thrift:"scenario,101,optional" frugal:"101,optional,string" form:"scenario" json:"scenario,omitempty" query:"scenario"`
+	Base                   *base.Base             `thrift:"Base,255,optional" frugal:"255,optional,base.Base" form:"Base" json:"Base,omitempty" query:"Base"`
 }
 
 func NewExecuteInternalRequest() *ExecuteInternalRequest {
@@ -101,6 +105,18 @@ func (p *ExecuteInternalRequest) GetOverridePromptParams() (v *prompt.OverridePr
 	return p.OverridePromptParams
 }
 
+var ExecuteInternalRequest_OverridePromptTemplate_DEFAULT *prompt.PromptTemplate
+
+func (p *ExecuteInternalRequest) GetOverridePromptTemplate() (v *prompt.PromptTemplate) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOverridePromptTemplate() {
+		return ExecuteInternalRequest_OverridePromptTemplate_DEFAULT
+	}
+	return p.OverridePromptTemplate
+}
+
 var ExecuteInternalRequest_Scenario_DEFAULT prompt.Scenario
 
 func (p *ExecuteInternalRequest) GetScenario() (v prompt.Scenario) {
@@ -142,6 +158,9 @@ func (p *ExecuteInternalRequest) SetVariableVals(val []*prompt.VariableVal) {
 func (p *ExecuteInternalRequest) SetOverridePromptParams(val *prompt.OverridePromptParams) {
 	p.OverridePromptParams = val
 }
+func (p *ExecuteInternalRequest) SetOverridePromptTemplate(val *prompt.PromptTemplate) {
+	p.OverridePromptTemplate = val
+}
 func (p *ExecuteInternalRequest) SetScenario(val *prompt.Scenario) {
 	p.Scenario = val
 }
@@ -156,6 +175,7 @@ var fieldIDToName_ExecuteInternalRequest = map[int16]string{
 	4:   "messages",
 	5:   "variable_vals",
 	6:   "override_prompt_params",
+	7:   "override_prompt_template",
 	101: "scenario",
 	255: "Base",
 }
@@ -182,6 +202,10 @@ func (p *ExecuteInternalRequest) IsSetVariableVals() bool {
 
 func (p *ExecuteInternalRequest) IsSetOverridePromptParams() bool {
 	return p.OverridePromptParams != nil
+}
+
+func (p *ExecuteInternalRequest) IsSetOverridePromptTemplate() bool {
+	return p.OverridePromptTemplate != nil
 }
 
 func (p *ExecuteInternalRequest) IsSetScenario() bool {
@@ -253,6 +277,14 @@ func (p *ExecuteInternalRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 6:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField7(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -390,6 +422,14 @@ func (p *ExecuteInternalRequest) ReadField6(iprot thrift.TProtocol) error {
 	p.OverridePromptParams = _field
 	return nil
 }
+func (p *ExecuteInternalRequest) ReadField7(iprot thrift.TProtocol) error {
+	_field := prompt.NewPromptTemplate()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.OverridePromptTemplate = _field
+	return nil
+}
 func (p *ExecuteInternalRequest) ReadField101(iprot thrift.TProtocol) error {
 
 	var _field *prompt.Scenario
@@ -438,6 +478,10 @@ func (p *ExecuteInternalRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField6(oprot); err != nil {
 			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
 			goto WriteFieldError
 		}
 		if err = p.writeField101(oprot); err != nil {
@@ -590,6 +634,24 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
 }
+func (p *ExecuteInternalRequest) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOverridePromptTemplate() {
+		if err = oprot.WriteFieldBegin("override_prompt_template", thrift.STRUCT, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.OverridePromptTemplate.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
 func (p *ExecuteInternalRequest) writeField101(oprot thrift.TProtocol) (err error) {
 	if p.IsSetScenario() {
 		if err = oprot.WriteFieldBegin("scenario", thrift.STRING, 101); err != nil {
@@ -657,6 +719,9 @@ func (p *ExecuteInternalRequest) DeepEqual(ano *ExecuteInternalRequest) bool {
 		return false
 	}
 	if !p.Field6DeepEqual(ano.OverridePromptParams) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.OverridePromptTemplate) {
 		return false
 	}
 	if !p.Field101DeepEqual(ano.Scenario) {
@@ -733,6 +798,13 @@ func (p *ExecuteInternalRequest) Field5DeepEqual(src []*prompt.VariableVal) bool
 func (p *ExecuteInternalRequest) Field6DeepEqual(src *prompt.OverridePromptParams) bool {
 
 	if !p.OverridePromptParams.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *ExecuteInternalRequest) Field7DeepEqual(src *prompt.PromptTemplate) bool {
+
+	if !p.OverridePromptTemplate.DeepEqual(src) {
 		return false
 	}
 	return true

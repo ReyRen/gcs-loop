@@ -14,7 +14,7 @@ type IAuthNRepo interface {
 	CreateAPIKey(ctx context.Context, apiKeyEntity *entity.APIKey) (apiKeyID int64, apiKey string, err error)
 	DeleteAPIKey(ctx context.Context, apiKeyID int64) (err error)
 	GetAPIKeyByIDs(ctx context.Context, apiKeyIDs []int64) (apiKeys []*entity.APIKey, err error)
-	GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*entity.APIKey, err error)
+	GetAPIKeyByUser(ctx context.Context, userID int64, pageNumber, pageSize int) (apiKeys []*entity.APIKey, total int64, err error)
 	GetAPIKeyByKey(ctx context.Context, key string) (apiKey *entity.APIKey, err error)
 	UpdateAPIKeyName(ctx context.Context, apiKeyID int64, name string) (err error)
 	FlushAPIKeyUsedTime(ctx context.Context, apiKeyID int64) (err error)
