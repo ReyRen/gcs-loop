@@ -3,9 +3,29 @@
 import copy from 'copy-to-clipboard';
 import { Toast } from '@coze-arch/coze-design';
 
+/**
+ * 写入剪贴板。
+ * wujie 微前端环境下，copy-to-clipboard 基于 Selection 的实现会抛出
+ * NotFoundError，此时直接走 Clipboard API 备用方案。
+ */
+async function writeClipboard(value: string) {
+  const isWujie =
+    typeof window !== 'undefined' &&
+    !!(window as unknown as Record<string, unknown>).__POWERED_BY_WUJIE__;
+
+  if (isWujie) {
+    const { clipboard } = navigator;
+    if (clipboard && typeof clipboard.writeText === 'function') {
+      await clipboard.writeText(value);
+      return;
+    }
+  }
+  copy(value);
+}
+
 export const handleCopy = async (value: string, hideToast?: boolean) => {
   try {
-    copy(value);
+    await writeClipboard(value);
     !hideToast &&
       Toast.success({
         content: '复制成功',
