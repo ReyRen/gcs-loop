@@ -5,22 +5,43 @@ import { Toast } from '@coze-arch/coze-design';
 
 /**
  * 写入剪贴板。
- * wujie 微前端环境下，copy-to-clipboard 基于 Selection 的实现会抛出
- * NotFoundError，此时直接走 Clipboard API 备用方案。
+ * wujie 微前端环境下需特殊处理：
+ * - Clipboard API 要求 document 处于 focus 状态，需先 window.focus()
+ * - copy-to-clipboard 复制成功后，其 finally 清理 Selection 时会抛 NotFoundError，
+ *   但此时复制已成功，需忽略该错误
  */
 async function writeClipboard(value: string) {
   const isWujie =
     typeof window !== 'undefined' &&
     !!(window as unknown as Record<string, unknown>).__POWERED_BY_WUJIE__;
 
-  if (isWujie) {
-    const { clipboard } = navigator;
-    if (clipboard && typeof clipboard.writeText === 'function') {
+  if (!isWujie) {
+    copy(value);
+    return;
+  }
+
+  const { clipboard } = navigator;
+  if (clipboard && typeof clipboard.writeText === 'function') {
+    try {
+      // writeText 要求 document 处于 focus 状态，否则抛 Document is not focused
+      window.focus();
       await clipboard.writeText(value);
       return;
+    } catch {
+      // Clipboard API 不可用（如 Document is not focused），回退到 execCommand 方案
+      console.error('Clipboard API 不可用');
     }
   }
-  copy(value);
+
+  try {
+    copy(value);
+  } catch (e) {
+    // copy-to-clipboard 复制成功后，finally 清理 Selection 时抛 NotFoundError，
+    // 此时复制已成功，忽略该错误
+    if ((e as { name?: string })?.name !== 'NotFoundError') {
+      throw e;
+    }
+  }
 }
 
 export const handleCopy = async (value: string, hideToast?: boolean) => {
