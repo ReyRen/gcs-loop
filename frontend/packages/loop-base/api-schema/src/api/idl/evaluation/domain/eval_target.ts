@@ -21,6 +21,7 @@ export interface EvalTarget {
   eval_target_version?: EvalTargetVersion,
   /** 系统信息 */
   base_info?: common.BaseInfo,
+  shared_info?: common.SharedResourceInfo,
 }
 export interface EvalTargetVersion {
   /**
@@ -38,6 +39,7 @@ export interface EvalTargetVersion {
   eval_target_content?: EvalTargetContent,
   /** 系统信息 */
   base_info?: common.BaseInfo,
+  shared_info?: common.SharedResourceInfo,
 }
 export interface EvalTargetContent {
   /** 输入schema */
@@ -60,6 +62,12 @@ export interface EvalTargetContent {
   custom_rpc_server?: CustomRPCServer,
   /** EvalTargetType=8 时，传参此字段。 评测对象为 WebAgent 时, 需要设置 WebAgent 信息 */
   web_agent?: WebAgent,
+  /** EvalTargetType=9 时，传参此字段。 评测对象为 A2AAgent 时, 需要设置 A2AAgent 信息 */
+  a2a_agent?: A2AAgent,
+  /** EvalTargetType=10 时，传参此字段。 评测对象为 CustomAgent 时, 需要设置 CustomAgent 信息 */
+  custom_agent?: CustomAgent,
+  /** EvalTargetType=17 时，传参此字段。 评测对象为 SandboxAgent 时, 需要设置 SandboxAgent 信息 */
+  sandbox_agent?: SandboxAgent,
 }
 export interface WebAgent {
   /** 应用ID */
@@ -98,6 +106,10 @@ export enum EvalTargetType {
   VolcengineAgentAgentkit = 7,
   /** Web智能体 */
   WebAgent = 8,
+  /** A2A协议智能体 */
+  A2AAgent = 9,
+  /** 自定义智能体 for内场,目前支持长链接方式访问 */
+  CustomAgent = 10,
   /** CozeBot在线(评测过程中不执行对象，仅用于展示对象) */
   CozeBotOnline = 11,
   /** Prompt在线(评测过程中不执行对象，仅用于展示对象) */
@@ -110,6 +122,8 @@ export enum EvalTargetType {
   CustomRPCServerOnline = 15,
   /** 火山智能体Agentkit在线(评测过程中不执行对象，仅用于展示对象) */
   VolcengineAgentAgentkitOnline = 16,
+  /** 沙箱Agent（CLI 模式在沙箱容器中拉起 Agent） */
+  SandboxAgent = 17,
 }
 /** Agent协议类型 */
 export enum VolcengineAgentProtocol {
@@ -275,6 +289,126 @@ export enum ModelPlatform {
   GPTOpenAPI = 1,
   MAAS = 2,
 }
+export interface A2AAgent {
+  /** 应用ID */
+  id?: number,
+  /** DTO使用，不存数据库 */
+  name?: string,
+  /** DTO使用，不存数据库 */
+  description?: string,
+  server_name?: string,
+  url?: string,
+  /** 执行区域 */
+  exec_region?: Region,
+  /** 执行环境 */
+  exec_env?: string,
+}
+export interface CustomAgent {
+  /** 应用ID */
+  id?: number,
+  /** DTO使用，不存数据库 */
+  name?: string,
+  /** DTO使用，不存数据库 */
+  description?: string,
+  /** 执行区域 */
+  exec_region?: Region,
+  /** 执行环境 */
+  exec_env?: string,
+  /** 执行集群 */
+  cluster?: string,
+  timeout_ms?: number,
+  first_token_timeout_ms?: number,
+  AgentConnection?: AgentConnection,
+}
+/** 沙箱 Agent 子类型，内置路由标识，路由到对应的执行流水线 */
+export enum SandboxAgentType {
+  SingleRunCLI = "single_run_cli",
+}
+/**
+ * 单次运行 CLI 模式
+ * 单/双沙箱模式；未填 / 未识别一律按 Single 处理。
+*/
+export enum SandboxCountMode {
+  Single = "single",
+  /** 单沙箱执行链路 */
+  Dual = "dual",
+}
+/**
+ * 先起从属沙箱拿 session id，再起主沙箱运行 sandbox-pipeline
+ * 环境变量键值对
+*/
+export interface SandboxEnvVar {
+  key?: string,
+  value?: string,
+}
+/**
+ * 沙箱 Agent：通过 CLI 在沙箱容器中拉起 Agent
+ * 执行链路：题目安装 -> Agent 安装 -> Agent 运行（三阶段）
+*/
+export interface SandboxAgent {
+  /** Agent 名称，用于展示与标识 */
+  name?: string,
+  /**
+   * Agent 子类型，内置字段，固定为 SandboxAgentType_SingleRunCLI
+   * 用于路由到对应的执行流水线
+  */
+  type?: SandboxAgentType,
+  /**
+   * 模型名称，声明该 Agent 要评测的模型，仅支持单个
+   * 注：与评测平台原设计存在 gap——Fornax 评测目前只支持发起单个评测实验，
+   * 无法支持单次给多个模型发起多实验
+  */
+  model_name?: string,
+  /** Agent 安装命令，安装 Agent CLI 本体 */
+  agent_setup_cmd?: string,
+  /**
+   * Agent 运行命令，注入到 Execution 阶段的 user 槽位
+   * 对应模板变量 CLI_EXECUTION_SCRIPT
+  */
+  agent_run_cmd?: string,
+  /**
+   * Agent 环境变量，容器初始化时静态注入，对所有阶段可见
+   * 可用于承载非必填环境变量（如 Agent 版本、模式、命名空间等）
+  */
+  envs?: SandboxEnvVar[],
+  /** 沙箱镜像 */
+  image?: string,
+  /**
+   * 是否开启分析：由创建评测对象时从 application.usages 反查（含 "analysis"）固化，
+   * 控制 item-complete MQ 是否发送（与 TCC 空间白名单 AND）
+  */
+  enable_analysis?: boolean,
+  /** 单/双沙箱模式；空值按 Single 处理 */
+  sandbox_count_mode?: SandboxCountMode,
+}
+export interface AgentConnection {
+  frontier_info?: FrontierInfo,
+  ip?: string,
+  region?: string,
+  idc?: string,
+  sdk_version?: string,
+  protocol_version?: string,
+  psm?: string,
+  agent_impl?: AgentImpl,
+}
+export interface FrontierInfo {
+  /** frontier应用ID */
+  app_id?: string,
+  /** frontier产品ID */
+  product_id?: string,
+  /** frontier连接标识参数，随机 */
+  user_id?: string,
+  /** frontier连接标识参数，随机 */
+  device_id?: string,
+}
+export interface AgentImpl {
+  /** go/python */
+  language?: string,
+  /** Eino/Langchain */
+  framework?: string,
+  /** 用户agent的具体实体类型标识 */
+  kind?: string,
+}
 export interface EvalTargetRecord {
   /** 评估记录ID */
   id?: string,
@@ -327,10 +461,32 @@ export interface EvalTargetOutputData {
   eval_target_run_error?: EvalTargetRunError,
   /** 运行耗时 */
   time_consuming_ms?: string,
+  /** 沙箱 agent step 事件明细（顺序 append） */
+  eval_target_steps?: EvalTargetStep[],
   /** 平台扩展字段 */
   ext?: {
     [key: string | number]: string
   },
+}
+/**
+ * EvalTargetStep 沙箱 agent step 事件明细。
+ * 每次 ReportEvalTargetStepMetric 事件（STARTED 或 FINISHED）对应一条 entry。
+*/
+export interface EvalTargetStep {
+  /** 沙箱侧 step 名 */
+  step_name?: string,
+  /** "STARTED" | "FINISHED" */
+  event_type?: string,
+  /** 服务端接收时刻 */
+  event_time_ms?: string,
+  /** 仅 FINISHED 有效 */
+  success?: boolean,
+  /** 仅 FINISHED 有效 */
+  error_code?: number,
+  /** 仅 FINISHED 有效 */
+  error_message?: string,
+  /** 沙箱侧计算的 step 耗时 */
+  duration_ms?: string,
 }
 export interface EvalTargetUsage {
   input_tokens: string,

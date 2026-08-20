@@ -72,6 +72,8 @@ export enum SchemaKey {
   SingleChoice = 6,
   /** 轨迹 */
   Trajectory = 7,
+  /** 多轮对话 */
+  MessageList = 8,
 }
 export interface DatasetFeatures {
   /** 变更 schema */
@@ -110,6 +112,8 @@ export interface Dataset {
   next_version_num?: string,
   /** 数据条数 */
   item_count?: string,
+  /** 数据集业务唯一键，创建后不可变 */
+  dataset_key?: string,
   /** 通用信息 */
   created_by?: string,
   created_at?: string,
@@ -384,6 +388,8 @@ export interface FieldWriteOption {
   field_name?: string,
   field_key?: string,
   multi_modal_store_opt?: MultiModalStoreOption,
+  /** MessageList 多模态资源存储策略 */
+  message_list_store_strategy?: MultiModalStoreStrategy,
 }
 export interface MultiModalStoreOption {
   multi_modal_store_strategy?: MultiModalStoreStrategy,

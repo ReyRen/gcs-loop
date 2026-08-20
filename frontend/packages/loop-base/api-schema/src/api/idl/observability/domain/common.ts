@@ -14,6 +14,7 @@ export enum PlatformType {
   LoopAll = "loop_all",
   InnerCozeloop = "inner_cozeloop",
   InnerDoubao = "inner_doubao",
+  InnerDoubaoUnencrypted = "inner_doubao_unencrypted",
   InnerPrompt = "inner_prompt",
   InnerCozeBot = "inner_coze_bot",
   TraceDetail = "trace_detail",
@@ -22,6 +23,10 @@ export enum SpanListType {
   RootSpan = "root_span",
   AllSpan = "all_span",
   LlmSpan = "llm_span",
+}
+export enum MetadataScene {
+  Default = "default",
+  DataExtract = "data_extract",
 }
 export interface OrderBy {
   field?: string,

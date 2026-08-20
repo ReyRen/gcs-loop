@@ -92,12 +92,20 @@ export default function ({
   refreshKey,
   experiment,
   onRefreshPage,
+  selectable,
+  selectedRowKeys,
+  onSelectedRowKeysChange,
+  onSelectedRowsChange,
 }: {
   spaceID: string;
   experimentID: string;
   refreshKey: string;
   experiment: Experiment | undefined;
   onRefreshPage: () => void;
+  selectable?: boolean;
+  selectedRowKeys?: string[];
+  onSelectedRowKeysChange?: (keys: string[]) => void;
+  onSelectedRowsChange?: (rows: ExperimentItem[]) => void;
 }) {
   const [columns, setColumns] = useState<ExperimentDetailColumn[]>([]);
   const [defaultColumns, setDefaultColumns] = useState<
@@ -149,7 +157,10 @@ export default function ({
   } = useExperimentDetailStore<ExperimentItem, Filter>({
     experimentIds,
     experimentResultToRecordItems,
-    pageSizeStorageKey: 'experiment_detail_page_size',
+    pageSizeStorageKey: selectable
+      ? 'experiment_detail_page_size_selectable'
+      : 'experiment_detail_page_size',
+    defaultPageSize: selectable ? 20 : undefined,
     filterFields,
     refreshKey,
     keywordSearch,
@@ -257,12 +268,24 @@ export default function ({
       ...annotationColumns,
     ];
 
-    setColumns([
-      ...dealColumnsFromStorage(newColumns, columnManageStorageKey),
-      actionColumn,
-    ]);
-    setDefaultColumns([...newColumns, actionColumn]);
-  }, [service.data, spaceID, expand, experiment, mode]);
+    setColumns(
+      selectable
+        ? dealColumnsFromStorage(newColumns, columnManageStorageKey)
+        : [
+            ...dealColumnsFromStorage(newColumns, columnManageStorageKey),
+            actionColumn,
+          ],
+    );
+    setDefaultColumns(selectable ? newColumns : [...newColumns, actionColumn]);
+  }, [
+    service.data,
+    spaceID,
+    expand,
+    experiment,
+    mode,
+    selectable,
+    columnManageStorageKey,
+  ]);
 
   const filters = (
     <>
@@ -315,13 +338,27 @@ export default function ({
           onLogicFilterChange(newVal);
         }}
       />
+
+      {selectable && selectedRowKeys?.length ? (
+        <div className="flex items-center gap-1 text-xs whitespace-nowrap">
+          <span className="coz-fg-secondary">
+            {I18n.t('x_data_item_selected', { num: selectedRowKeys.length })}
+          </span>
+          <span
+            className="text-[rgb(var(--coze-up-brand-9))] cursor-pointer"
+            onClick={() => onSelectedRowKeysChange?.([])}
+          >
+            {I18n.t('clear_selection')}
+          </span>
+        </div>
+      ) : null}
     </>
   );
 
   // 操作
   const actions = (
     <>
-      {columnAnnotations.length ? (
+      {!selectable && columnAnnotations.length ? (
         <>
           <RadioGroup
             value={mode}
@@ -338,22 +375,24 @@ export default function ({
           <Divider margin={16} layout="vertical" />
         </>
       ) : null}
-      <AddAnnotateColumn
-        spaceID={spaceID}
-        experimentID={experimentID}
-        data={columnAnnotations}
-        onAnnotateAdd={() => {
-          handleRefresh();
-          setMode('quick_annotate');
-          setExpand(true);
-        }}
-        onAnnotateDelete={() => {
-          handleRefresh();
-          if (columnAnnotations.length <= 1) {
-            setMode('default');
-          }
-        }}
-      />
+      {!selectable && (
+        <AddAnnotateColumn
+          spaceID={spaceID}
+          experimentID={experimentID}
+          data={columnAnnotations}
+          onAnnotateAdd={() => {
+            handleRefresh();
+            setMode('quick_annotate');
+            setExpand(true);
+          }}
+          onAnnotateDelete={() => {
+            handleRefresh();
+            if (columnAnnotations.length <= 1) {
+              setMode('default');
+            }
+          }}
+        />
+      )}
 
       <TableCellExpand expand={expand} onChange={setExpand} />
       <ColumnsManage
@@ -370,8 +409,24 @@ export default function ({
     className: styles['table-row-hover-show-icon'],
     rowKey: 'id',
     columns,
+    rowSelection: selectable
+      ? {
+          selectedRowKeys: selectedRowKeys ?? [],
+          onChange: (
+            keys: (string | number)[],
+            rows: Record<string, unknown>[],
+          ) => {
+            onSelectedRowKeysChange?.(keys as string[]);
+            onSelectedRowsChange?.(rows as ExperimentItem[]);
+          },
+        }
+      : undefined,
     onRow: record => ({
       onClick: () => {
+        // 选择模式下不触发行点击详情，避免与勾选交互冲突
+        if (selectable) {
+          return;
+        }
         // 如果当前有选中的文本，或者处在快速标注模式，不触发点击事件
         if (!window.getSelection()?.isCollapsed || mode === 'quick_annotate') {
           return;
@@ -427,7 +482,11 @@ export default function ({
         service={service as Service}
         heightFull={true}
         header={<TableHeader actions={actions} filters={filters} />}
-        pageSizeStorageKey="experiment_detail_page_size"
+        pageSizeStorageKey={
+          selectable
+            ? 'experiment_detail_page_size_selectable'
+            : 'experiment_detail_page_size'
+        }
         empty={tableEmpty}
         tableProps={tableProps}
       />

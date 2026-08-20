@@ -69,6 +69,7 @@ export function useExperimentDetailStore<
   filterFields = [],
   refreshKey,
   pageSizeStorageKey,
+  defaultPageSize,
   keywordSearch,
   experimentResultToRecordItems,
 }: {
@@ -76,6 +77,8 @@ export function useExperimentDetailStore<
   filterFields?: { key: keyof Filter; type: FieldType }[];
   refreshKey?: string | number;
   pageSizeStorageKey?: string;
+  /** 默认每页条数，优先级低于 localStorage 中已保存的设置 */
+  defaultPageSize?: number;
   /** 关键词搜索 */
   keywordSearch?: KeywordSearch;
   experimentResultToRecordItems: (
@@ -123,7 +126,9 @@ export function useExperimentDetailStore<
     },
     {
       defaultPageSize:
-        getStoragePageSize(pageSizeStorageKey) || DEFAULT_PAGE_SIZE,
+        getStoragePageSize(pageSizeStorageKey) ||
+        defaultPageSize ||
+        DEFAULT_PAGE_SIZE,
       manual: true,
     },
   );

@@ -11,4 +11,6 @@ export interface PersonalAccessToken {
   last_used_at: string,
   /** unix，秒 */
   expire_at: string,
+  /** Masked preview for display only. It is never accepted as a bearer token. */
+  masked_token?: string,
 }

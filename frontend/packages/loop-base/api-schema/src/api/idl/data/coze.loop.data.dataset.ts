@@ -1,5 +1,7 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
+import * as data_filter from './domain/data_filter';
+export { data_filter };
 import * as dataset_job from './domain/dataset_job';
 export { dataset_job };
 import * as dataset from './domain/dataset';
@@ -15,6 +17,8 @@ export interface CreateDatasetRequest {
   category?: dataset.DatasetCategory,
   biz_category?: string,
   fields?: dataset.FieldSchema[],
+  /** 数据集业务唯一键，创建后不可变 */
+  dataset_key?: string,
   security_level?: dataset.SecurityLevel,
   visibility?: dataset.DatasetVisibility,
   spec?: dataset.DatasetSpec,
@@ -60,6 +64,8 @@ export interface ListDatasetsRequest {
   name?: string,
   created_bys?: string[],
   biz_categorys?: string[],
+  /** 按 dataset_key 精确匹配 */
+  dataset_keys?: string[],
   /** pagination */
   page_number?: number,
   /** 分页大小(0, 200]，默认为 20 */
@@ -249,6 +255,9 @@ export interface ListDatasetItemsRequest {
   /** 与 page 同时提供时，优先使用 cursor */
   page_token?: string,
   order_bys?: dataset.OrderBy[],
+  /** filter */
+  filter?: data_filter.Filter,
+  tag_filter?: data_filter.TagFilter,
 }
 export interface ListDatasetItemsResponse {
   items?: dataset.DatasetItem[],
@@ -268,6 +277,9 @@ export interface ListDatasetItemsByVersionRequest {
   /** 与 page 同时提供时，优先使用 cursor */
   page_token?: string,
   order_bys?: dataset.OrderBy[],
+  /** filter */
+  filter?: data_filter.Filter,
+  tag_filter?: data_filter.TagFilter,
 }
 export interface ListDatasetItemsByVersionResponse {
   items?: dataset.DatasetItem[],
@@ -316,7 +328,7 @@ export const CreateDataset = /*#__PURE__*/createAPI<CreateDatasetRequest, Create
   "name": "CreateDataset",
   "reqType": "CreateDatasetRequest",
   "reqMapping": {
-    "body": ["workspace_id", "app_id", "name", "description", "category", "biz_category", "fields", "security_level", "visibility", "spec", "features"]
+    "body": ["workspace_id", "app_id", "name", "description", "category", "biz_category", "fields", "dataset_key", "security_level", "visibility", "spec", "features"]
   },
   "resType": "CreateDatasetResponse",
   "schemaRoot": "api://schemas/data_coze.loop.data.dataset",
@@ -357,8 +369,7 @@ export const ListDatasets = /*#__PURE__*/createAPI<ListDatasetsRequest, ListData
   "name": "ListDatasets",
   "reqType": "ListDatasetsRequest",
   "reqMapping": {
-    "path": ["workspace_id"],
-    "body": ["dataset_ids", "category", "name", "created_bys", "biz_categorys", "page_number", "page_size", "page_token", "order_bys"]
+    "body": ["workspace_id", "dataset_ids", "category", "name", "created_bys", "biz_categorys", "dataset_keys", "page_number", "page_size", "page_token", "order_bys"]
   },
   "resType": "ListDatasetsResponse",
   "schemaRoot": "api://schemas/data_coze.loop.data.dataset",
@@ -485,8 +496,7 @@ export const BatchGetDatasetVersions = /*#__PURE__*/createAPI<BatchGetDatasetVer
   "name": "BatchGetDatasetVersions",
   "reqType": "BatchGetDatasetVersionsRequest",
   "reqMapping": {
-    "path": ["workspace_id"],
-    "body": ["version_ids", "with_deleted"]
+    "body": ["workspace_id", "version_ids", "with_deleted"]
   },
   "resType": "BatchGetDatasetVersionsResponse",
   "schemaRoot": "api://schemas/data_coze.loop.data.dataset",
@@ -533,8 +543,7 @@ export const ValidateDatasetItems = /*#__PURE__*/createAPI<ValidateDatasetItemsR
   "name": "ValidateDatasetItems",
   "reqType": "ValidateDatasetItemsReq",
   "reqMapping": {
-    "body": ["workspace_id", "items", "dataset_category", "dataset_fields", "ignore_current_item_count"],
-    "path": ["dataset_id"]
+    "body": ["workspace_id", "items", "dataset_id", "dataset_category", "dataset_fields", "ignore_current_item_count"]
   },
   "resType": "ValidateDatasetItemsResp",
   "schemaRoot": "api://schemas/data_coze.loop.data.dataset",
@@ -603,7 +612,7 @@ export const ListDatasetItems = /*#__PURE__*/createAPI<ListDatasetItemsRequest, 
   "name": "ListDatasetItems",
   "reqType": "ListDatasetItemsRequest",
   "reqMapping": {
-    "body": ["workspace_id", "page_number", "page_size", "page_token", "order_bys"],
+    "body": ["workspace_id", "page_number", "page_size", "page_token", "order_bys", "filter", "tag_filter"],
     "path": ["dataset_id"]
   },
   "resType": "ListDatasetItemsResponse",
@@ -617,7 +626,7 @@ export const ListDatasetItemsByVersion = /*#__PURE__*/createAPI<ListDatasetItems
   "name": "ListDatasetItemsByVersion",
   "reqType": "ListDatasetItemsByVersionRequest",
   "reqMapping": {
-    "body": ["workspace_id", "page_number", "page_size", "page_token", "order_bys"],
+    "body": ["workspace_id", "page_number", "page_size", "page_token", "order_bys", "filter", "tag_filter"],
     "path": ["dataset_id", "version_id"]
   },
   "resType": "ListDatasetItemsByVersionResponse",

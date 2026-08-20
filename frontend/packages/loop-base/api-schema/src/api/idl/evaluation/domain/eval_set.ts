@@ -2,8 +2,27 @@
 // SPDX-License-Identifier: Apache-2.0
 import * as common from './common';
 export { common };
+import * as data_tag from './../../data/domain/tag';
+export { data_tag };
 import * as data_dataset from './../../data/domain/dataset';
 export { data_dataset };
+export enum TagFilterRelation {
+  And = "and",
+  Or = "or",
+}
+export interface ResourceTagRef {
+  tag_name: string
+}
+export interface ResourceTag {
+  tag_name: string,
+  tag_key_id?: string,
+  content_type?: data_tag.TagContentType,
+  status?: data_tag.TagStatus,
+}
+export interface TagFilter {
+  tag_names: string[],
+  relation?: TagFilterRelation,
+}
 export interface EvaluationSet {
   /** 主键&外键 */
   id?: string,
@@ -23,6 +42,12 @@ export interface EvaluationSet {
   change_uncommitted?: boolean,
   /** 业务分类 */
   biz_category?: BizCategory,
+  /** 评测集类型 */
+  type?: EvaluationSetType,
+  /** 系统资源标签 */
+  tags?: ResourceTag[],
+  /** 数据集业务唯一键，创建后不可变 */
+  dataset_key?: string,
   /**
    * 版本信息
    * 版本详情信息
@@ -34,6 +59,7 @@ export interface EvaluationSet {
   next_version_num?: string,
   /** 系统信息 */
   base_info?: common.BaseInfo,
+  shared_info?: common.SharedResourceInfo,
 }
 export interface EvaluationSetVersion {
   /** 主键&外键 */
@@ -56,6 +82,7 @@ export interface EvaluationSetVersion {
   item_count?: string,
   /** 系统信息 */
   base_info?: common.BaseInfo,
+  shared_info?: common.SharedResourceInfo,
 }
 /** EvaluationSetSchema 评测集 Schema，包含字段的类型限制等信息 */
 export interface EvaluationSetSchema {
@@ -114,7 +141,31 @@ export interface EvaluationSetItem {
   item_key?: string,
   /** 轮次数据内容 */
   turns?: Turn[],
+  /** Item 独立内容版本信息，仅 versioned_item 类型评测集使用 */
+  item_version_id?: string,
+  item_version?: string,
+  /** 系统资源标签 */
+  tags?: ResourceTag[],
   /** 系统信息 */
+  base_info?: common.BaseInfo,
+}
+export interface EvaluationItemDef {
+  item_id?: string,
+  workspace_id?: string,
+  evaluation_set_id?: string,
+  item_key?: string,
+  status?: string,
+  latest_version?: string,
+  base_info?: common.BaseInfo,
+}
+export interface EvaluationItemVersion {
+  item_version_id?: string,
+  item_id?: string,
+  version?: string,
+  version_num?: string,
+  description?: string,
+  turns?: Turn[],
+  status?: string,
   base_info?: common.BaseInfo,
 }
 export interface Turn {
@@ -131,4 +182,9 @@ export interface FieldData {
 }
 export enum BizCategory {
   FromOnlineTrace = "from_online_trace",
+}
+/** 标识来自于在线trace */
+export enum EvaluationSetType {
+  Default = "default",
+  VersionedItem = "versioned_item",
 }

@@ -6,6 +6,7 @@ import { lazy } from 'react';
 const PromptListPage = lazy(() => import('./pages/list'));
 const PromptDevelopPage = lazy(() => import('./pages/develop'));
 const PromptPlaygroundPage = lazy(() => import('./pages/playground'));
+const PromptOptimizationPage = lazy(() => import('./pages/optimization'));
 
 const App = () => (
   <div className="text-sm h-full overflow-hidden">
@@ -14,6 +15,10 @@ const App = () => (
       {/* PE 列表 */}
       <Route path="prompts" element={<PromptListPage />} />
       <Route path="prompts/:promptID" element={<PromptDevelopPage />} />
+      <Route
+        path="prompts/:promptID/optimization/:optimizationID"
+        element={<PromptOptimizationPage />}
+      />
       <Route path="playground" element={<PromptPlaygroundPage />} />
     </Routes>
   </div>

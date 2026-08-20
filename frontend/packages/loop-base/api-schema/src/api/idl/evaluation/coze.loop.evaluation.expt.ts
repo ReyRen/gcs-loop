@@ -1,5 +1,7 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
+import * as prompt_prompt from './../prompt/domain/prompt';
+export { prompt_prompt };
 import * as evaluator from './domain/evaluator';
 export { evaluator };
 import * as expt from './domain/expt';
@@ -47,9 +49,34 @@ export interface CreateExperimentRequest {
   item_retry_num?: number,
   /** 试运行行数 */
   trial_run_item_count?: number,
+  enable_extract_trajectory?: boolean,
   /** 关联的智能评测会话ID */
   thread_id?: string,
   trigger_type?: expt.ExptTriggerType,
+  /** ★ 多评测集配置 (item-centric 新路径权威源); 仅当 eval_set_source_type == MultiSetConfig(2) 时生效 */
+  eval_set_configs?: expt.EvalSetConfig[],
+  /**
+   * ★ 新路径分流依据 (唯一开关): 仅 == MultiSetConfig(2) 走 item-centric 多评测集路径; 缺省/SingleSet(1) 走老路径。
+   * 与 eval_set_configs 须一致: ==2 要求 configs 非空; !=2 要求 configs 为空, 否则硬校验报错。
+  */
+  eval_set_source_type?: expt.ExptEvalSetSourceType,
+  /**
+   * 单评测集(SingleSet)跨空间共享来源; 多评测集走 eval_set_configs 内每个 EvalSetConfig 的 shared_option
+   * 评测集来源空间
+  */
+  eval_set_shared_option?: common.SharedResourceOption,
+  /** 评测对象来源空间 */
+  target_shared_option?: common.SharedResourceOption,
+  /**
+   * 实验分组 key 默认为实验 id；填写 ref_group_experiment_id 时复用该引用实验的 group key（归入同一分组）
+   * 引用分组实验 id：填写时校验其为当前空间内的实验 id
+  */
+  ref_group_experiment_id?: string,
+  /** 通知配置 */
+  notification_conf?: expt.ExptNotificationConf,
+  ext?: {
+    [key: string | number]: string
+  },
   session?: common.Session,
 }
 export interface CreateExperimentResponse {
@@ -84,16 +111,45 @@ export interface SubmitExperimentRequest {
   item_retry_num?: number,
   /** 试运行行数 */
   trial_run_item_count?: number,
+  enable_extract_trajectory?: boolean,
+  /** 提交实验时前端透传的发起人 user JWT，用于预下载 skill 入 TOS */
+  "X-Jwt-Token"?: string,
+  trigger_type?: expt.ExptTriggerType,
+  time_range?: expt.TaskTimeRange,
   /**
    * 智能评测相关
    * 关联的智能评测会话ID
   */
   thread_id?: string,
-  trigger_type?: expt.ExptTriggerType,
-  time_range?: expt.TaskTimeRange,
+  /** 指定执行的评测集条目ID列表 */
+  item_ids?: string[],
+  /**
+   * ★ 多评测集配置 (item-centric 新路径权威源); 仅当 eval_set_source_type == MultiSetConfig(2) 时生效
+   * 注: 70 号已被 item_ids 占用, 取 75
+  */
+  eval_set_configs?: expt.EvalSetConfig[],
+  /**
+   * ★ 新路径分流依据 (唯一开关): 仅 == MultiSetConfig(2) 走 item-centric 多评测集路径; 缺省/SingleSet(1) 走老路径。
+   * 与 eval_set_configs 须一致: ==2 要求 configs 非空; !=2 要求 configs 为空, 否则硬校验报错。
+  */
+  eval_set_source_type?: expt.ExptEvalSetSourceType,
+  /**
+   * 单评测集(SingleSet)跨空间共享来源; 多评测集走 eval_set_configs 内每个 EvalSetConfig 的 shared_option
+   * 评测集来源空间
+  */
+  eval_set_shared_option?: common.SharedResourceOption,
+  /** 评测对象来源空间 */
+  target_shared_option?: common.SharedResourceOption,
   ext?: {
     [key: string | number]: string
   },
+  /**
+   * 实验分组 key 默认为实验 id；填写 ref_group_experiment_id 时复用该引用实验的 group key（归入同一分组）
+   * 引用分组实验 id：填写时校验其为当前空间内的实验 id
+  */
+  ref_group_experiment_id?: string,
+  /** 通知配置 */
+  notification_conf?: expt.ExptNotificationConf,
   session?: common.Session,
 }
 export interface SubmitExperimentResponse {
@@ -118,15 +174,38 @@ export interface BatchGetExperimentsRequest {
 export interface BatchGetExperimentsResponse {
   experiments?: expt.Experiment[]
 }
+export interface GetExperimentIDsByGroupRequest {
+  workspace_id: string,
+  experiment_group_key: string,
+}
+export interface GetExperimentIDsByGroupResponse {
+  expt_ids?: string[],
+  experiments?: expt.Experiment[],
+}
 export interface UpdateExperimentRequest {
   workspace_id: string,
   expt_id: string,
   name?: string,
   desc?: string,
+  /** 通知配置（可选更新） */
+  notification_conf?: expt.ExptNotificationConf,
 }
 export interface UpdateExperimentResponse {
   experiment?: expt.Experiment
 }
+/**
+ * UpdateExptRunConfRequest 修改进行中实验的运行配置（并发度 / Item 重试次数）。
+ * 仅对处于 Pending / Processing 状态的实验生效。
+*/
+export interface UpdateExptRunConfRequest {
+  workspace_id: string,
+  expt_id: string,
+  /** 评测项并发度：不传或 0 表示不修改；范围 (0, MaxItemConcurNum] */
+  item_concur_num?: number,
+  /** 数据行 Item 最大重试次数：不传表示不修改；0 表示显式设为不重试；范围 [0, 10] */
+  item_retry_num?: number,
+}
+export interface UpdateExptRunConfResponse {}
 export interface DeleteExperimentRequest {
   workspace_id: string,
   expt_id: string,
@@ -203,6 +282,72 @@ export interface BatchGetExperimentResultResponse {
   expt_column_eval_target?: expt.ExptColumnEvalTarget[],
   /** item粒度实验结果详情 */
   item_results?: expt.ItemResult[],
+  total?: number,
+}
+export interface StandardEvalOutputFullContent {
+  provider?: string,
+  uri?: string,
+  url?: string,
+  bytes?: number,
+  sha256?: string,
+}
+export interface StandardEvalOutputContent {
+  text?: string,
+  content_omitted?: boolean,
+  full_content?: StandardEvalOutputFullContent,
+}
+export interface MGetExperimentStandardEvalOutputsRequest {
+  workspace_id: string,
+  expt_id: string,
+  item_ids: string[],
+}
+export interface ListExperimentStandardEvalOutputsRequest {
+  workspace_id: string,
+  expt_id: string,
+  page_number?: number,
+  page_size?: number,
+  /**
+   * item_id_only 为 true 时走精简查询：items 每项仅填 item_id（不加载轨迹 / evaluator / eval_target
+   * 大对象、也不查 dataset_key 等），用于 MQ 回调补齐前先枚举实验下所有 item，省性能。
+  */
+  item_id_only?: boolean,
+}
+export interface ItemStandardEvalOutput {
+  expt_id?: string,
+  item_id?: string,
+  dataset_key?: string,
+  item_key?: string,
+  status?: expt.ItemRunState,
+  /** MQ 元信息：与 item-complete(success) MQ 消息体对齐，供回调补齐时携带。 */
+  eval_target_workspace_id?: string,
+  eval_target_id?: string,
+  source_target_id?: string,
+  expt_workspace_id?: string,
+  expt_run_id?: string,
+  dataset_workspace_id?: string,
+  dataset_id?: string,
+  dataset_version_id?: string,
+  dataset_version_name?: string,
+  experiment_group_key?: string,
+  /** 实验创建时间（秒），来源 experiment.created_at */
+  experiment_create_time?: string,
+  /** item 执行结束时间（秒），来源 expt_item_result.updated_at */
+  item_end_time?: string,
+  /** 实验创建人 userID，来源 experiment.created_by（实验级恒定） */
+  created_by?: string,
+  /** 标准化评测输出内容块：小内容 inline，大内容通过各 section 的 full_content 引用。 */
+  detail?: StandardEvalOutputContent,
+  rounds?: StandardEvalOutputContent,
+  agent?: StandardEvalOutputContent,
+  output?: StandardEvalOutputContent,
+  eval?: StandardEvalOutputContent,
+  extra?: StandardEvalOutputContent,
+}
+export interface MGetExperimentStandardEvalOutputsResponse {
+  items?: ItemStandardEvalOutput[]
+}
+export interface ListExperimentStandardEvalOutputsResponse {
+  items?: ItemStandardEvalOutput[],
   total?: number,
 }
 export interface BatchGetExperimentAggrResultRequest {
@@ -284,9 +429,12 @@ export interface CreateExperimentTemplateRequest {
   default_evaluators_concur_num?: number,
   /** 调度配置（不在 ExptTemplate 结构中，保留在顶层） */
   schedule_cron?: string,
-  expt_source?: expt.ExptSource,
   /** 模板运行态信息（如是否开启定时触发）；创建时可只填 cron_activate */
   expt_info?: expt.ExptInfo,
+  enable_extract_trajectory?: boolean,
+  expt_source?: expt.ExptSource,
+  /** 通知配置 */
+  notification_conf?: expt.ExptNotificationConf,
   session?: common.Session,
 }
 export interface CreateExperimentTemplateResponse {
@@ -324,6 +472,11 @@ export interface UpdateExperimentTemplateRequest {
   /** 调度配置（不在 ExptTemplate 结构中，保留在顶层） */
   schedule_cron?: string,
   expt_info?: expt.ExptInfo,
+  enable_extract_trajectory?: boolean,
+  /** 实验来源（含 Scheduler 等配置）；nil 表示不修改，保留 DB 中已有值 */
+  expt_source?: expt.ExptSource,
+  /** 通知配置 */
+  notification_conf?: expt.ExptNotificationConf,
 }
 export interface UpdateExperimentTemplateResponse {
   experiment_template?: expt.ExptTemplate
@@ -348,9 +501,27 @@ export interface CheckExperimentTemplateNameRequest {
   workspace_id: string,
   name: string,
   template_id?: string,
+  /**
+   * 实验类型；在线/离线模板独立判重，未指定时由后端基于 template_id 推导，
+   * 若两者均未提供则跨类型查询以兼容旧调用
+  */
+  expt_type?: expt.ExptType,
 }
 export interface CheckExperimentTemplateNameResponse {
   is_available?: boolean
+}
+/** 根据 workspace_id 与实验模板 ID 提交实验（控制台/会话鉴权，逻辑对齐 SubmitExptFromTemplateOApi） */
+export interface SubmitExptFromTemplateRequest {
+  workspace_id: string,
+  template_id: string,
+  name?: string,
+  /** 通知配置（可选覆盖模板配置） */
+  notification_conf?: expt.ExptNotificationConf,
+  session?: common.Session,
+}
+export interface SubmitExptFromTemplateResponse {
+  experiment?: expt.Experiment,
+  run_id?: string,
 }
 export enum UpsertExptTurnResultFilterType {
   /** 标签状态 */
@@ -516,6 +687,209 @@ export interface GetAnalysisRecordFeedbackVoteRequest {
 export interface GetAnalysisRecordFeedbackVoteResponse {
   vote?: expt.ExptInsightAnalysisFeedbackVote
 }
+/**
+ * Prompt optimization based on a completed evaluation experiment.
+ * 
+ * The optimization result is intentionally stored as a durable task. It does
+ * not overwrite or publish the source Prompt. The user must explicitly apply
+ * the result to a draft and then use the existing Prompt version submission
+ * flow.
+*/
+export enum PromptOptimizationMode {
+  EffectFirst = "effect_first",
+  CostEffective = "cost_effective",
+}
+export enum PromptOptimizationStatus {
+  Queued = "queued",
+  Running = "running",
+  Succeeded = "succeeded",
+  Failed = "failed",
+  Canceled = "canceled",
+}
+export enum PromptOptimizationStage {
+  Preparing = "preparing",
+  Analyzing = "analyzing",
+  Optimizing = "optimizing",
+  Evaluating = "evaluating",
+  Finalizing = "finalizing",
+  Completed = "completed",
+}
+export interface PromptOptimizationSampleRef {
+  item_id: string,
+  turn_id?: string,
+}
+export interface PromptOptimizationVariable {
+  key: string,
+  type?: string,
+  type_tags?: string[],
+  description?: string,
+}
+export interface PromptOptimizationModeOption {
+  mode: PromptOptimizationMode,
+  display_name: string,
+  description?: string,
+  default_max_iterations?: number,
+}
+export interface PromptOptimizationMetrics {
+  sample_count?: number,
+  average_score?: number,
+  full_score_count?: number,
+  improved_count?: number,
+  regressed_count?: number,
+  unchanged_count?: number,
+  evaluator_average_scores?: {
+    [key: string | number]: number
+  },
+  input_tokens?: string,
+  output_tokens?: string,
+}
+export interface PromptOptimizationSampleEvaluation {
+  item_id?: string,
+  turn_id?: string,
+  variables?: {
+    [key: string | number]: string
+  },
+  reference_answer?: string,
+  original_answer?: string,
+  optimized_answer?: string,
+  original_score?: number,
+  optimized_score?: number,
+  original_evaluator_scores?: {
+    [key: string | number]: number
+  },
+  optimized_evaluator_scores?: {
+    [key: string | number]: number
+  },
+  original_evaluator_reasons?: {
+    [key: string | number]: string
+  },
+  optimized_evaluator_reasons?: {
+    [key: string | number]: string
+  },
+  error_message?: string,
+}
+export interface PromptOptimizationIteration {
+  iteration?: number,
+  candidate_prompt_template?: prompt_prompt.PromptTemplate,
+  rationale?: string,
+  metrics?: PromptOptimizationMetrics,
+  sample_results?: PromptOptimizationSampleEvaluation[],
+  created_at?: string,
+}
+export interface PromptOptimizationTask {
+  id?: string,
+  workspace_id?: string,
+  experiment_id?: string,
+  name?: string,
+  prompt_id?: string,
+  prompt_key?: string,
+  source_prompt_version?: string,
+  mode?: PromptOptimizationMode,
+  status?: PromptOptimizationStatus,
+  stage?: PromptOptimizationStage,
+  progress?: number,
+  baseline_metrics?: PromptOptimizationMetrics,
+  best_metrics?: PromptOptimizationMetrics,
+  original_prompt_template?: prompt_prompt.PromptTemplate,
+  optimized_prompt_template?: prompt_prompt.PromptTemplate,
+  iterations?: PromptOptimizationIteration[],
+  error_message?: string,
+  created_by?: string,
+  created_at?: string,
+  updated_at?: string,
+  started_at?: string,
+  ended_at?: string,
+  applied_to_draft?: boolean,
+  applied_at?: string,
+}
+export interface PreparePromptOptimizationRequest {
+  workspace_id: string,
+  expt_id: string,
+}
+export interface PreparePromptOptimizationResponse {
+  eligible?: boolean,
+  ineligible_reason?: string,
+  experiment_id?: string,
+  experiment_name?: string,
+  prompt_id?: string,
+  prompt_key?: string,
+  prompt_name?: string,
+  source_prompt_version?: string,
+  prompt_variables?: PromptOptimizationVariable[],
+  dataset_fields?: string[],
+  target_output_fields?: string[],
+  evaluators?: evaluator.Evaluator[],
+  suggested_variable_mappings?: {
+    [key: string | number]: string
+  },
+  suggested_model_answer_field?: string,
+  suggested_reference_answer_field?: string,
+  mode_options?: PromptOptimizationModeOption[],
+  max_sample_count?: number,
+  default_sample_count?: number,
+}
+export interface CreatePromptOptimizationRequest {
+  workspace_id: string,
+  expt_id: string,
+  samples: PromptOptimizationSampleRef[],
+  variable_mappings: {
+    [key: string | number]: string
+  },
+  model_answer_field?: string,
+  reference_answer_field?: string,
+  mode?: PromptOptimizationMode,
+  max_iterations?: number,
+  name?: string,
+  idempotency_key?: string,
+}
+export interface CreatePromptOptimizationResponse {
+  task?: PromptOptimizationTask
+}
+export interface GetPromptOptimizationRequest {
+  workspace_id: string,
+  expt_id: string,
+  optimization_id: string,
+  with_iterations?: boolean,
+  with_sample_results?: boolean,
+}
+export interface GetPromptOptimizationResponse {
+  task?: PromptOptimizationTask
+}
+export interface ListPromptOptimizationsRequest {
+  workspace_id: string,
+  expt_id: string,
+  page_number?: number,
+  page_size?: number,
+  statuses?: PromptOptimizationStatus[],
+}
+export interface ListPromptOptimizationsResponse {
+  tasks?: PromptOptimizationTask[],
+  total?: string,
+}
+export interface CancelPromptOptimizationRequest {
+  workspace_id: string,
+  expt_id: string,
+  optimization_id: string,
+}
+export interface CancelPromptOptimizationResponse {
+  task?: PromptOptimizationTask
+}
+export interface ApplyPromptOptimizationToDraftRequest {
+  workspace_id: string,
+  expt_id: string,
+  optimization_id: string,
+  /**
+   * Applying replaces the current user's editable draft. Require an explicit
+   * acknowledgement when a draft already exists to prevent silent data loss.
+  */
+  overwrite_existing_draft?: boolean,
+}
+export interface ApplyPromptOptimizationToDraftResponse {
+  prompt_id?: string,
+  source_prompt_version?: string,
+  draft_base_version?: string,
+  next_action?: string,
+}
 export const CheckExperimentName = /*#__PURE__*/createAPI<CheckExperimentNameRequest, CheckExperimentNameResponse>({
   "url": "/api/evaluation/v1/experiments/check_name",
   "method": "POST",
@@ -535,7 +909,8 @@ export const SubmitExperiment = /*#__PURE__*/createAPI<SubmitExperimentRequest, 
   "name": "SubmitExperiment",
   "reqType": "SubmitExperimentRequest",
   "reqMapping": {
-    "body": ["workspace_id", "eval_set_version_id", "target_version_id", "evaluator_version_ids", "name", "desc", "eval_set_id", "target_id", "visibility", "target_field_mapping", "evaluator_field_mapping", "item_concur_num", "evaluators_concur_num", "create_eval_target_param", "target_runtime_param", "expt_type", "max_alive_time", "source_type", "source_id", "evaluator_id_version_list", "enable_weighted_score", "expt_template_id", "item_retry_num", "trial_run_item_count", "thread_id", "trigger_type", "time_range", "ext", "session"]
+    "body": ["workspace_id", "eval_set_version_id", "target_version_id", "evaluator_version_ids", "name", "desc", "eval_set_id", "target_id", "visibility", "target_field_mapping", "evaluator_field_mapping", "item_concur_num", "evaluators_concur_num", "create_eval_target_param", "target_runtime_param", "expt_type", "max_alive_time", "source_type", "source_id", "evaluator_id_version_list", "enable_weighted_score", "expt_template_id", "item_retry_num", "trial_run_item_count", "enable_extract_trajectory", "trigger_type", "time_range", "thread_id", "item_ids", "eval_set_configs", "eval_set_source_type", "eval_set_shared_option", "target_shared_option", "ext", "ref_group_experiment_id", "notification_conf", "session"],
+    "header": ["X-Jwt-Token"]
   },
   "resType": "SubmitExperimentResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
@@ -550,6 +925,18 @@ export const BatchGetExperiments = /*#__PURE__*/createAPI<BatchGetExperimentsReq
     "body": ["workspace_id", "expt_ids"]
   },
   "resType": "BatchGetExperimentsResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const GetExperimentIDsByGroup = /*#__PURE__*/createAPI<GetExperimentIDsByGroupRequest, GetExperimentIDsByGroupResponse>({
+  "url": "/api/evaluation/v1/experiments/group_ids/batch_get",
+  "method": "POST",
+  "name": "GetExperimentIDsByGroup",
+  "reqType": "GetExperimentIDsByGroupRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "experiment_group_key"]
+  },
+  "resType": "GetExperimentIDsByGroupResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });
@@ -571,10 +958,24 @@ export const UpdateExperiment = /*#__PURE__*/createAPI<UpdateExperimentRequest, 
   "name": "UpdateExperiment",
   "reqType": "UpdateExperimentRequest",
   "reqMapping": {
-    "body": ["workspace_id", "name", "desc"],
+    "body": ["workspace_id", "name", "desc", "notification_conf"],
     "path": ["expt_id"]
   },
   "resType": "UpdateExperimentResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+/** UpdateExptRunConf 修改进行中实验的运行配置（并发度 / Item 重试次数） */
+export const UpdateExptRunConf = /*#__PURE__*/createAPI<UpdateExptRunConfRequest, UpdateExptRunConfResponse>({
+  "url": "/api/evaluation/v1/experiments/:expt_id/run_conf",
+  "method": "PATCH",
+  "name": "UpdateExptRunConf",
+  "reqType": "UpdateExptRunConfRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "item_concur_num", "item_retry_num"],
+    "path": ["expt_id"]
+  },
+  "resType": "UpdateExptRunConfResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });
@@ -653,6 +1054,85 @@ export const BatchGetExperimentResult = /*#__PURE__*/createAPI<BatchGetExperimen
     "body": ["experiment_ids", "baseline_experiment_id", "filters"]
   },
   "resType": "BatchGetExperimentResultResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+/** 智能优化：基于已完成的评测实验优化该实验所使用的 Prompt。 */
+export const PreparePromptOptimization = /*#__PURE__*/createAPI<PreparePromptOptimizationRequest, PreparePromptOptimizationResponse>({
+  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/prepare",
+  "method": "GET",
+  "name": "PreparePromptOptimization",
+  "reqType": "PreparePromptOptimizationRequest",
+  "reqMapping": {
+    "query": ["workspace_id"],
+    "path": ["expt_id"]
+  },
+  "resType": "PreparePromptOptimizationResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const CreatePromptOptimization = /*#__PURE__*/createAPI<CreatePromptOptimizationRequest, CreatePromptOptimizationResponse>({
+  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations",
+  "method": "POST",
+  "name": "CreatePromptOptimization",
+  "reqType": "CreatePromptOptimizationRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "samples", "variable_mappings", "model_answer_field", "reference_answer_field", "mode", "max_iterations", "name", "idempotency_key"],
+    "path": ["expt_id"]
+  },
+  "resType": "CreatePromptOptimizationResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const GetPromptOptimization = /*#__PURE__*/createAPI<GetPromptOptimizationRequest, GetPromptOptimizationResponse>({
+  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id",
+  "method": "GET",
+  "name": "GetPromptOptimization",
+  "reqType": "GetPromptOptimizationRequest",
+  "reqMapping": {
+    "query": ["workspace_id", "with_iterations", "with_sample_results"],
+    "path": ["expt_id", "optimization_id"]
+  },
+  "resType": "GetPromptOptimizationResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const ListPromptOptimizations = /*#__PURE__*/createAPI<ListPromptOptimizationsRequest, ListPromptOptimizationsResponse>({
+  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/list",
+  "method": "POST",
+  "name": "ListPromptOptimizations",
+  "reqType": "ListPromptOptimizationsRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "page_number", "page_size", "statuses"],
+    "path": ["expt_id"]
+  },
+  "resType": "ListPromptOptimizationsResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const CancelPromptOptimization = /*#__PURE__*/createAPI<CancelPromptOptimizationRequest, CancelPromptOptimizationResponse>({
+  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/cancel",
+  "method": "POST",
+  "name": "CancelPromptOptimization",
+  "reqType": "CancelPromptOptimizationRequest",
+  "reqMapping": {
+    "body": ["workspace_id"],
+    "path": ["expt_id", "optimization_id"]
+  },
+  "resType": "CancelPromptOptimizationResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const ApplyPromptOptimizationToDraft = /*#__PURE__*/createAPI<ApplyPromptOptimizationToDraftRequest, ApplyPromptOptimizationToDraftResponse>({
+  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/apply_to_draft",
+  "method": "POST",
+  "name": "ApplyPromptOptimizationToDraft",
+  "reqType": "ApplyPromptOptimizationToDraftRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "overwrite_existing_draft"],
+    "path": ["expt_id", "optimization_id"]
+  },
+  "resType": "ApplyPromptOptimizationToDraftResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });
@@ -874,7 +1354,7 @@ export const CreateExperimentTemplate = /*#__PURE__*/createAPI<CreateExperimentT
   "name": "CreateExperimentTemplate",
   "reqType": "CreateExperimentTemplateRequest",
   "reqMapping": {
-    "body": ["workspace_id", "meta", "triple_config", "field_mapping_config", "create_eval_target_param", "default_evaluators_concur_num", "schedule_cron", "expt_source", "expt_info", "session"]
+    "body": ["workspace_id", "meta", "triple_config", "field_mapping_config", "create_eval_target_param", "default_evaluators_concur_num", "schedule_cron", "expt_info", "enable_extract_trajectory", "expt_source", "notification_conf", "session"]
   },
   "resType": "CreateExperimentTemplateResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
@@ -910,7 +1390,7 @@ export const UpdateExperimentTemplate = /*#__PURE__*/createAPI<UpdateExperimentT
   "name": "UpdateExperimentTemplate",
   "reqType": "UpdateExperimentTemplateRequest",
   "reqMapping": {
-    "body": ["workspace_id", "meta", "triple_config", "field_mapping_config", "create_eval_target_param", "default_evaluators_concur_num", "schedule_cron", "expt_info"],
+    "body": ["workspace_id", "meta", "triple_config", "field_mapping_config", "create_eval_target_param", "default_evaluators_concur_num", "schedule_cron", "expt_info", "enable_extract_trajectory", "expt_source", "notification_conf"],
     "path": ["template_id"]
   },
   "resType": "UpdateExperimentTemplateResponse",
@@ -949,7 +1429,7 @@ export const CheckExperimentTemplateName = /*#__PURE__*/createAPI<CheckExperimen
   "name": "CheckExperimentTemplateName",
   "reqType": "CheckExperimentTemplateNameRequest",
   "reqMapping": {
-    "body": ["workspace_id", "name", "template_id"]
+    "body": ["workspace_id", "name", "template_id", "expt_type"]
   },
   "resType": "CheckExperimentTemplateNameResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
