@@ -12,10 +12,12 @@
 # block unresolved conflict; https://git-scm.com/docs/git-diff
 
 source frontend/scripts/block-unresolved-conflict.sh
+source common/git-hooks/rush-hook-utils.sh
 
 block_unresolved_conflict '--cached'
 
-if [ "$PRE_LINT" != "1" ]; then
+if [ "$PRE_LINT" != "1" ] && has_staged_rush_changes; then
+  require_node_for_rush_hook || exit 1
   node common/scripts/install-run-rush.js fix-ts-refers --use-cached-files --shallow --submit-changes
   # node infra/commanders/fix-peer-deps/bin/main.js fix --use-cached-files -s
   node common/scripts/install-run-rush.js -q lint-staged || exit $?
