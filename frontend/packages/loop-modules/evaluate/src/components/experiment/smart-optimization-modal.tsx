@@ -46,6 +46,7 @@ import {
   Select,
   Slider,
   Tag,
+  Toast,
   Tooltip,
   Typography,
   withField,
@@ -102,8 +103,37 @@ export default function SmartOptimizationModal({
   const [prepareData, setPrepareData] = useState<
     PreparePromptOptimizationResponse | undefined
   >();
+  // 用户可编辑的问题变量 → 评测集字段映射
+  const [variableMappings, setVariableMappings] = useState<
+    Record<string, string>
+  >({});
   const idempotencyKeyRef = useRef('');
   const lastConfigFingerprintRef = useRef('');
+  // 创建任务最多支持的样本数（后端上限，prepare 返回）
+  const DEFAULT_MAX_SAMPLE_COUNT = 20;
+  const maxSampleCount =
+    prepareData?.max_sample_count ?? DEFAULT_MAX_SAMPLE_COUNT;
+  // 为保证优化效果最少选择的数据条数
+  const minSelectedSamples = 20;
+
+  // 选择数据时限制数量不超过上限
+  const handleSelectedRowKeysChange = (keys: string[]) => {
+    if (keys.length > maxSampleCount) {
+      Toast.warning({
+        content: I18n.t('smart_optimization_max_selection_tip'),
+        top: 80,
+      });
+      return;
+    }
+    setSelectedRowKeys(keys);
+  };
+
+  const handleSelectedRowsChange = (rows: ExperimentItem[]) => {
+    if (rows.length > maxSampleCount) {
+      return;
+    }
+    setSelectedRows(rows);
+  };
 
   // 拉取优化资格与建议映射；suggested_variable_mappings 仅基于 Prompt 变量生成，
   // 不会包含 builtin_prompt_user_query 等内置输入字段
@@ -150,27 +180,67 @@ export default function SmartOptimizationModal({
     [selectedExperiment],
   );
 
-  // 评测集字段选项（用于 Select 下拉）
-  const evalSetFieldOptions = useMemo(
-    () =>
-      evalSetFieldSchemas.map(f => ({
-        value: f.key ?? '',
-        label: f.name ?? f.key ?? '',
-      })),
-    [evalSetFieldSchemas],
-  );
+  // 评测集字段选项，补充 prepare 返回的实验结果字段
+  const evalSetFieldOptions = useMemo(() => {
+    const options = evalSetFieldSchemas.map(f => ({
+      value: f.key ?? '',
+      label: f.name ?? f.key ?? '',
+    }));
+    const existingKeys = new Set(options.map(o => o.value));
+    for (const field of prepareData?.dataset_fields ?? []) {
+      if (field && !existingKeys.has(field)) {
+        options.push({ value: field, label: field });
+        existingKeys.add(field);
+      }
+    }
+    return options;
+  }, [evalSetFieldSchemas, prepareData]);
 
-  // 从 prepare 的建议映射提取问题变量映射（仅真实 Prompt 变量）
-  const problemVariableMappings = useMemo(
-    () =>
-      Object.entries(prepareData?.suggested_variable_mappings ?? {})
-        .filter(([fieldName, fromFieldName]) => !!fieldName && !!fromFieldName)
-        .map(([fieldName, fromFieldName]) => ({
-          field_name: fieldName,
-          from_field_name: fromFieldName,
-        })),
-    [prepareData],
-  );
+  // 用建议映射初始化问题变量映射；未命中建议的变量默认映射到评测集第一个字段
+  useEffect(() => {
+    const suggested = prepareData?.suggested_variable_mappings ?? {};
+    const defaultField = evalSetFieldOptions[0]?.value ?? '';
+    setVariableMappings(prev => {
+      let changed = false;
+      const next = { ...prev };
+      for (const variable of prepareData?.prompt_variables ?? []) {
+        const key = variable?.key;
+        if (!key) {
+          continue;
+        }
+        const target = suggested[key] ?? defaultField;
+        if (next[key] === undefined && target) {
+          next[key] = target;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [prepareData, evalSetFieldOptions]);
+
+  // 问题变量映射：以 prompt_variables 为准展示全部 Prompt 变量，
+  // 映射值来自 variableMappings state（suggested 优先，未命中默认第一个评测集字段）
+  const problemVariableMappings = useMemo(() => {
+    const suggested = prepareData?.suggested_variable_mappings ?? {};
+    const variables = prepareData?.prompt_variables;
+    const baseMappings =
+      variables && variables.length > 0
+        ? variables
+            .filter(variable => !!variable?.key)
+            .map(variable => ({
+              field_name: variable.key,
+              from_field_name:
+                variableMappings[variable.key] ?? suggested[variable.key] ?? '',
+            }))
+        : Object.keys(suggested)
+            .filter(fieldName => !!fieldName)
+            .map(fieldName => ({
+              field_name: fieldName,
+              from_field_name:
+                variableMappings[fieldName] ?? suggested[fieldName] ?? '',
+            }));
+    return baseMappings;
+  }, [prepareData, variableMappings]);
 
   // 优先使用 prepare 建议的模型回答字段，回退到 output_schemas 提取
   const modelAnswerFieldName = useMemo(() => {
@@ -315,8 +385,10 @@ export default function SmartOptimizationModal({
     }
   };
 
-  // 配置变更时重置幂等键
-  const configFingerprint = `${optimizeMode}_${referenceAnswerField}_${selectedRowKeys.join(',')}`;
+  // 配置变更时重置幂等键（含问题变量映射）
+  const configFingerprint = `${optimizeMode}_${referenceAnswerField}_${selectedRowKeys.join(',')}_${JSON.stringify(
+    Object.entries(variableMappings).sort(([a], [b]) => a.localeCompare(b)),
+  )}`;
   if (lastConfigFingerprintRef.current !== configFingerprint) {
     lastConfigFingerprintRef.current = configFingerprint;
     idempotencyKeyRef.current = '';
@@ -327,8 +399,26 @@ export default function SmartOptimizationModal({
     if (!exptId || !spaceID || selectedRows.length === 0) {
       return;
     }
+    if (selectedRows.length > maxSampleCount) {
+      Toast.warning({
+        content: I18n.t('smart_optimization_max_selection_tip'),
+        top: 80,
+      });
+      return;
+    }
     setCreateTaskLoading(true);
     try {
+      // 所有问题变量必须配置评测集字段映射，后端会强制校验
+      const unmapped = problemVariableMappings.filter(
+        mapping => !mapping.from_field_name,
+      );
+      if (unmapped.length > 0) {
+        Toast.error({
+          content: I18n.t('smart_optimization_problem_variables_required'),
+          top: 80,
+        });
+        return;
+      }
       // 首次点击或配置变更后生成新的幂等键
       if (!idempotencyKeyRef.current) {
         idempotencyKeyRef.current = crypto.randomUUID();
@@ -337,12 +427,12 @@ export default function SmartOptimizationModal({
         item_id: String(row.groupID),
         turn_id: String(row.turnID),
       }));
-      const variableMappings: Record<string, string> = {};
+      const variableMappingsPayload: Record<string, string> = {};
       for (const [fieldName, fromFieldName] of Object.entries(
-        prepareData?.suggested_variable_mappings ?? {},
+        variableMappings,
       )) {
         if (fieldName && fromFieldName) {
-          variableMappings[fieldName] = fromFieldName;
+          variableMappingsPayload[fieldName] = fromFieldName;
         }
       }
       const mode =
@@ -354,7 +444,7 @@ export default function SmartOptimizationModal({
         workspace_id: spaceID,
         expt_id: exptId,
         samples,
-        variable_mappings: variableMappings,
+        variable_mappings: variableMappingsPayload,
         model_answer_field: modelAnswerFieldName,
         reference_answer_field: referenceAnswerField,
         mode,
@@ -675,8 +765,10 @@ export default function SmartOptimizationModal({
                   className="!coz-fg-primary flex-1 min-w-0"
                   ellipsis={{ showTooltip: { opts: { theme: 'dark' } } }}
                 >
-                  {getFieldExample(mapping.from_field_name ?? '', 'eval_set') ||
-                    '--'}
+                  {getFieldExample(
+                    mapping.from_field_name || mapping.field_name,
+                    'eval_set',
+                  ) || '--'}
                 </Typography.Text>
               </div>
             </div>
@@ -833,12 +925,22 @@ export default function SmartOptimizationModal({
         step === 'table' ? (
           <div className="flex justify-end gap-2">
             <Tooltip
-              content={I18n.t('smart_optimization_min_selection_tip')}
-              disabled={selectedRowKeys.length >= 20}
+              content={
+                selectedRowKeys.length > maxSampleCount
+                  ? I18n.t('smart_optimization_max_selection_tip')
+                  : I18n.t('smart_optimization_min_selection_tip')
+              }
+              disabled={
+                selectedRowKeys.length >= minSelectedSamples &&
+                selectedRowKeys.length <= maxSampleCount
+              }
             >
               <Button
                 type="primary"
-                disabled={selectedRowKeys.length < 20}
+                disabled={
+                  selectedRowKeys.length < minSelectedSamples ||
+                  selectedRowKeys.length > maxSampleCount
+                }
                 onClick={handleNextStep}
               >
                 {I18n.t('next_step_mapping_optimization')}
@@ -871,8 +973,8 @@ export default function SmartOptimizationModal({
             onRefreshPage={handleTableRefreshPage}
             selectable
             selectedRowKeys={selectedRowKeys}
-            onSelectedRowKeysChange={setSelectedRowKeys}
-            onSelectedRowsChange={setSelectedRows}
+            onSelectedRowKeysChange={handleSelectedRowKeysChange}
+            onSelectedRowsChange={handleSelectedRowsChange}
           />
         </div>
       ) : (
