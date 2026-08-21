@@ -3,8 +3,8 @@
 block_unresolved_conflict() {
   set -e
   [ "$CI" = "true" ] && set -x
-  # git冲突标记符，一般为7个字符
-  local match="<<<<<<<|=======|>>>>>>>"
+  # git冲突标记符，一般为7个字符，且必须出现在行首（避免误匹配注释分隔线等）
+  local match="^<<<<<<<|^=======|^>>>>>>>"
   local diff_params="$1 --name-status -G $match"
   local count=0
 
