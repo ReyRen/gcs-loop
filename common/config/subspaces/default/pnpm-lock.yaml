@@ -3335,6 +3335,9 @@ importers:
       '@cozeloop/prompt-components':
         specifier: workspace:*
         version: link:../../loop-components/prompt-components
+      '@cozeloop/prompt-components-v2':
+        specifier: workspace:*
+        version: link:../../loop-components/prompt-components-v2
       '@cozeloop/shared-components':
         specifier: workspace:*
         version: link:../../loop-components/shared-components
