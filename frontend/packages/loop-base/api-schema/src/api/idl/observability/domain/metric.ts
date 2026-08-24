@@ -10,6 +10,8 @@ export enum DrillDownValueType {
   ModelName = "model_name",
   ToolName = "tool_name",
   InnerModelName = "inner_model_name",
+  AnnotationKey = "annotation_key",
+  FeedbackSource = "feedback_source",
 }
 export interface Metric {
   summary?: string,

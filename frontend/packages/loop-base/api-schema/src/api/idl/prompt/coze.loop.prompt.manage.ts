@@ -63,6 +63,19 @@ export const GetPrompt = /*#__PURE__*/createAPI<GetPromptRequest, GetPromptRespo
   "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
   "service": "promptManage"
 });
+export const GetPromptInvokeInfo = /*#__PURE__*/createAPI<GetPromptInvokeInfoRequest, GetPromptInvokeInfoResponse>({
+  "url": "/api/prompt/v1/prompts/:prompt_id/commits/:commit_version/invoke_info",
+  "method": "GET",
+  "name": "GetPromptInvokeInfo",
+  "reqType": "GetPromptInvokeInfoRequest",
+  "reqMapping": {
+    "path": ["prompt_id", "commit_version"],
+    "query": ["workspace_id"]
+  },
+  "resType": "GetPromptInvokeInfoResponse",
+  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
+  "service": "promptManage"
+});
 export const ListPrompt = /*#__PURE__*/createAPI<ListPromptRequest, ListPromptResponse>({
   "url": "/api/prompt/v1/prompts/list",
   "method": "POST",
@@ -72,6 +85,31 @@ export const ListPrompt = /*#__PURE__*/createAPI<ListPromptRequest, ListPromptRe
     "body": ["workspace_id", "key_word", "created_bys", "committed_only", "filter_prompt_types", "page_num", "page_size", "order_by", "asc"]
   },
   "resType": "ListPromptResponse",
+  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
+  "service": "promptManage"
+});
+export const ListPromptTemplates = /*#__PURE__*/createAPI<ListPromptTemplatesRequest, ListPromptTemplatesResponse>({
+  "url": "/api/prompt/v1/prompt_templates/list",
+  "method": "POST",
+  "name": "ListPromptTemplates",
+  "reqType": "ListPromptTemplatesRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "key_word", "categories"]
+  },
+  "resType": "ListPromptTemplatesResponse",
+  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
+  "service": "promptManage"
+});
+export const GetPromptTemplate = /*#__PURE__*/createAPI<GetPromptTemplateRequest, GetPromptTemplateResponse>({
+  "url": "/api/prompt/v1/prompt_templates/:template_key",
+  "method": "GET",
+  "name": "GetPromptTemplate",
+  "reqType": "GetPromptTemplateRequest",
+  "reqMapping": {
+    "path": ["template_key"],
+    "query": ["workspace_id"]
+  },
+  "resType": "GetPromptTemplateResponse",
   "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
   "service": "promptManage"
 });
@@ -300,6 +338,42 @@ export enum ListPromptOrderBy {
   CommitedAt = "committed_at",
   CreatedAt = "created_at",
 }
+export enum PromptTemplatePresetCategory {
+  TextGeneration = "text_generation",
+  ImageAnalysis = "image_analysis",
+  VideoUnderstanding = "video_understanding",
+  DeepReasoning = "deep_reasoning",
+  JSONOutput = "json_output",
+  FunctionCalling = "function_calling",
+}
+export interface PromptTemplatePresetCategoryInfo {
+  category?: PromptTemplatePresetCategory,
+  display_name?: string,
+}
+export interface PromptTemplatePreset {
+  template_key?: string,
+  display_name?: string,
+  description?: string,
+  category?: PromptTemplatePresetCategory,
+  icon_key?: string,
+  draft_detail?: prompt.PromptDetail,
+}
+export interface ListPromptTemplatesRequest {
+  workspace_id?: string,
+  key_word?: string,
+  categories?: PromptTemplatePresetCategory[],
+}
+export interface ListPromptTemplatesResponse {
+  categories?: PromptTemplatePresetCategoryInfo[],
+  prompt_templates?: PromptTemplatePreset[],
+}
+export interface GetPromptTemplateRequest {
+  template_key?: string,
+  workspace_id?: string,
+}
+export interface GetPromptTemplateResponse {
+  prompt_template?: PromptTemplatePreset
+}
 export interface UpdatePromptRequest {
   prompt_id?: string,
   prompt_name?: string,
@@ -321,13 +395,20 @@ export interface CommitDraftRequest {
   commit_description?: string,
   label_keys?: string[],
 }
+/**
+ * 提交成功返回 code=0。
+ * code=600501011 表示草稿并发冲突；响应顶层 extra 可包含 conflict_type、
+ * draft_base_version、draft_expected_latest_version、latest_version。
+*/
 export interface CommitDraftResponse {}
 /** 搜索Prompt提交版本 */
 export interface ListCommitRequest {
   prompt_id?: string,
   /** 是否查询详情 */
   with_commit_detail?: boolean,
+  /** 1..200 */
   page_size?: number,
+  /** 第一页省略；后续原样回传 next_page_token，不得解析 */
   page_token?: string,
   asc?: boolean,
 }
@@ -409,68 +490,38 @@ export interface BatchGetPromptBasicRequest {
 export interface BatchGetPromptBasicResponse {
   prompts?: prompt.Prompt[]
 }
-
-/** Prompt 模板市场列表 */
-export const ListPromptTemplates = /*#__PURE__*/createAPI<ListPromptTemplatesRequest, ListPromptTemplatesResponse>({
-  "url": "/api/prompt/v1/prompt_templates/list",
-  "method": "POST",
-  "name": "ListPromptTemplates",
-  "reqType": "ListPromptTemplatesRequest",
-  "reqMapping": {
-    "body": ["categories", "key_word", "workspace_id"]
-  },
-  "resType": "ListPromptTemplatesResponse",
-  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
-  "service": "promptManage"
-});
-export interface ListPromptTemplatesRequest {
-  categories?: string[],
-  key_word?: string,
+/**
+ * 返回指定已提交 Prompt 版本的 HTTP 调用契约与 curl 示例。
+ * 该接口仅用于 Console 展示；实际调用使用 /v1/loop/prompts/execute(_streaming)。
+*/
+export interface GetPromptInvokeInfoRequest {
+  prompt_id?: string,
+  commit_version?: string,
   workspace_id?: string,
 }
-export interface PromptTemplateItem {
-  category?: string,
+export interface PromptInvokeParameter {
+  key?: string,
   description?: string,
-  display_name?: string,
-  draft_detail?: Record<string, unknown>,
-  icon_key?: string,
-  template_key?: string,
+  type?: prompt.VariableType,
+  /** value / placeholder_messages / multi_part_values */
+  value_field?: string,
+  /** value 或 JSON 序列化后的结构化示例 */
+  example?: string,
+  /** multi_part 等变量的 image / video 类型约束 */
+  type_tags?: string[],
 }
-export interface ListPromptTemplatesResponse {
-  categories?: { category?: string, display_name?: string }[],
-  code?: number,
-  msg?: string,
-  prompt_templates?: PromptTemplateItem[],
+export interface PromptInvokeInfo {
+  prompt_key?: string,
+  version?: string,
+  parameters?: PromptInvokeParameter[],
+  /** 可从用户浏览器访问的 GCS Loop HTTP API Origin，不含 /v1 路径 */
+  base_url?: string,
+  execute_endpoint?: string,
+  streaming_execute_endpoint?: string,
+  request_body?: string,
+  curl?: string,
+  streaming_curl?: string,
 }
-
-/** 获取模板详情 */
-export const GetPromptTemplate = /*#__PURE__*/createAPI<GetPromptTemplateRequest, GetPromptTemplateResponse>({
-  "url": "/api/prompt/v1/prompt_templates/:template_key",
-  "method": "GET",
-  "name": "GetPromptTemplate",
-  "reqType": "GetPromptTemplateRequest",
-  "reqMapping": {
-    "path": ["template_key"],
-    "query": ["workspace_id"]
-  },
-  "resType": "GetPromptTemplateResponse",
-  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.manage",
-  "service": "promptManage"
-});
-export interface GetPromptTemplateRequest {
-  template_key?: string,
-  workspace_id?: string,
-}
-export interface GetPromptTemplateResponse {
-  code?: number,
-  msg?: string,
-  prompt_template?: PromptTemplateDetail,
-}
-export interface PromptTemplateDetail {
-  category?: string,
-  description?: string,
-  display_name?: string,
-  draft_detail?: Record<string, unknown>,
-  icon_key?: string,
-  template_key?: string,
+export interface GetPromptInvokeInfoResponse {
+  invoke_info?: PromptInvokeInfo
 }

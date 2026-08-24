@@ -3456,6 +3456,45 @@ if __name__ == "__main__":
   (key: 'experiment_initializing', fallbackText?: string): string;
   /** 实验对比 */
   (key: 'experiment_comparison', fallbackText?: string): string;
+  /** 智能优化 */
+  (key: 'smart_optimization', fallbackText?: string): string;
+  /** 新建智能优化 */
+  (key: 'new_smart_optimization', fallbackText?: string): string;
+  /** 基于批量评测的问题、模型回答、参考答案（如有）以及对应评估器得分来优化 Prompt */
+  (key: 'smart_optimization_tip', fallbackText?: string): string;
+  /** 选择评测实验 */
+  (key: 'select_evaluation_experiment', fallbackText?: string): string;
+  /** 提示词可优化实验 */
+  (key: 'prompt_optimizable_experiment', fallbackText?: string): string;
+  /** Prompt 版本 */
+  (key: 'prompt_version', fallbackText?: string): string;
+  /** 选择需要优化的评测实验 */
+  (key: 'smart_optimization_select_experiment_tip', fallbackText?: string): string;
+  /** 选择需要优化的 Prompt 版本 */
+  (key: 'smart_optimization_prompt_version_tip', fallbackText?: string): string;
+  /** 问题变量 */
+  (key: 'smart_optimization_problem_variables', fallbackText?: string): string;
+  /** 将 Prompt 变量与评测集字段进行映射 */
+  (key: 'smart_optimization_problem_variables_tip', fallbackText?: string): string;
+  /** 模型回答 */
+  (key: 'smart_optimization_model_answer', fallbackText?: string): string;
+  /** 模型回答对应的评测集字段 */
+  (key: 'smart_optimization_model_answer_tip', fallbackText?: string): string;
+  /** 模型回答 */
+  (key: 'smart_optimization_model_answer_value', fallbackText?: string): string;
+  /** 参考回答 */
+  (key: 'smart_optimization_reference_answer', fallbackText?: string): string;
+  /** 参考回答对应的评测集字段 */
+  (key: 'smart_optimization_reference_answer_tip', fallbackText?: string): string;
+  /** 参考回答 */
+  (key: 'smart_optimization_reference_answer_value', fallbackText?: string): string;
+  /** 评测集 */
+  (key: 'smart_optimization_eval_set', fallbackText?: string): string;
+  /** 示例 */
+  (key: 'smart_optimization_example', fallbackText?: string): string;
+  /** 创建任务 */
+  (key: 'smart_optimization_create_task', fallbackText?: string): string;
+  (key: 'smart_optimization_optimize', fallbackText?: string): string;
   /** 实验对比发起失败 */
   (key: 'experiment_comparison_initiation_failure', fallbackText?: string): string;
   /** 实验对比最大数量不能超过 {MAX_EXPERIMENT_CONTRAST_COUNT} 个，请重新选择。 */

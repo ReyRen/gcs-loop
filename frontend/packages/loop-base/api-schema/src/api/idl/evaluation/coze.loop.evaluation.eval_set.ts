@@ -1,7 +1,7 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
-import * as data_filter from './../data/domain/filter';
-export { data_filter };
+import * as data_data_filter from './../data/domain/data_filter';
+export { data_data_filter };
 import * as data_dataset_job from './../data/domain/dataset_job';
 export { data_dataset_job };
 import * as data_dataset from './../data/domain/dataset';
@@ -20,6 +20,11 @@ export interface CreateEvaluationSetRequest {
   evaluation_set_schema?: eval_set.EvaluationSetSchema,
   /** 业务分类 */
   biz_category?: eval_set.BizCategory,
+  tags?: eval_set.ResourceTagRef[],
+  /** 数据集业务唯一键，创建后不可变 */
+  dataset_key?: string,
+  /** 评测集类型，默认 default */
+  type?: eval_set.EvaluationSetType,
   session?: common.Session,
 }
 export interface CreateEvaluationSetResponse {
@@ -36,6 +41,8 @@ export interface CreateEvaluationSetWithImportRequest {
   source: data_dataset_job.DatasetIOEndpoint,
   fieldMappings?: data_dataset_job.FieldMapping[],
   option?: data_dataset_job.DatasetIOJobOption,
+  /** 评测集类型，默认 default */
+  type?: eval_set.EvaluationSetType,
   session?: common.Session,
 }
 export interface CreateEvaluationSetWithImportResponse {
@@ -76,6 +83,7 @@ export interface UpdateEvaluationSetRequest {
   evaluation_set_id: string,
   name?: string,
   description?: string,
+  tags?: eval_set.ResourceTagRef[],
 }
 export interface UpdateEvaluationSetResponse {}
 export interface DeleteEvaluationSetRequest {
@@ -97,6 +105,13 @@ export interface ListEvaluationSetsRequest {
   name?: string,
   creators?: string[],
   evaluation_set_ids?: string[],
+  /** 按评测集类型过滤 */
+  type?: eval_set.EvaluationSetType,
+  /** 按 dataset_key 精确匹配 */
+  dataset_keys?: string[],
+  /** 系统资源标签过滤 */
+  tag_filter?: eval_set.TagFilter,
+  shared_option?: common.SharedResourceOption,
   page_number?: number,
   /** 分页大小 (0, 200]，默认为 20 */
   page_size?: number,
@@ -124,6 +139,7 @@ export interface GetEvaluationSetVersionRequest {
   version_id: string,
   evaluation_set_id?: string,
   deleted_at?: boolean,
+  shared_option?: common.SharedResourceOption,
 }
 export interface GetEvaluationSetVersionResponse {
   version?: eval_set.EvaluationSetVersion,
@@ -146,6 +162,7 @@ export interface ListEvaluationSetVersionsRequest {
   evaluation_set_id: string,
   /** 根据版本号模糊匹配 */
   version_like?: string,
+  shared_option?: common.SharedResourceOption,
   page_number?: number,
   /** 分页大小 (0, 200]，默认为 20 */
   page_size?: number,
@@ -192,7 +209,12 @@ export interface UpdateEvaluationSetItemRequest {
   item_id: string,
   /** 每轮对话 */
   turns?: eval_set.Turn[],
+  tags?: eval_set.ResourceTagRef[],
   field_write_options?: data_dataset.FieldWriteOption[],
+  /** versioned_item 下使用；为空表示更新 draft */
+  item_version?: string,
+  item_version_description?: string,
+  item_version_status?: string,
 }
 export interface UpdateEvaluationSetItemResponse {}
 export interface DeleteEvaluationSetItemRequest {
@@ -211,6 +233,8 @@ export interface ListEvaluationSetItemsRequest {
   workspace_id: string,
   evaluation_set_id: string,
   version_id?: string,
+  /** 跨空间共享读:来源空间等信息 */
+  shared_option?: common.SharedResourceOption,
   page_number?: number,
   /** 分页大小 (0, 200]，默认为 20 */
   page_size?: number,
@@ -219,7 +243,9 @@ export interface ListEvaluationSetItemsRequest {
   order_bys?: common.OrderBy[],
   item_id_not_in?: string[],
   /** item 过滤条件 */
-  filter?: data_filter.Filter,
+  filter?: data_data_filter.Filter,
+  /** 系统资源标签过滤 */
+  tag_filter?: eval_set.TagFilter,
 }
 export interface ListEvaluationSetItemsResponse {
   items?: eval_set.EvaluationSetItem[],
@@ -240,10 +266,90 @@ export interface BatchGetEvaluationSetItemsRequest {
   evaluation_set_id: string,
   version_id?: string,
   item_ids?: string[],
+  item_version_queries?: EvaluationItemVersionRef[],
+  /** item 过滤条件 */
+  filter?: data_data_filter.Filter,
+  /** 系统资源标签过滤 */
+  tag_filter?: eval_set.TagFilter,
 }
 export interface BatchGetEvaluationSetItemsResponse {
   items?: eval_set.EvaluationSetItem[]
 }
+export interface BatchAddExistEvaluationSetItemsRequest {
+  workspace_id: string,
+  evaluation_set_id: string,
+  items: EvaluationItemVersionRef[],
+  allow_partial_add?: boolean,
+}
+export interface EvaluationItemVersionRef {
+  item_id: string,
+  item_version_id?: string,
+  item_version?: string,
+}
+export interface BatchAddExistEvaluationSetItemsResponse {
+  success_count?: number,
+  failed_count?: number,
+  failed_items?: EvaluationItemVersionRef[],
+}
+export interface GetEvaluationSetItemDefRequest {
+  workspace_id: string,
+  evaluation_set_id: string,
+  item_id: string,
+}
+export interface GetEvaluationSetItemDefResponse {
+  item_def?: eval_set.EvaluationItemDef
+}
+export interface ListEvaluationSetItemDefsRequest {
+  workspace_id: string,
+  evaluation_set_id: string,
+  page_number?: number,
+  page_size?: number,
+  page_token?: string,
+  order_bys?: common.OrderBy[],
+}
+export interface ListEvaluationSetItemDefsResponse {
+  item_defs?: eval_set.EvaluationItemDef[],
+  total?: string,
+  next_page_token?: string,
+}
+export interface ListEvaluationSetItemVersionsRequest {
+  workspace_id: string,
+  evaluation_set_id: string,
+  item_id: string,
+  page_number?: number,
+  page_size?: number,
+  page_token?: string,
+  order_bys?: common.OrderBy[],
+}
+export interface ListEvaluationSetItemVersionsResponse {
+  versions?: eval_set.EvaluationItemVersion[],
+  total?: string,
+  next_page_token?: string,
+}
+export interface GetEvaluationSetItemVersionRequest {
+  workspace_id: string,
+  evaluation_set_id: string,
+  item_id: string,
+  /** item_version_id 与 item_version 二选一 */
+  item_version_id?: string,
+  /** 版本号字符串，与 item_version_id 二选一 */
+  item_version?: string,
+}
+export interface GetEvaluationSetItemVersionResponse {
+  version?: eval_set.EvaluationItemVersion
+}
+export interface UpdateEvaluationSetItemVersionRequest {
+  workspace_id: string,
+  evaluation_set_id: string,
+  item_id: string,
+  /** item_version_id 与 item_version 二选一 */
+  item_version_id?: string,
+  status?: string,
+  description?: string,
+  /** 版本号字符串，与 item_version_id 二选一 */
+  item_version?: string,
+}
+export interface UpdateEvaluationSetItemVersionResponse {}
 export interface ClearEvaluationSetDraftItemRequest {
   workspace_id: string,
   evaluation_set_id: string,
@@ -308,7 +414,7 @@ export const CreateEvaluationSet = /*#__PURE__*/createAPI<CreateEvaluationSetReq
   "name": "CreateEvaluationSet",
   "reqType": "CreateEvaluationSetRequest",
   "reqMapping": {
-    "body": ["workspace_id", "name", "description", "evaluation_set_schema", "biz_category", "session"]
+    "body": ["workspace_id", "name", "description", "evaluation_set_schema", "biz_category", "tags", "dataset_key", "type", "session"]
   },
   "resType": "CreateEvaluationSetResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
@@ -320,7 +426,7 @@ export const UpdateEvaluationSet = /*#__PURE__*/createAPI<UpdateEvaluationSetReq
   "name": "UpdateEvaluationSet",
   "reqType": "UpdateEvaluationSetRequest",
   "reqMapping": {
-    "body": ["workspace_id", "name", "description"],
+    "body": ["workspace_id", "name", "description", "tags"],
     "path": ["evaluation_set_id"]
   },
   "resType": "UpdateEvaluationSetResponse",
@@ -359,7 +465,7 @@ export const ListEvaluationSets = /*#__PURE__*/createAPI<ListEvaluationSetsReque
   "name": "ListEvaluationSets",
   "reqType": "ListEvaluationSetsRequest",
   "reqMapping": {
-    "body": ["workspace_id", "name", "creators", "evaluation_set_ids", "page_number", "page_size", "page_token", "order_bys"]
+    "body": ["workspace_id", "name", "creators", "evaluation_set_ids", "type", "dataset_keys", "tag_filter", "shared_option", "page_number", "page_size", "page_token", "order_bys"]
   },
   "resType": "ListEvaluationSetsResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
@@ -371,7 +477,7 @@ export const CreateEvaluationSetWithImport = /*#__PURE__*/createAPI<CreateEvalua
   "name": "CreateEvaluationSetWithImport",
   "reqType": "CreateEvaluationSetWithImportRequest",
   "reqMapping": {
-    "body": ["workspace_id", "name", "description", "evaluation_set_schema", "biz_category", "source_type", "source", "fieldMappings", "option", "session"]
+    "body": ["workspace_id", "name", "description", "evaluation_set_schema", "biz_category", "source_type", "source", "fieldMappings", "option", "type", "session"]
   },
   "resType": "CreateEvaluationSetWithImportResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
@@ -409,7 +515,7 @@ export const GetEvaluationSetVersion = /*#__PURE__*/createAPI<GetEvaluationSetVe
   "name": "GetEvaluationSetVersion",
   "reqType": "GetEvaluationSetVersionRequest",
   "reqMapping": {
-    "query": ["workspace_id", "deleted_at"],
+    "query": ["workspace_id", "deleted_at", "shared_option"],
     "path": ["version_id", "evaluation_set_id"]
   },
   "resType": "GetEvaluationSetVersionResponse",
@@ -422,7 +528,7 @@ export const ListEvaluationSetVersions = /*#__PURE__*/createAPI<ListEvaluationSe
   "name": "ListEvaluationSetVersions",
   "reqType": "ListEvaluationSetVersionsRequest",
   "reqMapping": {
-    "body": ["workspace_id", "version_like", "page_number", "page_size", "page_token"],
+    "body": ["workspace_id", "version_like", "shared_option", "page_number", "page_size", "page_token"],
     "path": ["evaluation_set_id"]
   },
   "resType": "ListEvaluationSetVersionsResponse",
@@ -475,7 +581,7 @@ export const UpdateEvaluationSetItem = /*#__PURE__*/createAPI<UpdateEvaluationSe
   "name": "UpdateEvaluationSetItem",
   "reqType": "UpdateEvaluationSetItemRequest",
   "reqMapping": {
-    "body": ["workspace_id", "turns", "field_write_options"],
+    "body": ["workspace_id", "turns", "tags", "field_write_options", "item_version", "item_version_description", "item_version_status"],
     "path": ["evaluation_set_id", "item_id"]
   },
   "resType": "UpdateEvaluationSetItemResponse",
@@ -501,7 +607,7 @@ export const ListEvaluationSetItems = /*#__PURE__*/createAPI<ListEvaluationSetIt
   "name": "ListEvaluationSetItems",
   "reqType": "ListEvaluationSetItemsRequest",
   "reqMapping": {
-    "body": ["workspace_id", "version_id", "page_number", "page_size", "page_token", "order_bys", "item_id_not_in", "filter"],
+    "body": ["workspace_id", "version_id", "shared_option", "page_number", "page_size", "page_token", "order_bys", "item_id_not_in", "filter", "tag_filter"],
     "path": ["evaluation_set_id"]
   },
   "resType": "ListEvaluationSetItemsResponse",
@@ -514,10 +620,88 @@ export const BatchGetEvaluationSetItems = /*#__PURE__*/createAPI<BatchGetEvaluat
   "name": "BatchGetEvaluationSetItems",
   "reqType": "BatchGetEvaluationSetItemsRequest",
   "reqMapping": {
-    "body": ["workspace_id", "version_id", "item_ids"],
+    "body": ["workspace_id", "version_id", "item_ids", "item_version_queries", "filter", "tag_filter"],
     "path": ["evaluation_set_id"]
   },
   "resType": "BatchGetEvaluationSetItemsResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
+  "service": "evaluationEvalSet"
+});
+export const BatchAddExistEvaluationSetItems = /*#__PURE__*/createAPI<BatchAddExistEvaluationSetItemsRequest, BatchAddExistEvaluationSetItemsResponse>({
+  "url": "/api/evaluation/v1/evaluation_sets/:evaluation_set_id/items/batch_add_exist",
+  "method": "POST",
+  "name": "BatchAddExistEvaluationSetItems",
+  "reqType": "BatchAddExistEvaluationSetItemsRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "items", "allow_partial_add"],
+    "path": ["evaluation_set_id"]
+  },
+  "resType": "BatchAddExistEvaluationSetItemsResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
+  "service": "evaluationEvalSet"
+});
+export const GetEvaluationSetItemDef = /*#__PURE__*/createAPI<GetEvaluationSetItemDefRequest, GetEvaluationSetItemDefResponse>({
+  "url": "/api/evaluation/v1/evaluation_sets/:evaluation_set_id/item_defs/:item_id",
+  "method": "GET",
+  "name": "GetEvaluationSetItemDef",
+  "reqType": "GetEvaluationSetItemDefRequest",
+  "reqMapping": {
+    "query": ["workspace_id"],
+    "path": ["evaluation_set_id", "item_id"]
+  },
+  "resType": "GetEvaluationSetItemDefResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
+  "service": "evaluationEvalSet"
+});
+export const ListEvaluationSetItemDefs = /*#__PURE__*/createAPI<ListEvaluationSetItemDefsRequest, ListEvaluationSetItemDefsResponse>({
+  "url": "/api/evaluation/v1/evaluation_sets/:evaluation_set_id/item_defs/list",
+  "method": "POST",
+  "name": "ListEvaluationSetItemDefs",
+  "reqType": "ListEvaluationSetItemDefsRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "page_number", "page_size", "page_token", "order_bys"],
+    "path": ["evaluation_set_id"]
+  },
+  "resType": "ListEvaluationSetItemDefsResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
+  "service": "evaluationEvalSet"
+});
+export const ListEvaluationSetItemVersions = /*#__PURE__*/createAPI<ListEvaluationSetItemVersionsRequest, ListEvaluationSetItemVersionsResponse>({
+  "url": "/api/evaluation/v1/evaluation_sets/:evaluation_set_id/items/:item_id/versions/list",
+  "method": "POST",
+  "name": "ListEvaluationSetItemVersions",
+  "reqType": "ListEvaluationSetItemVersionsRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "page_number", "page_size", "page_token", "order_bys"],
+    "path": ["evaluation_set_id", "item_id"]
+  },
+  "resType": "ListEvaluationSetItemVersionsResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
+  "service": "evaluationEvalSet"
+});
+export const GetEvaluationSetItemVersion = /*#__PURE__*/createAPI<GetEvaluationSetItemVersionRequest, GetEvaluationSetItemVersionResponse>({
+  "url": "/api/evaluation/v1/evaluation_sets/:evaluation_set_id/items/:item_id/versions/:item_version_id",
+  "method": "GET",
+  "name": "GetEvaluationSetItemVersion",
+  "reqType": "GetEvaluationSetItemVersionRequest",
+  "reqMapping": {
+    "query": ["workspace_id", "item_version"],
+    "path": ["evaluation_set_id", "item_id", "item_version_id"]
+  },
+  "resType": "GetEvaluationSetItemVersionResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
+  "service": "evaluationEvalSet"
+});
+export const UpdateEvaluationSetItemVersion = /*#__PURE__*/createAPI<UpdateEvaluationSetItemVersionRequest, UpdateEvaluationSetItemVersionResponse>({
+  "url": "/api/evaluation/v1/evaluation_sets/:evaluation_set_id/items/:item_id/versions/:item_version_id",
+  "method": "PATCH",
+  "name": "UpdateEvaluationSetItemVersion",
+  "reqType": "UpdateEvaluationSetItemVersionRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "status", "description", "item_version"],
+    "path": ["evaluation_set_id", "item_id", "item_version_id"]
+  },
+  "resType": "UpdateEvaluationSetItemVersionResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_set",
   "service": "evaluationEvalSet"
 });

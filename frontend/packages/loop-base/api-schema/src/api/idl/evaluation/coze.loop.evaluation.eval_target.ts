@@ -28,6 +28,12 @@ export interface CreateEvalTargetParam {
   env?: string,
   /** type=8时需填写，评测对象操作说明 */
   operation_instruction?: string,
+  /** type=10时需填写，自定义智能体所属集群 */
+  cluster?: string,
+  /** type=10时需填写，自定义智能体连接信息 */
+  agent_connection?: eval_target.AgentConnection,
+  /** type=17(SandboxAgent)时需填写，SandboxAgent 评测对象配置 */
+  sandbox_agent?: eval_target.SandboxAgent,
 }
 export interface CreateEvalTargetResponse {
   id?: string,
@@ -36,6 +42,7 @@ export interface CreateEvalTargetResponse {
 export interface GetEvalTargetVersionRequest {
   workspace_id: string,
   eval_target_version_id?: string,
+  shared_option?: common.SharedResourceOption,
 }
 export interface GetEvalTargetVersionResponse {
   eval_target?: eval_target.EvalTarget
@@ -114,6 +121,7 @@ export interface ListSourceEvalTargetsRequest {
   target_type?: eval_target.EvalTargetType,
   /** 用户模糊搜索bot名称、promptkey */
   name?: string,
+  shared_option?: common.SharedResourceOption,
   page_size?: number,
   page_token?: string,
 }
@@ -135,6 +143,7 @@ export interface GetSourceEvalTargetVersionRequest {
   source_target_id?: string,
   source_target_version?: string,
   target_type?: eval_target.EvalTargetType,
+  shared_option?: common.SharedResourceOption,
 }
 export interface GetSourceEvalTargetVersionResponse {
   eval_target_version?: eval_target.EvalTargetVersion
@@ -143,6 +152,7 @@ export interface ListSourceEvalTargetVersionsRequest {
   workspace_id: string,
   source_target_id: string,
   target_type?: eval_target.EvalTargetType,
+  shared_option?: common.SharedResourceOption,
   page_size?: number,
   page_token?: string,
 }
@@ -251,7 +261,7 @@ export const GetEvalTargetVersion = /*#__PURE__*/createAPI<GetEvalTargetVersionR
   "name": "GetEvalTargetVersion",
   "reqType": "GetEvalTargetVersionRequest",
   "reqMapping": {
-    "query": ["workspace_id"],
+    "query": ["workspace_id", "shared_option"],
     "path": ["eval_target_version_id"]
   },
   "resType": "GetEvalTargetVersionResponse",
@@ -278,7 +288,7 @@ export const ListSourceEvalTargets = /*#__PURE__*/createAPI<ListSourceEvalTarget
   "name": "ListSourceEvalTargets",
   "reqType": "ListSourceEvalTargetsRequest",
   "reqMapping": {
-    "body": ["workspace_id", "target_type", "name", "page_size", "page_token"]
+    "body": ["workspace_id", "target_type", "name", "shared_option", "page_size", "page_token"]
   },
   "resType": "ListSourceEvalTargetsResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_target",
@@ -291,7 +301,7 @@ export const ListSourceEvalTargetVersions = /*#__PURE__*/createAPI<ListSourceEva
   "name": "ListSourceEvalTargetVersions",
   "reqType": "ListSourceEvalTargetVersionsRequest",
   "reqMapping": {
-    "body": ["workspace_id", "source_target_id", "target_type", "page_size", "page_token"]
+    "body": ["workspace_id", "source_target_id", "target_type", "shared_option", "page_size", "page_token"]
   },
   "resType": "ListSourceEvalTargetVersionsResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_target",
@@ -316,7 +326,7 @@ export const GetSourceEvalTargetVersion = /*#__PURE__*/createAPI<GetSourceEvalTa
   "name": "GetSourceEvalTargetVersion",
   "reqType": "GetSourceEvalTargetVersionRequest",
   "reqMapping": {
-    "query": ["workspace_id", "source_target_id", "source_target_version", "target_type"]
+    "query": ["workspace_id", "source_target_id", "source_target_version", "target_type", "shared_option"]
   },
   "resType": "GetSourceEvalTargetVersionResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.eval_target",

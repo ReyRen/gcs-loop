@@ -4,19 +4,15 @@ import { useCallback } from 'react';
 
 import { useDebounceFn, useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
-import { BaseSearchSelect } from '@cozeloop/components';
+import { BaseSearchSelect, type BaseSelectProps } from '@cozeloop/components';
 import { useRouteInfo, useSpace } from '@cozeloop/biz-hooks-adapter';
 import { type Experiment, type Filters } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
 import { IconCozPlus } from '@coze-arch/coze-design/icons';
-import {
-  type RenderSelectedItemFn,
-  type SelectProps,
-  Typography,
-} from '@coze-arch/coze-design';
+import { type RenderSelectedItemFn, Typography } from '@coze-arch/coze-design';
 
 export function ExperimentsSelect(
-  props: SelectProps & {
+  props: BaseSelectProps & {
     disableAddExperiment?: boolean;
     filters?: Filters;
     createExperimentUrl?: string;

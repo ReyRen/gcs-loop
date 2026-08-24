@@ -68,4 +68,5 @@ export interface SimpleAnnotationInfo {
   key: string,
   annotation_type?: AnnotationType,
   original_key?: string,
+  value_type?: ValueType,
 }

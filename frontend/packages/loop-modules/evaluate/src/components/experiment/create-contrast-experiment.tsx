@@ -8,6 +8,7 @@ import { ExptStatus, type Experiment } from '@cozeloop/api-schema/evaluation';
 import { IconCozCompare } from '@coze-arch/coze-design/icons';
 import { Button } from '@coze-arch/coze-design';
 
+import SmartOptimizationModal from './smart-optimization-modal';
 import ExperimentSelectModal from './experiment-select-modal';
 
 export default function CreateContrastExperiment({
@@ -24,6 +25,8 @@ export default function CreateContrastExperiment({
   onReportCompare?: (status: string) => void;
 }) {
   const [visible, setVisible] = useState<boolean>(false);
+  const [smartOptimizationVisible, setSmartOptimizationVisible] =
+    useState<boolean>(false);
   const navigate = useNavigateModule();
 
   const contrastExperiments = useMemo(() => {
@@ -44,6 +47,17 @@ export default function CreateContrastExperiment({
         }}
       >
         {I18n.t('experiment_comparison')}
+      </Button>
+
+      <Button
+        icon={<IconCozCompare />}
+        disabled={!baseExperiment || disabled}
+        onClick={() => {
+          onClick?.();
+          setSmartOptimizationVisible(true);
+        }}
+      >
+        {I18n.t('smart_optimization')}
       </Button>
 
       {visible ? (
@@ -68,6 +82,14 @@ export default function CreateContrastExperiment({
             navigate(`${defaultContrastRoute}?experiment_ids=${ids.join(',')}`);
           }}
           onClose={() => setVisible(false)}
+        />
+      ) : null}
+
+      {smartOptimizationVisible ? (
+        <SmartOptimizationModal
+          baseExperiment={baseExperiment}
+          visible={smartOptimizationVisible}
+          onClose={() => setSmartOptimizationVisible(false)}
         />
       ) : null}
     </>

@@ -84,6 +84,9 @@
       "path": "../../loop-components/observation-adapter/tsconfig.build.json"
     },
     {
+      "path": "../../loop-components/prompt-components-v2/tsconfig.build.json"
+    },
+    {
       "path": "../../loop-components/prompt-components/tsconfig.build.json"
     },
     {

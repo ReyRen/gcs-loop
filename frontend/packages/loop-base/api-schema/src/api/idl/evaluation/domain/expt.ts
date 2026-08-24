@@ -4,6 +4,8 @@ import * as observability_task from './../../observability/domain/task';
 export { observability_task };
 import * as observability_filter from './../../observability/domain/filter';
 export { observability_filter };
+import * as data_data_filter from './../../data/domain/data_filter';
+export { data_data_filter };
 import * as data_dataset from './../../data/domain/dataset';
 export { data_dataset };
 import * as data_tag from './../../data/domain/tag';
@@ -39,6 +41,19 @@ export enum ExptType {
   Offline = 1,
   Online = 2,
 }
+/** 离线实验分析状态（与表字段 offline_expt_analysis_status 一致） */
+export enum OfflineExptAnalysisStatus {
+  /** 未开始 */
+  NotStarted = 0,
+  /** 进行中 */
+  Processing = 1,
+  /** 成功 */
+  Success = 2,
+  /** 失败 */
+  Failed = 3,
+  /** 已被新版本/新分析取代 */
+  Superseded = 4,
+}
 export enum SourceType {
   Evaluation = 1,
   AutoTask = 2,
@@ -66,6 +81,8 @@ export interface Experiment {
   item_concur_num?: number,
   /** 实验可见性，默认为空，可见 */
   visibility?: Visibility,
+  /** 实验创建时间（秒），来源 experiment.created_at */
+  create_time?: string,
   eval_set_version_id?: string,
   target_version_id?: string,
   evaluator_version_ids?: string[],
@@ -95,9 +112,32 @@ export interface Experiment {
    * 关联的智能评测会话ID
   */
   thread_id?: string,
+  enable_extract_trajectory?: boolean,
   /** 触发方式 */
   trigger_type?: ExptTriggerType,
   expt_source?: ExptSource,
+  /** 实验分组 key；不填时后端默认为实验 id */
+  experiment_group_key?: string,
+  /** 通知配置 */
+  notification_conf?: ExptNotificationConf,
+  ext?: {
+    [key: string | number]: string
+  },
+  /** 离线实验分析状态 */
+  offline_expt_analysis_status?: OfflineExptAnalysisStatus,
+  /**
+   * ★ 新增段位 110~119: 多评测集读视图
+   * 读接口分流开关: SingleSet=1(老实验) / MultiSetConfig=2(新实验); 直读 experiment 表同名列
+  */
+  eval_set_source_type?: ExptEvalSetSourceType,
+  /** 权威配置回显: 从 experiment.eval_conf 反序列化, 与 Create 入参同构 */
+  eval_set_configs?: EvalSetConfig[],
+  /** enrichment: per-set 评测集详情 + item 数 (Get 全填; List 只填 id/count) */
+  eval_set_details?: ExptEvalSetDetail[],
+  /** 补齐回显缺口: DTO 平铺调度字段独缺此项 */
+  evaluators_concur_num?: number,
+  /** 实验绑定 item 总数; 首跑前可能缺省 */
+  total_item_count?: string,
 }
 /** 实验模板基础信息 */
 export interface ExptTemplateMeta {
@@ -143,6 +183,9 @@ export interface ExptTemplate {
   score_weight_config?: ExptScoreWeight,
   expt_info?: ExptInfo,
   expt_source?: ExptSource,
+  enable_extract_trajectory?: boolean,
+  /** 通知配置 */
+  notification_conf?: ExptNotificationConf,
   base_info?: common.BaseInfo,
 }
 export interface TaskTimeRange {
@@ -170,6 +213,8 @@ export enum Frequency {
   FrequencyFriday = "friday",
   FrequencySaturday = "saturday",
   FrequencySunday = "sunday",
+  FrequencyEveryHour = "every_hour",
+  FrequencyEveryMinute = "every_minute",
 }
 export interface Scheduler {
   /** 定时触发器开关，默认关闭 */
@@ -182,6 +227,8 @@ export interface Scheduler {
   start_time?: string,
   /** 生效结束时间（时间戳，秒） */
   end_time?: string,
+  /** 触发间隔（every_minute时为分钟数，every_hour时为小时数） */
+  trigger_interval?: number,
 }
 export interface ExptInfo {
   created_expt_count?: number,
@@ -225,8 +272,47 @@ export interface FieldMapping {
   const_value?: string,
   from_field_name?: string,
 }
+/**
+ * ===============================
+ * 通知配置相关结构定义
+ * ===============================
+ * 通知配置（公共触发条件 + 各渠道独立开关/参数）
+*/
+export interface ExptNotificationConf {
+  /** 公共触发条件（统一，前端只需配一份 filter） */
+  filter?: Filters,
+  /** Webhook 渠道配置 */
+  webhook?: WebhookNotificationConf,
+  /** 飞书渠道配置 */
+  feishu_notification?: FeishuNotificationConf,
+}
+export enum WebhookEnvironment {
+  /** 默认，不加任何路由 header */
+  Prod = 1,
+  PPE = 2,
+  BOE = 3,
+}
+export interface WebhookNotificationConf {
+  enable: boolean,
+  /** Webhook URL 列表，多个用逗号分隔 */
+  urls?: string,
+  /** 缺省 => Prod（向后兼容） */
+  environment?: WebhookEnvironment,
+  /** ppe/boe 泳道名；prod 时忽略 */
+  lane?: string,
+}
+export interface FeishuNotificationConf {
+  enable: boolean,
+  /** 通知目标用户 ID（为空时默认用实验创建者） */
+  user_id?: string,
+}
 export interface ExptFilterOption {
   fuzzy_name?: string,
+  /**
+   * 评测集来源模式筛选: 不传 = 默认仅返回 SingleSet(老实验), 排除 MultiSetConfig(新实验);
+   * 显式传 (含 MultiSetConfig) 才返回新实验。与 fuzzy_name 同级, 不走 filters。
+  */
+  eval_set_source_types?: ExptEvalSetSourceType[],
   filters?: Filters,
 }
 export enum ExptRetryMode {
@@ -540,6 +626,11 @@ export interface EvaluatorAggregateResult {
   aggregator_results?: AggregatorResult[],
   name?: string,
   version?: string,
+  /**
+   * alias 多实例别名 (default/judge_b 等); 同 version 多实例时区分, 老数据为空串。
+   * 注意: evaluator_results 为 map<i64> 时同 version 多 alias 会撞 key 只保留一个, 要拿全部 alias 走 list 出口。
+  */
+  alias?: string,
 }
 /** 人工标注项粒度聚合结果 */
 export interface AnnotationAggregateResult {
@@ -700,4 +791,91 @@ export enum FeedbackActionType {
   Create_Comment = "Create_Comment",
   Update_Comment = "Update_Comment",
   Delete_Comment = "Delete_Comment",
+}
+/**
+ * =====================================================================================
+ * ★ item-centric 实验改版新增定义 (2026-06)
+ * =====================================================================================
+ * 实验评测集来源模式: 读接口和创建接口的分流依据
+*/
+export enum ExptEvalSetSourceType {
+  /** 老实验: 单评测集, 配置在平铺老字段 */
+  SingleSet = 1,
+  /** 新实验: 多评测集+配置, 权威源 eval_conf.eval_set_configs */
+  MultiSetConfig = 2,
+}
+/**
+ * 说明: item 圈选 / evaluator 行级过滤复用 data/domain/data_filter.thrift 的 Filter/FilterField
+ * (别名 data_filter, 与 observability filter 区分以便 BAM/thriftgo 无歧义解析)
+ * 用法: 全集 = 不传; 点选 = item_id in [...]; 条件圈选 = tag 条件
+ * 校验白名单(应用层): query_type ∈ {eq,not_eq,in,not_in}; 单层不嵌套(sub_filter 必空); field_name ∈ {item_id, tag key}; field_type ∈ {long, tag}
+ * per-set target 运行配置; 本期 len<=1, alias 恒空 (多 target 实例预留口子)
+*/
+export interface ExptTargetConf {
+  target_id?: string,
+  target_version_id?: string,
+  target_type?: eval_target.EvalTargetType,
+  /** 本评测集字段 → target 输入 */
+  field_mapping?: TargetFieldMapping,
+  runtime_param?: common.RuntimeParam,
+  /** 多实例标识, 本期恒空串 */
+  alias?: string,
+  ext?: {
+    [key: string | number]: string
+  },
+}
+/** per-set 的一个 evaluator binding */
+export interface ExptEvaluatorConf {
+  evaluator_id: string,
+  evaluator_version_id: string,
+  evaluator_type?: evaluator.EvaluatorType,
+  /** 多实例区分(judge_A/judge_B); 缺省 '' 默认实例 */
+  alias?: string,
+  /** 评测集字段 → evaluator 输入 */
+  from_eval_set?: FieldMapping[],
+  /** target 输出 → evaluator 输入 */
+  from_target?: FieldMapping[],
+  /** 行级过滤: 命中才执行本 binding (复用 data data_filter.Filter) */
+  filter?: data_data_filter.Filter,
+  /** 0 None / 1 Include / 2 Exclude */
+  filter_mode?: number,
+  /** alias 多实例核心动机: 同 version 不同参数 */
+  runtime_param?: common.RuntimeParam,
+  /** enable_weighted_score 开启时参与加权 */
+  score_weight?: number,
+  ext?: {
+    [key: string | number]: string
+  },
+}
+/** 一个评测集 + 该集的完整配置包 */
+export interface EvalSetConfig {
+  eval_set_id: string,
+  /** 版本锁定, 不允许滚动 latest */
+  eval_set_version_id: string,
+  /** 不传=全集; 点选=item_id in [...]; 条件圈选=tag 条件 (复用 data data_filter.Filter) */
+  item_filter?: data_data_filter.Filter,
+  /** 本期 len<=1; 不传=继承 request 顶层 target */
+  target_confs?: ExptTargetConf[],
+  /** (evaluator_version_id, alias) 在 set 内唯一 */
+  evaluator_confs?: ExptEvaluatorConf[],
+  /** 跨空间: 该 set 评测集来源空间; nil/!is_shared=同空间 */
+  shared_option?: common.SharedResourceOption,
+  /** 跨空间: 该 set 评测对象来源空间 */
+  target_shared_option?: common.SharedResourceOption,
+  ext?: {
+    [key: string | number]: string
+  },
+}
+/** per-set 运行期增量信息 (纯读模型, 不进 Create 入参) */
+export interface ExptEvalSetDetail {
+  eval_set_id?: string,
+  eval_set_version_id?: string,
+  /** 主集(封面), 与 experiment.eval_set_id 列一致 */
+  is_primary?: boolean,
+  /** 该 set 选入实验的 item 数; 来源 expt_item_ref, 首跑前不填 */
+  item_count?: number,
+  /** Get 填充详情; List 不填 */
+  eval_set?: eval_set.EvaluationSet,
+  /** 评测集业务唯一键; 便于 GetExperiment 直接展示/定位 */
+  dataset_key?: string,
 }

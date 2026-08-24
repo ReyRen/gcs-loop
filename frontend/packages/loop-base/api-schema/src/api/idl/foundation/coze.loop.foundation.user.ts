@@ -24,16 +24,21 @@ export interface LoginByPasswordResponse {
   expire_time?: number,
 }
 export interface LogoutRequest {
+  /** legacy field; session_key is read by SessionMW */
   token?: string
 }
 export interface LogoutResponse {}
 export interface ResetPasswordRequest {
+  /** must match the authenticated session user's email */
   email?: string,
+  /** new password */
   password?: string,
+  /** reserved for a future account-recovery flow; currently ignored */
   code?: string,
 }
 export interface ResetPasswordResponse {}
 export interface GetUserInfoByTokenRequest {
+  /** legacy field; session_key is read by SessionMW */
   token?: string
 }
 export interface GetUserInfoByTokenResponse {

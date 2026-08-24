@@ -64,6 +64,12 @@ export interface VerifyTokenResponse {
   valid?: boolean,
   user_id?: string,
 }
+/** Console 页面使用的公开 HTTP API 部署信息。 */
+export interface GetPublicAPIConfigRequest {}
+export interface GetPublicAPIConfigResponse {
+  /** 用户可访问的 GCS Loop API Origin，不含 /v1 路径 */
+  base_url?: string
+}
 /** OpenAPI PAT管理 */
 export const CreatePersonalAccessToken = /*#__PURE__*/createAPI<CreatePersonalAccessTokenRequest, CreatePersonalAccessTokenResponse>({
   "url": "/api/auth/v1/personal_access_tokens",
@@ -123,6 +129,16 @@ export const ListPersonalAccessToken = /*#__PURE__*/createAPI<ListPersonalAccess
     "query": ["page_size", "page_number"]
   },
   "resType": "ListPersonalAccessTokenResponse",
+  "schemaRoot": "api://schemas/foundation_coze.loop.foundation.authn",
+  "service": "foundationAuthn"
+});
+export const GetPublicAPIConfig = /*#__PURE__*/createAPI<GetPublicAPIConfigRequest, GetPublicAPIConfigResponse>({
+  "url": "/api/auth/v1/public_api_config",
+  "method": "GET",
+  "name": "GetPublicAPIConfig",
+  "reqType": "GetPublicAPIConfigRequest",
+  "reqMapping": {},
+  "resType": "GetPublicAPIConfigResponse",
   "schemaRoot": "api://schemas/foundation_coze.loop.foundation.authn",
   "service": "foundationAuthn"
 });

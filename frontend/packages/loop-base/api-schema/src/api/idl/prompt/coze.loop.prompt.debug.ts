@@ -19,6 +19,31 @@ export const DebugStreaming = /*#__PURE__*/createAPI<DebugStreamingRequest, Debu
   "schemaRoot": "api://schemas/prompt_coze.loop.prompt.debug",
   "service": "promptDebug"
 });
+export const GeneratePrompt = /*#__PURE__*/createAPI<GeneratePromptRequest, GeneratePromptResponse>({
+  "url": "/api/prompt/v1/prompts/generate",
+  "method": "POST",
+  "name": "GeneratePrompt",
+  "reqType": "GeneratePromptRequest",
+  "reqMapping": {
+    "body": ["generate_prompt_type", "space_id", "prompt_id", "prompt_key", "prompt_name", "prompt_desc", "original_prompt_message", "is_retry", "user_message", "assistant_message", "variable_vals", "feedback"]
+  },
+  "resType": "GeneratePromptResponse",
+  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.debug",
+  "service": "promptDebug"
+});
+export const UpdateGenerateRecord = /*#__PURE__*/createAPI<UpdateGenerateRecordRequest, UpdateGenerateRecordResponse>({
+  "url": "/api/prompt/v1/prompts/generate/record/:record_id/update",
+  "method": "POST",
+  "name": "UpdateGenerateRecord",
+  "reqType": "UpdateGenerateRecordRequest",
+  "reqMapping": {
+    "path": ["record_id"],
+    "body": ["space_id", "prompt_id", "is_liked", "is_disliked", "is_accepted", "is_canceled"]
+  },
+  "resType": "UpdateGenerateRecordResponse",
+  "schemaRoot": "api://schemas/prompt_coze.loop.prompt.debug",
+  "service": "promptDebug"
+});
 export const SaveDebugContext = /*#__PURE__*/createAPI<SaveDebugContextRequest, SaveDebugContextResponse>({
   "url": "/api/prompt/v1/prompts/:prompt_id/debug_context/save",
   "method": "POST",
@@ -73,6 +98,39 @@ export interface DebugStreamingResponse {
   debug_id?: string,
   debug_trace_key?: string,
 }
+export enum GeneratePromptType {
+  GeneratePromptTypeOneStepOptimize = "one_step_optimize",
+  GeneratePromptTypeFeedbackOptimize = "feedback_optimize",
+}
+export interface GeneratePromptRequest {
+  generate_prompt_type?: GeneratePromptType,
+  space_id?: string,
+  prompt_id?: string,
+  prompt_key?: string,
+  prompt_name?: string,
+  prompt_desc?: string,
+  original_prompt_message?: prompt.Message,
+  is_retry?: boolean,
+  user_message?: prompt.Message,
+  assistant_message?: prompt.Message,
+  variable_vals?: prompt.VariableVal[],
+  feedback?: string,
+}
+export interface GeneratePromptResponse {
+  delta?: prompt.Message,
+  usage?: prompt.TokenUsage,
+  record_id?: string,
+}
+export interface UpdateGenerateRecordRequest {
+  record_id?: string,
+  space_id?: string,
+  prompt_id?: string,
+  is_liked?: boolean,
+  is_disliked?: boolean,
+  is_accepted?: boolean,
+  is_canceled?: boolean,
+}
+export interface UpdateGenerateRecordResponse {}
 export interface SaveDebugContextRequest {
   prompt_id?: string,
   workspace_id?: string,

@@ -115,6 +115,16 @@ export interface BaseInfo {
   updated_at?: string,
   deleted_at?: string,
 }
+export interface SharedResourceOption {
+  is_shared?: boolean,
+  source_space_id?: string,
+}
+export interface SharedResourceInfo {
+  is_shared?: boolean,
+  source_space_id?: string,
+  access_level?: string,
+  version_policy?: string,
+}
 /** 评测模型配置 */
 export interface ModelConfig {
   /** 模型id */
