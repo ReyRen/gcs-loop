@@ -1,6 +1,8 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 
+import { type PromptDetail } from '@cozeloop/api-schema/prompt';
+
 export interface PromptTemplate {
   id: string;
   title: string;
@@ -8,7 +10,7 @@ export interface PromptTemplate {
   category: string;
   iconKey: string;
   templateKey: string;
-  draftDetail?: Record<string, unknown>;
+  draftDetail?: PromptDetail;
   categoryDisplay?: string;
 }
 

@@ -413,11 +413,11 @@ export default function ({
       ? {
           selectedRowKeys: selectedRowKeys ?? [],
           onChange: (
-            keys: (string | number)[],
-            rows: Record<string, unknown>[],
+            keys: (string | number)[] | undefined,
+            rows: Record<string, unknown>[] | undefined,
           ) => {
-            onSelectedRowKeysChange?.(keys as string[]);
-            onSelectedRowsChange?.(rows as ExperimentItem[]);
+            onSelectedRowKeysChange?.((keys ?? []) as string[]);
+            onSelectedRowsChange?.((rows ?? []) as unknown as ExperimentItem[]);
           },
         }
       : undefined,

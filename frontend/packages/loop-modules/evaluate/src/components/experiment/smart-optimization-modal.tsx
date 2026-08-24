@@ -600,7 +600,7 @@ export default function SmartOptimizationModal({
           <div>
             {messages.length ? (
               messages.map((msg, idx) => (
-                <div key={msg?.id || msg?.key || idx} className="mb-3">
+                <div key={idx} className="mb-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Typography.Text strong>
                       {roleLabelMap[msg?.role ?? ''] ?? msg?.role}{' '}

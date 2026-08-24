@@ -15,5 +15,6 @@ export * as dateTag from './data/coze.loop.data.tag';
 export * as llmManage from './llm/coze.loop.llm.manage';
 export * as foundationUpload from './foundation/coze.loop.foundation.file';
 export * as foundationUser from './foundation/coze.loop.foundation.user';
+export * as foundationAuth from './foundation/coze.loop.foundation.auth';
 export * as foundationAuthn from './foundation/coze.loop.foundation.authn';
 export * as foundationSpace from './foundation/coze.loop.foundation.space';
