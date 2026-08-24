@@ -140,9 +140,9 @@ export function VersionList() {
           headers: { 'Agw-Js-Conv': 'str' },
         },
       );
-      const data: InvokeInfo = await resp.json();
+      const data: { invoke_info?: InvokeInfo } = await resp.json();
       console.log(data, 1111);
-      setInvokeData(data.invoke_info);
+      setInvokeData(data.invoke_info ?? {});
 
       // 调用 public_api_config 接口
       AuthApi.GetPublicApiConfig({

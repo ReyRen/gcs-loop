@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { useDebounce, useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
+import { type PromptTemplatePresetCategory } from '@cozeloop/api-schema/prompt';
 import { StonePromptApi } from '@cozeloop/api-schema';
 import { IconCozCross, IconCozLoading } from '@coze-arch/coze-design/icons';
 import { Search, Modal } from '@coze-arch/coze-design';
@@ -36,8 +37,10 @@ export const PromptTemplateDialog = ({
   // 从接口获取模板列表
   const templatesRequest = useRequest(
     async () => {
-      const categoryFilter =
-        activeCategory !== 'all' ? [activeCategory] : undefined;
+      const categoryFilter: PromptTemplatePresetCategory[] | undefined =
+        activeCategory !== 'all'
+          ? [activeCategory as PromptTemplatePresetCategory]
+          : undefined;
       const res = await StonePromptApi.ListPromptTemplates({
         workspace_id: spaceID,
         categories: categoryFilter,

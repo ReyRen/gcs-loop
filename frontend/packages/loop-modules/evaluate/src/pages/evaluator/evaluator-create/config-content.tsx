@@ -54,7 +54,10 @@ export function ConfigContent({
               const messages =
                 formState.values?.current_version?.evaluator_content
                   ?.prompt_evaluator?.message_list ?? [];
-              const res = multiModelValidate(messages, modelRef.current);
+              const res = multiModelValidate(
+                messages,
+                modelRef.current ?? undefined,
+              );
               callback(res);
             },
           },

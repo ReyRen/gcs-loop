@@ -467,7 +467,7 @@ export default function PromptOptimizationPage() {
       <div className="mx-auto max-w-[1200px]">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <Typography.Title level={4} className="!mb-1">
+            <Typography.Title heading={4} className="!mb-1">
               {task?.name || I18n.t('prompt_optimization_title')}
             </Typography.Title>
             <Typography.Text className="coz-fg-secondary">
@@ -614,7 +614,7 @@ export default function PromptOptimizationPage() {
 
             {/* 7.2 Prompt 对比 */}
             <div className="mb-6 rounded border border-solid coz-stroke-primary p-6">
-              <Typography.Title level={5}>
+              <Typography.Title heading={5}>
                 {I18n.t('prompt_optimization_prompt_comparison')}
               </Typography.Title>
               <Divider />
@@ -626,7 +626,7 @@ export default function PromptOptimizationPage() {
                   {I18n.t('prompt_optimization_optimized_prompt')}
                 </Typography.Text>
               </div>
-              {task.optimized_prompt_template
+              {task?.optimized_prompt_template
                 ? renderDiffMessages(
                     (
                       task.original_prompt_template as
@@ -637,7 +637,7 @@ export default function PromptOptimizationPage() {
                   )
                 : renderMessages(
                     (
-                      task.original_prompt_template as
+                      task?.original_prompt_template as
                         | PromptTemplate
                         | undefined
                     )?.messages ?? [],
@@ -646,7 +646,7 @@ export default function PromptOptimizationPage() {
 
             {/* 7.3 样本对比表 */}
             <div className="mb-6 rounded border border-solid coz-stroke-primary p-6">
-              <Typography.Title level={5}>
+              <Typography.Title heading={5}>
                 {I18n.t('prompt_optimization_sample_comparison')}
               </Typography.Title>
               <Divider />
