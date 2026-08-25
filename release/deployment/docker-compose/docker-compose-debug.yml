@@ -3,6 +3,7 @@ services:
     build:
       context: ../../..
       dockerfile: ./release/image/debug.Dockerfile
+      network: host
     image: "coze-dev/coze-loop:debug"
     ports:
       - "${COZE_LOOP_APP_DEBUG_PORT}:40000"

@@ -9,6 +9,7 @@ import (
 	"io"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -143,8 +144,15 @@ func (p *EvaluatorSourcePromptServiceImpl) Run(ctx context.Context, evaluator *e
 
 		p.metric.EmitRun(exptSpaceID, err, startTime, modelID)
 	}()
+	// 每次运行都复制消息模板，避免一次变量渲染污染后续样本。
+	evaluatorVersion, cloneErr := clonePromptEvaluatorVersionForRun(evaluator.PromptEvaluatorVersion)
+	if cloneErr != nil {
+		err = cloneErr
+		runStatus = entity.EvaluatorRunStatusFail
+		return nil, runStatus, traceID
+	}
 	// 渲染变量
-	err = renderTemplate(ctx, evaluator.PromptEvaluatorVersion, input, exptSpaceID, disableTracing)
+	err = renderTemplate(ctx, evaluatorVersion, input, exptSpaceID, disableTracing)
 	if err != nil {
 		logs.CtxError(ctx, "[RunEvaluator] renderTemplate fail, err: %v", err)
 		runStatus = entity.EvaluatorRunStatusFail
@@ -152,19 +160,40 @@ func (p *EvaluatorSourcePromptServiceImpl) Run(ctx context.Context, evaluator *e
 	}
 	// 执行评估逻辑
 	userIDInContext := session.UserIDInCtxOrEmpty(ctx)
-	llmResp, err := p.chat(ctx, evaluator.PromptEvaluatorVersion, exptSpaceID, userIDInContext, disableTracing)
+	llmResp, err := p.chat(ctx, evaluatorVersion, exptSpaceID, userIDInContext, disableTracing)
 	if err != nil {
 		logs.CtxError(ctx, "[RunEvaluator] chat fail, err: %v", err)
 		runStatus = entity.EvaluatorRunStatusFail
 		return nil, runStatus, traceID
 	}
-	output, err = parseOutput(ctx, evaluator.PromptEvaluatorVersion, llmResp, exptSpaceID, disableTracing)
+	output, err = parseOutput(ctx, evaluatorVersion, llmResp, exptSpaceID, disableTracing)
+	// Content 模式的模型偶尔只返回说明文字；简单重试一次即可。
+	if err != nil && evaluatorVersion.ParseType == entity.ParseTypeContent {
+		logs.CtxWarn(ctx, "[RunEvaluator] invalid content output, retry once, err: %v", err)
+		llmResp, err = p.chat(ctx, evaluatorVersion, exptSpaceID, userIDInContext, disableTracing)
+		if err == nil {
+			output, err = parseOutput(ctx, evaluatorVersion, llmResp, exptSpaceID, disableTracing)
+		}
+	}
 	if err != nil {
 		logs.CtxWarn(ctx, "[RunEvaluator] parseOutput fail, err: %v", err)
 		runStatus = entity.EvaluatorRunStatusFail
 		return nil, runStatus, traceID
 	}
 	return output, entity.EvaluatorRunStatusSuccess, traceID
+}
+
+func clonePromptEvaluatorVersionForRun(source *entity.PromptEvaluatorVersion) (*entity.PromptEvaluatorVersion, error) {
+	cloned := *source
+	messageData, err := sonic.Marshal(source.MessageList)
+	if err != nil {
+		return nil, errorx.Wrapf(err, "clone evaluator message templates")
+	}
+	cloned.MessageList = nil
+	if err := sonic.Unmarshal(messageData, &cloned.MessageList); err != nil {
+		return nil, errorx.Wrapf(err, "clone evaluator message templates")
+	}
+	return &cloned, nil
 }
 
 func (p *EvaluatorSourcePromptServiceImpl) chat(ctx context.Context, evaluatorVersion *entity.PromptEvaluatorVersion, exptSpaceID int64, userIDInContext string, disableTracing bool) (resp *entity.ReplyItem, err error) {
@@ -371,7 +400,10 @@ type outputMsgFormat struct {
 var jsonRe = regexp.MustCompile(`\{(?s:[^{}]*(?:"score"\s*:\s*(?:"[\d.]+"|\d+(?:\.\d+)?)[^{}]*"reason"\s*:\s*"(?:[^"\\]|\\.)*"|"reason"\s*:\s*"(?:[^"\\]|\\.)*"[^{}]*"score"\s*:\s*(?:"[\d.]+"|\d+(?:\.\d+)?))[^{}]*)}`)
 
 func parseContentOutput(ctx context.Context, evaluatorVersion *entity.PromptEvaluatorVersion, replyItem *entity.ReplyItem, output *entity.EvaluatorOutputData) error {
-	content := gptr.Indirect(replyItem.Content)
+	content := strings.TrimSpace(gptr.Indirect(replyItem.Content))
+	if content == "" {
+		content = strings.TrimSpace(gptr.Indirect(replyItem.ReasoningContent))
+	}
 
 	// 按优先级顺序执行解析策略
 	strategies := []func(context.Context, string, *entity.EvaluatorOutputData) (bool, error){

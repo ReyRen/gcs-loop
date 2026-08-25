@@ -3298,6 +3298,65 @@ func TestExptResultServiceImpl_ListTurnResult(t *testing.T) {
 		expectedError               error
 	}{
 		{
+			name: "指定ItemIDs且未传BaseExptID时使用当前实验ID",
+			param: &entity.MGetExperimentResultParam{
+				SpaceID: 100,
+				ExptIDs: []int64{7},
+				ItemIDs: []int64{10},
+				Page:    entity.NewPage(1, 20),
+			},
+			expt: &entity.Experiment{
+				ID:       7,
+				SpaceID:  100,
+				ExptType: entity.ExptType_Offline,
+				StartAt:  &now,
+			},
+			setup: func() {
+				mockExptTurnResultRepo.EXPECT().
+					ListTurnResultByItemIDs(gomock.Any(), int64(100), int64(7), []int64{10}, entity.Page{}, false).
+					Return([]*entity.ExptTurnResult{
+						{
+							ID:      1,
+							SpaceID: 100,
+							ExptID:  7,
+							ItemID:  10,
+							TurnID:  0,
+							Status:  int32(entity.TurnRunState_Success),
+						},
+					}, int64(1), nil).
+					Times(1)
+
+				mockExptItemResultRepo.EXPECT().
+					BatchGet(gomock.Any(), int64(100), int64(7), []int64{10}).
+					Return([]*entity.ExptItemResult{
+						{
+							ID:      1,
+							ItemID:  10,
+							SpaceID: 100,
+							ExptID:  7,
+							ItemIdx: 1,
+							Status:  entity.ItemRunState_Success,
+						},
+					}, nil).
+					Times(1)
+			},
+			expectedTurnResults: []*entity.ExptTurnResult{
+				{
+					ID:      1,
+					SpaceID: 100,
+					ExptID:  7,
+					ItemID:  10,
+					TurnID:  0,
+					Status:  int32(entity.TurnRunState_Success),
+				},
+			},
+			expectedItemID2ItemRunState: map[int64]entity.ItemRunState{
+				10: entity.ItemRunState_Success,
+			},
+			expectedTotal: 1,
+			expectedError: nil,
+		},
+		{
 			name: "UseAccelerator=false, 正常流程",
 			param: &entity.MGetExperimentResultParam{
 				SpaceID:        100,

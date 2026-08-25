@@ -222,6 +222,56 @@ func TestEvaluatorSourcePromptServiceImpl_Run(t *testing.T) {
 	}
 }
 
+func TestEvaluatorSourcePromptServiceImpl_Run_ContentRetryAndFreshTemplate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	llmProvider := rpcmocks.NewMockILLMProvider(ctrl)
+	metric := metricsmocks.NewMockEvaluatorExecMetrics(ctrl)
+	service := &EvaluatorSourcePromptServiceImpl{llmProvider: llmProvider, metric: metric}
+
+	contentType := entity.ContentTypeText
+	templateText := "Question: {{input}}"
+	evaluatorDO := &entity.Evaluator{
+		Name:          "content evaluator",
+		SpaceID:       1,
+		EvaluatorType: entity.EvaluatorTypePrompt,
+		PromptEvaluatorVersion: &entity.PromptEvaluatorVersion{
+			EvaluatorID: 1,
+			SpaceID:     1,
+			ParseType:   entity.ParseTypeContent,
+			ModelConfig: &entity.ModelConfig{ModelID: gptr.Of(int64(1))},
+			MessageList: []*entity.Message{{
+				Role: entity.RoleSystem,
+				Content: &entity.Content{
+					ContentType: &contentType,
+					Text:        &templateText,
+				},
+			}},
+		},
+	}
+	inputText := "second sample"
+	input := &entity.EvaluatorInputData{InputFields: map[string]*entity.Content{
+		"input": {ContentType: &contentType, Text: &inputText},
+	}}
+	invalidContent := "我们只需要按照要求输出JSON。"
+	validContent := `{"score":1,"reason":"valid on retry"}`
+
+	firstCall := llmProvider.EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, param *entity.LLMCallParam) (*entity.ReplyItem, error) {
+			assert.Equal(t, "Question: second sample", param.Messages[0].Content.GetText())
+			return &entity.ReplyItem{Content: &invalidContent}, nil
+		})
+	llmProvider.EXPECT().Call(gomock.Any(), gomock.Any()).After(firstCall).Return(
+		&entity.ReplyItem{Content: &validContent}, nil)
+	metric.EXPECT().EmitRun(int64(1), nil, gomock.Any(), "1")
+
+	output, status, _ := service.Run(context.Background(), evaluatorDO, input, nil, 1, true)
+
+	assert.Equal(t, entity.EvaluatorRunStatusSuccess, status)
+	assert.Equal(t, 1.0, gptr.Indirect(output.EvaluatorResult.Score))
+	assert.Equal(t, "valid on retry", output.EvaluatorResult.Reasoning)
+	assert.Equal(t, templateText, evaluatorDO.PromptEvaluatorVersion.MessageList[0].Content.GetText())
+}
+
 // TestEvaluatorSourcePromptServiceImpl_PreHandle 测试 PreHandle 方法
 // TestEvaluatorSourcePromptServiceImpl_PreHandle 测试 PreHandle 方法
 func TestEvaluatorSourcePromptServiceImpl_PreHandle(t *testing.T) {
@@ -750,6 +800,22 @@ func Test_parseContentOutput(t *testing.T) {
 		assert.NotNil(t, output.EvaluatorResult.Score)
 		assert.InDelta(t, 0.8, *output.EvaluatorResult.Score, 0.0001)
 		assert.Equal(t, "This is a good reason.", output.EvaluatorResult.Reasoning)
+	})
+
+	t.Run("场景1.1: content为空时从reasoning_content解析", func(t *testing.T) {
+		content := ""
+		reasoningContent := `先分析评分依据。{"reason":"模型回答与参考答案一致。","score":1}`
+		replyItem := &entity.ReplyItem{Content: &content, ReasoningContent: &reasoningContent}
+		output := &entity.EvaluatorOutputData{
+			EvaluatorResult: &entity.EvaluatorResult{},
+		}
+
+		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, output.EvaluatorResult.Score)
+		assert.InDelta(t, 1, *output.EvaluatorResult.Score, 0.0001)
+		assert.Equal(t, "模型回答与参考答案一致。", output.EvaluatorResult.Reasoning)
 	})
 
 	t.Run("场景2: JSON被包裹在Markdown代码块中", func(t *testing.T) {

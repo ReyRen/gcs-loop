@@ -728,7 +728,7 @@ func (e ExptResultServiceImpl) ListTurnResult(ctx context.Context, param *entity
 		baselineExptID = param.BaseExptID
 		page           = param.Page
 		total          int64
-		baseExptID     int64
+		baseExptID     = expt.ID
 	)
 
 	if baselineExptID != nil {

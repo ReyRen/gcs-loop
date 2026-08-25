@@ -5,6 +5,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/bytedance/gg/gptr"
@@ -16,6 +17,7 @@ import (
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc"
 	rpcmocks "github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc/mocks"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
+	servicemocks "github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/service/mocks"
 )
 
 func TestOptimizationMetricsFromResults(t *testing.T) {
@@ -52,6 +54,35 @@ func TestBetterOptimizationMetrics(t *testing.T) {
 	))
 }
 
+func TestPromptOptimizationModelUsesConfiguredID(t *testing.T) {
+	t.Setenv(promptOptimizerModelIDEnv, "6")
+
+	model, err := promptOptimizationModel(nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, int64(6), model.GetModelID())
+	assert.Equal(t, promptOptimizerMaxTokens, gptr.Indirect(model.MaxTokens))
+}
+
+func TestPromptOptimizationWorkerCount(t *testing.T) {
+	t.Run("default", func(t *testing.T) {
+		t.Setenv(promptOptimizationWorkersEnv, "")
+		assert.Equal(t, promptOptimizationDefaultWorkers, promptOptimizationWorkerCount())
+	})
+	t.Run("configured", func(t *testing.T) {
+		t.Setenv(promptOptimizationWorkersEnv, "6")
+		assert.Equal(t, 6, promptOptimizationWorkerCount())
+	})
+	t.Run("invalid", func(t *testing.T) {
+		t.Setenv(promptOptimizationWorkersEnv, "0")
+		assert.Equal(t, promptOptimizationDefaultWorkers, promptOptimizationWorkerCount())
+	})
+	t.Run("over limit", func(t *testing.T) {
+		t.Setenv(promptOptimizationWorkersEnv, "33")
+		assert.Equal(t, promptOptimizationDefaultWorkers, promptOptimizationWorkerCount())
+	})
+}
+
 func TestPromptOptimizationGenerateCandidate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	llm := rpcmocks.NewMockILLMProvider(ctrl)
@@ -67,14 +98,12 @@ func TestPromptOptimizationGenerateCandidate(t *testing.T) {
 		Messages:     []*rpc.PromptMessage{{Role: "system", Content: "Discuss {{topic}}."}},
 		VariableDefs: []*rpc.VariableDef{{Key: &key, Type: &variableType}},
 	}
-	promptDO := &rpc.LoopPrompt{PromptCommit: &rpc.PromptCommit{Detail: &rpc.PromptDetail{
-		ModelConfig: &rpc.PromptModelConfig{ModelID: 10, MaxTokens: 1024},
-	}}}
+	optimizerModel := &entity.ModelConfig{ModelID: gptr.Of(int64(10)), MaxTokens: gptr.Of(int32(1024))}
 
 	candidate, rationale, inputTokens, outputTokens, err := executor.generateCandidate(
 		context.Background(),
 		&promptOptimizationTaskPO{SpaceID: 1, CreatedBy: "2", Mode: expt.PromptOptimizationModeEffectFirst},
-		promptDO,
+		optimizerModel,
 		best,
 		[]optimizerSample{{DisplayVariables: map[string]string{"topic": "testing"}}},
 		nil,
@@ -90,6 +119,46 @@ func TestPromptOptimizationGenerateCandidate(t *testing.T) {
 	assert.Equal(t, best.VariableDefs, candidate.VariableDefs)
 }
 
+func TestPromptOptimizationGenerateCandidateUsesRequiredToolCall(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	llm := rpcmocks.NewMockILLMProvider(ctrl)
+	arguments := `{"message_0":"Answer {{topic}} accurately.","message_1":"Use the requested output format.","rationale":"use structured output"}`
+	llm.EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, param *entity.LLMCallParam) (*entity.ReplyItem, error) {
+		require.Len(t, param.Tools, 1)
+		assert.Equal(t, "submit_optimized_prompt", param.Tools[0].Function.Name)
+		assert.Contains(t, param.Tools[0].Function.Parameters, `"message_0"`)
+		assert.Contains(t, param.Tools[0].Function.Parameters, `"message_1"`)
+		assert.NotContains(t, param.Tools[0].Function.Parameters, `"messages"`)
+		require.NotNil(t, param.ToolCallConfig)
+		assert.Equal(t, entity.ToolChoiceTypeRequired, param.ToolCallConfig.ToolChoice)
+		return &entity.ReplyItem{ToolCalls: []*entity.ToolCall{{FunctionCall: &entity.FunctionCall{
+			Name: "submit_optimized_prompt", Arguments: &arguments,
+		}}}}, nil
+	})
+
+	executor := &promptOptimizationExecutor{llm: llm}
+	key, variableType := "topic", rpc.VariableTypeString
+	best := &rpc.PromptTemplate{
+		Messages: []*rpc.PromptMessage{
+			{Role: "system", Content: "Discuss {{topic}}."},
+			{Role: "user", Content: "Return a concise answer."},
+		},
+		VariableDefs: []*rpc.VariableDef{{Key: &key, Type: &variableType}},
+	}
+	optimizerModel := &entity.ModelConfig{ModelID: gptr.Of(int64(10)), MaxTokens: gptr.Of(int32(1024))}
+
+	candidate, rationale, _, _, err := executor.generateCandidate(context.Background(),
+		&promptOptimizationTaskPO{SpaceID: 1, CreatedBy: "2"}, optimizerModel, best, nil, nil, 1)
+
+	require.NoError(t, err)
+	require.Len(t, candidate.Messages, 2)
+	assert.Equal(t, "system", candidate.Messages[0].Role)
+	assert.Equal(t, "Answer {{topic}} accurately.", candidate.Messages[0].Content)
+	assert.Equal(t, "user", candidate.Messages[1].Role)
+	assert.Equal(t, "Use the requested output format.", candidate.Messages[1].Content)
+	assert.Equal(t, "use structured output", rationale)
+}
+
 func TestPromptOptimizationGenerateCandidateRejectsRemovedVariable(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	llm := rpcmocks.NewMockILLMProvider(ctrl)
@@ -103,15 +172,48 @@ func TestPromptOptimizationGenerateCandidateRejectsRemovedVariable(t *testing.T)
 		Messages:     []*rpc.PromptMessage{{Role: "system", Content: "Discuss {{topic}}."}},
 		VariableDefs: []*rpc.VariableDef{{Key: &key}},
 	}
-	promptDO := &rpc.LoopPrompt{PromptCommit: &rpc.PromptCommit{Detail: &rpc.PromptDetail{
-		ModelConfig: &rpc.PromptModelConfig{ModelID: 10, MaxTokens: 1024},
-	}}}
+	optimizerModel := &entity.ModelConfig{ModelID: gptr.Of(int64(10)), MaxTokens: gptr.Of(int32(1024))}
 
 	_, _, _, _, err := executor.generateCandidate(context.Background(),
-		&promptOptimizationTaskPO{SpaceID: 1, CreatedBy: "2"}, promptDO, best, nil, nil, 1)
+		&promptOptimizationTaskPO{SpaceID: 1, CreatedBy: "2"}, optimizerModel, best, nil, nil, 1)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "removed required variable")
+}
+
+func TestPromptOptimizationEvaluateCandidateFailsOnEvaluatorError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	prompt := rpcmocks.NewMockIPromptRPCAdapter(ctrl)
+	evaluatorService := servicemocks.NewMockEvaluatorService(ctrl)
+
+	prompt.EXPECT().ExecutePrompt(gomock.Any(), int64(1), gomock.Any()).Return(&rpc.ExecutePromptResult{
+		Content: gptr.Of("candidate answer"),
+	}, nil)
+	evaluatorService.EXPECT().DebugEvaluator(gomock.Any(), gomock.Any(), gomock.Any(), nil, int64(1)).
+		Return(nil, errors.New("provider unavailable"))
+
+	const evaluatorVersionID int64 = 101
+	executor := &promptOptimizationExecutor{prompt: prompt, evaluatorService: evaluatorService}
+	experiment := &entity.Experiment{Evaluators: []*entity.Evaluator{{
+		EvaluatorType: entity.EvaluatorTypePrompt,
+		PromptEvaluatorVersion: &entity.PromptEvaluatorVersion{
+			ID: evaluatorVersionID,
+		},
+	}}}
+	samples := []optimizerSample{{
+		ItemID: 10,
+		EvaluatorRecords: map[int64]*entity.EvaluatorRecord{
+			evaluatorVersionID: {EvaluatorInputData: &entity.EvaluatorInputData{}},
+		},
+	}}
+
+	_, _, _, _, err := executor.evaluateCandidate(context.Background(),
+		&promptOptimizationTaskPO{SpaceID: 1, PromptID: 2, SourcePromptVersion: "0.0.1"},
+		promptOptimizationRequestSnapshot{}, experiment, &rpc.PromptTemplate{}, samples, 1, 8)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "evaluate candidate item 10 with evaluator 101")
+	assert.Contains(t, err.Error(), "provider unavailable")
 }
 
 func TestValidateOptimizationVariableMappings(t *testing.T) {

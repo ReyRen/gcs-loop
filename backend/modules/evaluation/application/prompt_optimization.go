@@ -8,6 +8,7 @@ import (
 	stdjson "encoding/json"
 	"fmt"
 	"math"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -34,9 +35,13 @@ import (
 )
 
 const (
-	promptOptimizationMaxSamples = 20
-	promptOptimizationWorkers    = 2
-	optimizerEvaluatorID         = "evaluation_prompt_optimizer"
+	promptOptimizationMaxSamples     = 20
+	promptOptimizationDefaultWorkers = 2
+	promptOptimizationMaxWorkers     = 32
+	promptOptimizationWorkersEnv     = "COZE_LOOP_PROMPT_OPTIMIZATION_WORKERS"
+	optimizerEvaluatorID             = "evaluation_prompt_optimizer"
+	promptOptimizerModelIDEnv        = "COZE_LOOP_PROMPT_OPTIMIZER_MODEL_ID"
+	promptOptimizerMaxTokens         = int32(16384)
 )
 
 type promptOptimizationRequestSnapshot struct {
@@ -71,11 +76,27 @@ func newPromptOptimizationExecutor(provider db.Provider, idgen idgen.IIDGenerato
 	resultSvc service.ExptResultService, evaluatorService service.EvaluatorService, llm rpc.ILLMProvider,
 	prompt rpc.IPromptRPCAdapter,
 ) *promptOptimizationExecutor {
+	workerCount := promptOptimizationWorkerCount()
+	logs.Info("prompt optimization worker count is %d", workerCount)
 	return &promptOptimizationExecutor{
 		store: newPromptOptimizationStore(provider), idgen: idgen, manager: manager, resultSvc: resultSvc,
 		evaluatorService: evaluatorService, llm: llm, prompt: prompt,
-		sem: make(chan struct{}, promptOptimizationWorkers), running: make(map[int64]context.CancelFunc),
+		sem: make(chan struct{}, workerCount), running: make(map[int64]context.CancelFunc),
 	}
+}
+
+func promptOptimizationWorkerCount() int {
+	configured := strings.TrimSpace(os.Getenv(promptOptimizationWorkersEnv))
+	if configured == "" {
+		return promptOptimizationDefaultWorkers
+	}
+	workerCount, err := strconv.Atoi(configured)
+	if err != nil || workerCount < 1 || workerCount > promptOptimizationMaxWorkers {
+		logs.Warn("%s must be an integer between 1 and %d, fallback to %d",
+			promptOptimizationWorkersEnv, promptOptimizationMaxWorkers, promptOptimizationDefaultWorkers)
+		return promptOptimizationDefaultWorkers
+	}
+	return workerCount
 }
 
 // attachPromptOptimization is a Wire decorator. Keeping the original
@@ -523,6 +544,10 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 	if promptDO.PromptCommit.Detail.ModelConfig == nil || promptDO.PromptCommit.Detail.ModelConfig.ModelID <= 0 {
 		return errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("the source Prompt has no usable model configuration"))
 	}
+	optimizerModel, err := promptOptimizationModel(experiment)
+	if err != nil {
+		return err
+	}
 	_ = p.store.updateTask(ctx, row.ID, map[string]any{"stage": string(expt.PromptOptimizationStageAnalyzing), "progress": 5})
 	samples, err := p.loadSamples(ctx, row, request)
 	if err != nil {
@@ -548,7 +573,7 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 		}
 		progress := int32(10 + int(iteration-1)*80/int(request.MaxIterations))
 		_ = p.store.updateTask(ctx, row.ID, map[string]any{"stage": string(expt.PromptOptimizationStageOptimizing), "progress": progress})
-		candidate, rationale, inTokens, outTokens, genErr := p.generateCandidate(ctx, row, promptDO, best, samples, bestResults, iteration)
+		candidate, rationale, inTokens, outTokens, genErr := p.generateCandidate(ctx, row, optimizerModel, best, samples, bestResults, iteration)
 		totalInputTokens += inTokens
 		totalOutputTokens += outTokens
 		if genErr != nil {
@@ -561,7 +586,12 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 			return nil
 		}
 		_ = p.store.updateTask(ctx, row.ID, map[string]any{"stage": string(expt.PromptOptimizationStageEvaluating)})
-		metrics, results, evaluationInputTokens, evaluationOutputTokens := p.evaluateCandidate(ctx, row, request, experiment, candidate, samples)
+		metrics, results, evaluationInputTokens, evaluationOutputTokens, evaluationErr := p.evaluateCandidate(
+			ctx, row, request, experiment, candidate, samples, iteration, request.MaxIterations,
+		)
+		if evaluationErr != nil {
+			return evaluationErr
+		}
 		totalInputTokens += evaluationInputTokens
 		totalOutputTokens += evaluationOutputTokens
 		metrics.InputTokens = gptr.Of(totalInputTokens)
@@ -607,6 +637,30 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 		"progress": 100, "optimized_prompt_template": bestData, "best_metrics": bestMetricsData, "ended_at": now,
 	})
 	return err
+}
+
+func promptOptimizationModel(experiment *entity.Experiment) (*entity.ModelConfig, error) {
+	if configured := strings.TrimSpace(os.Getenv(promptOptimizerModelIDEnv)); configured != "" {
+		modelID, err := strconv.ParseInt(configured, 10, 64)
+		if err != nil || modelID <= 0 {
+			return nil, errorx.NewByCode(errno.CommonInternalErrorCode,
+				errorx.WithExtraMsg(promptOptimizerModelIDEnv+" must be a positive integer"))
+		}
+		return &entity.ModelConfig{ModelID: gptr.Of(modelID), MaxTokens: gptr.Of(promptOptimizerMaxTokens)}, nil
+	}
+	if experiment != nil {
+		for _, evaluator := range experiment.Evaluators {
+			if evaluator == nil {
+				continue
+			}
+			model := evaluator.GetModelConfig()
+			if model != nil && model.GetModelID() > 0 {
+				return model, nil
+			}
+		}
+	}
+	return nil, errorx.NewByCode(errno.CommonInvalidParamCode,
+		errorx.WithExtraMsg("prompt optimization requires at least one model-backed Prompt evaluator"))
 }
 
 func (p *promptOptimizationExecutor) loadSamples(ctx context.Context, row *promptOptimizationTaskPO, request promptOptimizationRequestSnapshot) ([]optimizerSample, error) {
@@ -686,7 +740,7 @@ func (p *promptOptimizationExecutor) loadSamples(ctx context.Context, row *promp
 	return result, nil
 }
 
-func (p *promptOptimizationExecutor) generateCandidate(ctx context.Context, row *promptOptimizationTaskPO, promptDO *rpc.LoopPrompt,
+func (p *promptOptimizationExecutor) generateCandidate(ctx context.Context, row *promptOptimizationTaskPO, model *entity.ModelConfig,
 	best *rpc.PromptTemplate, samples []optimizerSample, previousResults []*expt.PromptOptimizationSampleEvaluation, iteration int32,
 ) (*rpc.PromptTemplate, string, int64, int64, error) {
 	type sampleForOptimizer struct {
@@ -725,11 +779,46 @@ func (p *promptOptimizationExecutor) generateCandidate(ctx context.Context, row 
 		"iteration": iteration, "mode": row.Mode, "current_prompt": best.Messages, "variable_definitions": best.VariableDefs,
 		"experiment_samples": data,
 	})
-	systemText := "你是 Prompt 优化专家。请根据评测实验样本、模型回答、参考答案、评估器得分和原因，改写 Prompt 以提升真实评测得分。必须保留所有原变量占位符及语义，不得针对单条样本泄露答案，不得新增不存在的业务事实。只输出严格 JSON：{\"messages\":[{\"role\":\"system|user|assistant\",\"content\":\"...\"}],\"rationale\":\"...\"}。"
-	model := promptDO.PromptCommit.Detail.ModelConfig
-	maxTokens := model.MaxTokens
-	if maxTokens <= 0 || maxTokens > 8192 {
-		maxTokens = 4096
+	const optimizerToolName = "submit_optimized_prompt"
+	toolProperties := map[string]any{
+		"rationale": map[string]any{"type": "string", "description": "本轮 Prompt 优化理由"},
+	}
+	requiredToolFields := make([]string, 0, len(best.Messages)+1)
+	messageFieldIndexes := make(map[string]int, len(best.Messages))
+	for index, message := range best.Messages {
+		if message == nil {
+			continue
+		}
+		field := fmt.Sprintf("message_%d", index)
+		toolProperties[field] = map[string]any{
+			"type":        "string",
+			"description": fmt.Sprintf("优化后的第 %d 条 %s 消息正文；必须保留原变量占位符", index+1, message.Role),
+		}
+		requiredToolFields = append(requiredToolFields, field)
+		messageFieldIndexes[field] = index
+	}
+	if len(messageFieldIndexes) == 0 {
+		return nil, "", 0, 0, errorx.NewByCode(errno.CommonInvalidParamCode,
+			errorx.WithExtraMsg("Prompt optimization requires at least one message"))
+	}
+	requiredToolFields = append(requiredToolFields, "rationale")
+	optimizerToolSchemaData, err := stdjson.Marshal(map[string]any{
+		"type":                 "object",
+		"properties":           toolProperties,
+		"required":             requiredToolFields,
+		"additionalProperties": false,
+	})
+	if err != nil {
+		return nil, "", 0, 0, errorx.Wrapf(err, "build optimizer tool schema")
+	}
+	optimizerToolSchema := string(optimizerToolSchemaData)
+	systemText := "你是 Prompt 优化专家。请根据评测实验样本、模型回答、参考答案、评估器得分和原因，改写 Prompt 以提升真实评测得分。必须保留原 Prompt 的消息数量、顺序、角色、所有变量占位符及语义，不得针对单条样本泄露答案，不得新增不存在的业务事实。完成后必须且只能调用 submit_optimized_prompt 工具；将每条消息正文分别填写到对应的 message_N 字段，并填写 rationale。"
+	maxTokens := gptr.Indirect(model.MaxTokens)
+	if maxTokens < 8192 {
+		maxTokens = 8192
+	}
+	if maxTokens > promptOptimizerMaxTokens {
+		maxTokens = promptOptimizerMaxTokens
 	}
 	temperature := 0.2
 	topP := 0.9
@@ -739,45 +828,97 @@ func (p *promptOptimizationExecutor) generateCandidate(ctx context.Context, row 
 			{Role: entity.RoleSystem, Content: textContent(systemText)},
 			{Role: entity.RoleUser, Content: textContent(string(payload))},
 		},
-		ModelConfig: &entity.ModelConfig{ModelID: gptr.Of(model.ModelID), MaxTokens: gptr.Of(maxTokens), Temperature: &temperature, TopP: &topP},
+		Tools: []*entity.Tool{{Function: &entity.Function{
+			Name: optimizerToolName, Description: "提交优化后的 Prompt", Parameters: optimizerToolSchema,
+		}}},
+		ToolCallConfig: &entity.ToolCallConfig{ToolChoice: entity.ToolChoiceTypeRequired},
+		ModelConfig:    &entity.ModelConfig{ModelID: gptr.Of(model.GetModelID()), MaxTokens: gptr.Of(maxTokens), Temperature: &temperature, TopP: &topP},
 	})
 	if err != nil {
 		return nil, "", 0, 0, err
 	}
-	if reply == nil || strings.TrimSpace(gptr.Indirect(reply.Content)) == "" {
-		return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("optimizer model returned an empty result"))
+	if reply == nil {
+		return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("optimizer model returned no result"))
 	}
-	var decoded struct {
+	var legacyDecoded struct {
 		Messages  []struct{ Role, Content string } `json:"messages"`
 		Rationale string                           `json:"rationale"`
 	}
-	raw := strings.TrimSpace(gptr.Indirect(reply.Content))
+	raw := ""
+	for _, toolCall := range reply.ToolCalls {
+		if toolCall == nil || toolCall.FunctionCall == nil || toolCall.FunctionCall.Name != optimizerToolName {
+			continue
+		}
+		raw = strings.TrimSpace(gptr.Indirect(toolCall.FunctionCall.Arguments))
+		if raw != "" {
+			break
+		}
+	}
+	// Keep content parsing as a compatibility fallback for providers that ignore
+	// required tool_choice but still return the requested JSON object.
+	if raw == "" {
+		raw = strings.TrimSpace(gptr.Indirect(reply.Content))
+	}
+	if raw == "" {
+		return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode,
+			errorx.WithExtraMsg("optimizer model returned neither a tool result nor content, finish_reason="+reply.FinishReason))
+	}
 	if strings.HasPrefix(raw, "```") {
 		raw = strings.TrimPrefix(raw, "```json")
 		raw = strings.TrimPrefix(raw, "```")
 		raw = strings.TrimSuffix(strings.TrimSpace(raw), "```")
 	}
+	var decoded map[string]stdjson.RawMessage
 	if err := stdjson.Unmarshal([]byte(raw), &decoded); err != nil {
 		return nil, "", 0, 0, errorx.Wrapf(err, "parse optimizer model JSON")
 	}
-	if len(decoded.Messages) == 0 {
-		return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("optimizer model did not produce Prompt messages"))
+	if rationale, ok := decoded["rationale"]; ok {
+		if err := stdjson.Unmarshal(rationale, &legacyDecoded.Rationale); err != nil {
+			return nil, "", 0, 0, errorx.Wrapf(err, "parse optimizer rationale")
+		}
 	}
 	candidate := cloneRPCPromptTemplate(best)
-	candidate.Messages = make([]*rpc.PromptMessage, 0, len(decoded.Messages))
-	for _, message := range decoded.Messages {
-		role := strings.ToLower(strings.TrimSpace(message.Role))
-		if role != "system" && role != "user" && role != "assistant" {
-			return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("optimizer model produced an unsupported message role"))
+	if legacyMessages, ok := decoded["messages"]; ok {
+		if err := stdjson.Unmarshal(legacyMessages, &legacyDecoded.Messages); err != nil {
+			return nil, "", 0, 0, errorx.Wrapf(err, "parse optimizer messages")
 		}
-		if strings.TrimSpace(message.Content) == "" {
-			continue
+		if len(legacyDecoded.Messages) == 0 {
+			return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode,
+				errorx.WithExtraMsg("optimizer model did not produce Prompt messages"))
 		}
-		candidate.Messages = append(candidate.Messages, &rpc.PromptMessage{Role: role, Content: message.Content})
-	}
-	if len(candidate.Messages) == 0 {
-		return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode,
-			errorx.WithExtraMsg("optimizer model produced only empty Prompt messages"))
+		candidate.Messages = make([]*rpc.PromptMessage, 0, len(legacyDecoded.Messages))
+		for _, message := range legacyDecoded.Messages {
+			role := strings.ToLower(strings.TrimSpace(message.Role))
+			if role != "system" && role != "user" && role != "assistant" {
+				return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode,
+					errorx.WithExtraMsg("optimizer model produced an unsupported message role"))
+			}
+			if strings.TrimSpace(message.Content) == "" {
+				continue
+			}
+			candidate.Messages = append(candidate.Messages, &rpc.PromptMessage{Role: role, Content: message.Content})
+		}
+		if len(candidate.Messages) == 0 {
+			return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode,
+				errorx.WithExtraMsg("optimizer model produced only empty Prompt messages"))
+		}
+	} else {
+		for field, index := range messageFieldIndexes {
+			contentJSON, ok := decoded[field]
+			if !ok {
+				return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode,
+					errorx.WithExtraMsg("optimizer model omitted required field "+field))
+			}
+			var content string
+			if err := stdjson.Unmarshal(contentJSON, &content); err != nil {
+				return nil, "", 0, 0, errorx.Wrapf(err, "parse optimizer field %s", field)
+			}
+			if strings.TrimSpace(content) == "" {
+				return nil, "", 0, 0, errorx.NewByCode(errno.CommonInternalErrorCode,
+					errorx.WithExtraMsg("optimizer model produced empty field "+field))
+			}
+			candidate.Messages[index].Content = content
+		}
 	}
 	for _, variable := range best.VariableDefs {
 		if variable == nil || variable.Key == nil {
@@ -792,12 +933,13 @@ func (p *promptOptimizationExecutor) generateCandidate(ctx context.Context, row 
 	if reply.TokenUsage != nil {
 		inputTokens, outputTokens = reply.TokenUsage.InputTokens, reply.TokenUsage.OutputTokens
 	}
-	return candidate, decoded.Rationale, inputTokens, outputTokens, nil
+	return candidate, legacyDecoded.Rationale, inputTokens, outputTokens, nil
 }
 
 func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row *promptOptimizationTaskPO,
 	request promptOptimizationRequestSnapshot, experiment *entity.Experiment, candidate *rpc.PromptTemplate, samples []optimizerSample,
-) (*expt.PromptOptimizationMetrics, []*expt.PromptOptimizationSampleEvaluation, int64, int64) {
+	iteration, maxIterations int32,
+) (*expt.PromptOptimizationMetrics, []*expt.PromptOptimizationSampleEvaluation, int64, int64, error) {
 	evaluatorByVersion := make(map[int64]*entity.Evaluator)
 	for _, evaluator := range experiment.Evaluators {
 		if evaluator != nil {
@@ -806,7 +948,7 @@ func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row 
 	}
 	results := make([]*expt.PromptOptimizationSampleEvaluation, 0, len(samples))
 	var inputTokens, outputTokens int64
-	for _, sample := range samples {
+	for sampleIndex, sample := range samples {
 		result := &expt.PromptOptimizationSampleEvaluation{
 			ItemID: gptr.Of(sample.ItemID), TurnID: gptr.Of(sample.TurnID), Variables: copyStringMap(sample.DisplayVariables),
 			ReferenceAnswer: optionalString(sample.Reference), OriginalAnswer: optionalString(sample.OriginalAnswer),
@@ -835,6 +977,7 @@ func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row 
 			}
 			result.ErrorMessage = &message
 			results = append(results, result)
+			p.updateEvaluationProgress(ctx, row.ID, iteration, maxIterations, sampleIndex+1, len(samples))
 			continue
 		}
 		if execResult.TokenUsage != nil {
@@ -873,8 +1016,13 @@ func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row 
 			}
 			input.InputFields[field] = answerContent
 			output, evalErr := p.evaluatorService.DebugEvaluator(ctx, evaluator, input, nil, row.SpaceID)
-			if evalErr != nil || output == nil || output.EvaluatorResult == nil {
-				continue
+			if evalErr != nil {
+				return nil, nil, inputTokens, outputTokens, errorx.Wrapf(evalErr,
+					"evaluate candidate item %d with evaluator %d", sample.ItemID, evaluatorVersionID)
+			}
+			if output == nil || output.EvaluatorResult == nil {
+				return nil, nil, inputTokens, outputTokens, errorx.NewByCode(errno.CommonInternalErrorCode,
+					errorx.WithExtraMsg(fmt.Sprintf("evaluator %d returned no result for candidate item %d", evaluatorVersionID, sample.ItemID)))
 			}
 			if output.EvaluatorUsage != nil {
 				inputTokens += output.EvaluatorUsage.InputTokens
@@ -896,8 +1044,23 @@ func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row 
 		originalScore, optimizedScore := averageMap(result.OriginalEvaluatorScores), averageMap(result.OptimizedEvaluatorScores)
 		result.OriginalScore, result.OptimizedScore = &originalScore, &optimizedScore
 		results = append(results, result)
+		p.updateEvaluationProgress(ctx, row.ID, iteration, maxIterations, sampleIndex+1, len(samples))
 	}
-	return optimizationMetricsFromResults(results), results, inputTokens, outputTokens
+	return optimizationMetricsFromResults(results), results, inputTokens, outputTokens, nil
+}
+
+func (p *promptOptimizationExecutor) updateEvaluationProgress(ctx context.Context, taskID int64,
+	iteration, maxIterations int32, completedSamples, totalSamples int,
+) {
+	if p.store == nil || maxIterations <= 0 || totalSamples <= 0 {
+		return
+	}
+	iterationStart := int32(10) + (iteration-1)*80/maxIterations
+	iterationEnd := int32(10) + iteration*80/maxIterations
+	progress := iterationStart + (iterationEnd-iterationStart)*int32(completedSamples)/int32(totalSamples)
+	_ = p.store.updateTask(ctx, taskID, map[string]any{
+		"stage": string(expt.PromptOptimizationStageEvaluating), "progress": progress,
+	})
 }
 
 func baselineOptimizationMetrics(samples []optimizerSample) (*expt.PromptOptimizationMetrics, []*expt.PromptOptimizationSampleEvaluation) {
