@@ -1,6 +1,7 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @coze-arch/max-line-per-function */
+/* eslint-disable max-lines-per-function */
 /* eslint-disable max-params */
 /* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/no-magic-numbers */
@@ -12,6 +13,7 @@ import { nanoid } from 'nanoid';
 import classNames from 'classnames';
 import { useSize } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
+import { LoopTabs } from '@cozeloop/components';
 import { Role } from '@cozeloop/api-schema/prompt';
 import {
   IconCozColumnCollapse,
@@ -22,6 +24,7 @@ import {
   Divider,
   IconButton,
   Space,
+  Tabs,
   Tooltip,
   Typography,
 } from '@coze-arch/coze-design';
@@ -41,6 +44,8 @@ import { usePromptDevProviderContext } from '../prompt-provider';
 import { PromptEditorCard } from '../prompt-editor-card';
 import { ModelConfigCard } from '../model-config-card';
 import { ExecuteArea } from '../execute-area';
+import { OptimizationArea } from './optimization-area';
+import { EvaluationArea } from './evaluation-area';
 import { DebugAreaHeaderActions } from './debug-area-header-actions';
 
 export function NormalArea() {
@@ -86,6 +91,10 @@ export function NormalArea() {
   const [promptEditorWidth, setPromptEditorWidth] = useState<Int64>('65%');
 
   const showTabs = extraTabs.length > 0 && !isPlayground;
+
+  const [areaTab, setAreaTab] = useState<'dev' | 'evaluation' | 'optimization'>(
+    'dev',
+  );
 
   const addMessage = useCallback(() => {
     const { length } = historicMessage;
@@ -148,187 +157,220 @@ export function NormalArea() {
   }, [configAreaVisible, configExecuteVisible]);
 
   return (
-    <div className="flex flex-1 overflow-hidden w-full">
-      <Resizable
-        size={{
-          width: arrangeWidth,
-          height: '100%',
-        }}
-        minWidth="800px"
-        maxWidth={
-          isSmallWindowOpenVersion || !configExecuteVisible ? '100%' : '65%'
-        }
-        enable={{
-          right:
-            isSmallWindowOpenVersion || !configExecuteVisible ? false : true,
-        }}
-        handleStyles={{
-          right: {
-            width: '4px',
-            right: '-2px',
-          },
-        }}
-        handleComponent={{
-          right: isSmallWindowOpenVersion ? (
-            <div />
-          ) : (
-            <div className="w-[2px] h-full border-0 border-solid border-brand-9 hover:border-l-2"></div>
-          ),
-        }}
-        className={classNames('flex flex-col', {
-          '!w-full': isSmallWindowOpenVersion,
-        })}
-        onResizeStop={(_e, _dir, _ref, d) => {
-          setArrangeWidth(w => `calc(${w} + ${d.width}px)`);
-        }}
-      >
-        <div className="flex-1 flex overflow-hidden" ref={editContainerRef}>
+    <div className="flex flex-col flex-1 overflow-hidden w-full">
+      <div className="flex-shrink-0 bg-[#FCFCFF] px-6 pt-3">
+        <LoopTabs
+          type="card"
+          activeKey={areaTab}
+          onChange={key => setAreaTab(key as typeof areaTab)}
+        >
+          <Tabs.TabPane
+            itemKey="dev"
+            tab={I18n.t('orchestration')}
+          ></Tabs.TabPane>
+          <Tabs.TabPane
+            itemKey="evaluation"
+            tab={I18n.t('evaluation')}
+          ></Tabs.TabPane>
+          <Tabs.TabPane
+            itemKey="optimization"
+            tab={I18n.t('prompt_optimization_title', {}, '智能优化')}
+          ></Tabs.TabPane>
+        </LoopTabs>
+      </div>
+      {areaTab === 'dev' ? (
+        <div className="flex flex-1 overflow-hidden w-full">
           <Resizable
             size={{
-              width: promptEditorWidth,
+              width: arrangeWidth,
               height: '100%',
             }}
-            minWidth="400px"
-            maxWidth={configAreaVisible ? minWidth : '100%'}
-            enable={{ right: configAreaVisible }}
+            minWidth="800px"
+            maxWidth={
+              isSmallWindowOpenVersion || !configExecuteVisible ? '100%' : '65%'
+            }
+            enable={{
+              right:
+                isSmallWindowOpenVersion || !configExecuteVisible
+                  ? false
+                  : true,
+            }}
+            handleStyles={{
+              right: {
+                width: '4px',
+                right: '-2px',
+              },
+            }}
             handleComponent={{
-              right: configAreaVisible ? (
-                <div className="w-[5px] h-full ml-[3px] border-0 border-solid border-brand-9 hover:border-l-2"></div>
-              ) : (
+              right: isSmallWindowOpenVersion ? (
                 <div />
+              ) : (
+                <div className="w-[2px] h-full border-0 border-solid border-brand-9 hover:border-l-2"></div>
               ),
             }}
+            className={classNames('flex flex-col', {
+              '!w-full': isSmallWindowOpenVersion,
+            })}
             onResizeStop={(_e, _dir, _ref, d) => {
-              setPromptEditorWidth(w => `calc(${w} + ${d.width}px)`);
+              setArrangeWidth(w => `calc(${w} + ${d.width}px)`);
             }}
+          >
+            <div className="flex-1 flex overflow-hidden" ref={editContainerRef}>
+              <Resizable
+                size={{
+                  width: promptEditorWidth,
+                  height: '100%',
+                }}
+                minWidth="400px"
+                maxWidth={configAreaVisible ? minWidth : '100%'}
+                enable={{ right: configAreaVisible }}
+                handleComponent={{
+                  right: configAreaVisible ? (
+                    <div className="w-[5px] h-full ml-[3px] border-0 border-solid border-brand-9 hover:border-l-2"></div>
+                  ) : (
+                    <div />
+                  ),
+                }}
+                onResizeStop={(_e, _dir, _ref, d) => {
+                  setPromptEditorWidth(w => `calc(${w} + ${d.width}px)`);
+                }}
+                className={classNames(
+                  'pb-6 w-full overflow-hidden bg-[#fcfcff] border-0 border-t border-solid',
+                  {
+                    '!border-t-0': showTabs,
+                  },
+                )}
+              >
+                <PromptEditorCard
+                  configAreaVisible={configAreaVisible}
+                  setConfigAreaVisible={setConfigAreaVisible}
+                  configExecuteVisible={configExecuteVisible}
+                  setConfigExecuteVisible={setConfigExecuteVisible}
+                />
+              </Resizable>
+              <PromptDevLayout
+                data-btm="c30437"
+                className="box-border border-0 border-l border-solid flex flex-col gap-1 overflow-hidden bg-[#fcfcff] flex-shrink-0 min-w-[350px] flex-1"
+                wrapperClassName={classNames('!px-3', {
+                  '!border-t-0': showTabs,
+                })}
+                title={I18n.t('prompt_common_configuration')}
+                actionBtns={
+                  <Space spacing="tight">
+                    <Tooltip
+                      theme="dark"
+                      content={I18n.t('collapse_model_and_var_area')}
+                    >
+                      <IconButton
+                        size="mini"
+                        color="secondary"
+                        onClick={() => {
+                          sendEvent?.(EVENT_NAMES.cozeloop_pe_column_collapse, {
+                            prompt_id: `${promptInfo?.id || 'playground'}`,
+                            type: configAreaVisible ? 1 : 0,
+                          });
+                          setConfigAreaVisible(v => !v);
+                        }}
+                        icon={<IconCozColumnCollapse fontSize={14} />}
+                      />
+                    </Tooltip>
+                    {configExecuteVisible ? null : (
+                      <Tooltip
+                        theme="dark"
+                        content={I18n.t('expand_preview_and_debug')}
+                      >
+                        <IconButton
+                          size="mini"
+                          color="secondary"
+                          onClick={() => {
+                            sendEvent?.(
+                              EVENT_NAMES.cozeloop_pe_column_collapse,
+                              {
+                                prompt_id: `${promptInfo?.id || 'playground'}`,
+                                type: 4,
+                              },
+                            );
+                            setConfigExecuteVisible(true);
+                          }}
+                          icon={<IconCozSideExpand fontSize={14} />}
+                        />
+                      </Tooltip>
+                    )}
+                  </Space>
+                }
+              >
+                <div
+                  className={classNames(
+                    'px-3 pb-6 pr-[6px] styled-scrollbar flex flex-col gap-4',
+                    {
+                      '!hidden': !configAreaVisible,
+                    },
+                  )}
+                >
+                  <ModelConfigCard />
+                  <Divider
+                    style={{
+                      margin: '0 -12px',
+                      width: 'calc(100% + 24px)',
+                    }}
+                  />
+
+                  <VariablesCard defaultVisible />
+                  <Divider
+                    style={{
+                      margin: '0 -12px',
+                      width: 'calc(100% + 24px)',
+                    }}
+                  />
+
+                  <ToolsCard defaultVisible />
+                </div>
+              </PromptDevLayout>
+            </div>
+          </Resizable>
+
+          <PromptDevLayout
+            data-btm="c37617"
             className={classNames(
-              'pb-6 w-full overflow-hidden bg-[#fcfcff] border-0 border-t border-solid',
+              'transition-all flex flex-col flex-1 gap-3 flex-shrink-0 border-0 border-l border-solid bg-[#fff]',
               {
-                '!border-t-0': showTabs,
+                '!hidden': isSmallWindowOpenVersion || !configExecuteVisible,
               },
             )}
-          >
-            <PromptEditorCard
-              configAreaVisible={configAreaVisible}
-              setConfigAreaVisible={setConfigAreaVisible}
-              configExecuteVisible={configExecuteVisible}
-              setConfigExecuteVisible={setConfigExecuteVisible}
-            />
-          </Resizable>
-          <PromptDevLayout
-            data-btm="c30437"
-            className="box-border border-0 border-l border-solid flex flex-col gap-1 overflow-hidden bg-[#fcfcff] flex-shrink-0 min-w-[350px] flex-1"
-            wrapperClassName={classNames('!px-3', {
-              '!border-t-0': showTabs,
-            })}
-            title={I18n.t('prompt_common_configuration')}
-            actionBtns={
-              <Space spacing="tight">
-                <Tooltip
-                  theme="dark"
-                  content={I18n.t('collapse_model_and_var_area')}
-                >
-                  <IconButton
-                    size="mini"
-                    color="secondary"
-                    onClick={() => {
-                      sendEvent?.(EVENT_NAMES.cozeloop_pe_column_collapse, {
-                        prompt_id: `${promptInfo?.id || 'playground'}`,
-                        type: configAreaVisible ? 1 : 0,
-                      });
-                      setConfigAreaVisible(v => !v);
-                    }}
-                    icon={<IconCozColumnCollapse fontSize={14} />}
-                  />
-                </Tooltip>
-                {configExecuteVisible ? null : (
+            wrapperClassName={showTabs ? '!border-t-0' : ''}
+            style={{ minWidth: '35%' }}
+            title={
+              <div className="flex items-center gap-2 font-semibold">
+                <Typography.Title heading={6}>
+                  {I18n.t('preview_and_debug')}
+                </Typography.Title>
+                {!isPlayground ? null : (
                   <Tooltip
                     theme="dark"
-                    content={I18n.t('expand_preview_and_debug')}
+                    content={I18n.t(
+                      'prompt_historical_image_message_expires_1day',
+                    )}
                   >
-                    <IconButton
-                      size="mini"
-                      color="secondary"
-                      onClick={() => {
-                        sendEvent?.(EVENT_NAMES.cozeloop_pe_column_collapse, {
-                          prompt_id: `${promptInfo?.id || 'playground'}`,
-                          type: 4,
-                        });
-                        setConfigExecuteVisible(true);
-                      }}
-                      icon={<IconCozSideExpand fontSize={14} />}
-                    />
+                    <IconCozInfoCircle className="cursor-pointer" />
                   </Tooltip>
                 )}
-              </Space>
+              </div>
+            }
+            actionBtns={
+              <DebugAreaHeaderActions
+                promptInfo={promptInfo}
+                addMessage={addMessage}
+                configExecuteVisible={configExecuteVisible}
+                setConfigExecuteVisible={setConfigExecuteVisible}
+              />
             }
           >
-            <div
-              className={classNames(
-                'px-3 pb-6 pr-[6px] styled-scrollbar flex flex-col gap-4',
-                {
-                  '!hidden': !configAreaVisible,
-                },
-              )}
-            >
-              <ModelConfigCard />
-              <Divider
-                style={{
-                  margin: '0 -12px',
-                  width: 'calc(100% + 24px)',
-                }}
-              />
-
-              <VariablesCard defaultVisible />
-              <Divider
-                style={{
-                  margin: '0 -12px',
-                  width: 'calc(100% + 24px)',
-                }}
-              />
-
-              <ToolsCard defaultVisible />
-            </div>
+            <ExecuteArea />
           </PromptDevLayout>
         </div>
-      </Resizable>
-
-      <PromptDevLayout
-        data-btm="c37617"
-        className={classNames(
-          'transition-all flex flex-col flex-1 gap-3 flex-shrink-0 border-0 border-l border-solid bg-[#fff]',
-          {
-            '!hidden': isSmallWindowOpenVersion || !configExecuteVisible,
-          },
-        )}
-        wrapperClassName={showTabs ? '!border-t-0' : ''}
-        style={{ minWidth: '35%' }}
-        title={
-          <div className="flex items-center gap-2 font-semibold">
-            <Typography.Title heading={6}>
-              {I18n.t('preview_and_debug')}
-            </Typography.Title>
-            {!isPlayground ? null : (
-              <Tooltip
-                theme="dark"
-                content={I18n.t('prompt_historical_image_message_expires_1day')}
-              >
-                <IconCozInfoCircle className="cursor-pointer" />
-              </Tooltip>
-            )}
-          </div>
-        }
-        actionBtns={
-          <DebugAreaHeaderActions
-            promptInfo={promptInfo}
-            addMessage={addMessage}
-            configExecuteVisible={configExecuteVisible}
-            setConfigExecuteVisible={setConfigExecuteVisible}
-          />
-        }
-      >
-        <ExecuteArea />
-      </PromptDevLayout>
+      ) : null}
+      {areaTab === 'evaluation' ? <EvaluationArea /> : null}
+      {areaTab === 'optimization' ? <OptimizationArea /> : null}
     </div>
   );
 }

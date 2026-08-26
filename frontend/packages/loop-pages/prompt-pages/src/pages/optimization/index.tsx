@@ -2,20 +2,23 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable max-lines */
 /* eslint-disable @coze-arch/max-line-per-function */
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { I18n } from '@cozeloop/i18n-adapter';
 import { useBreadcrumb } from '@cozeloop/hooks';
 import { PageLoading } from '@cozeloop/components';
 import { useNavigateModule, useSpace } from '@cozeloop/biz-hooks-adapter';
-import { type Message, type PromptTemplate } from '@cozeloop/api-schema/prompt';
+import {
+  type Message,
+  type PromptDetail,
+  type PromptTemplate,
+} from '@cozeloop/api-schema/prompt';
 import {
   PromptOptimizationStage,
-  PromptOptimizationStatus,
   type PromptOptimizationMetrics,
   type PromptOptimizationSampleEvaluation,
-  type PromptOptimizationTask,
+  type PromptOptimizeTask,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi, StonePromptApi } from '@cozeloop/api-schema';
 import {
@@ -40,6 +43,9 @@ const STAGE_LABELS: Record<string, string> = {
   [PromptOptimizationStage.Finalizing]: 'stage_finalizing',
   [PromptOptimizationStage.Completed]: 'stage_completed',
 };
+
+// 官网优化任务状态（字符串）
+const STATUS_RUNNING = ['Created', 'Running'];
 
 /** 将文本按「变量 / 单词 / 标点 / 空白」切分为 token，便于本地 diff */
 function tokenize(text: string): string[] {
@@ -228,85 +234,81 @@ function formatScore(v?: number): string {
 }
 
 export default function PromptOptimizationPage() {
-  const { optimizationID } = useParams<{
+  const { promptID, optimizationID } = useParams<{
     promptID: string;
     optimizationID: string;
   }>();
-  const [searchParams] = useSearchParams();
   const { spaceID } = useSpace();
   const navigate = useNavigateModule();
 
-  const [task, setTask] = useState<PromptOptimizationTask>();
+  const [task, setTask] = useState<PromptOptimizeTask>();
   const [loading, setLoading] = useState(true);
-  const [canceling, setCanceling] = useState(false);
   const [applyingToDraft, setApplyingToDraft] = useState(false);
-  const [cancelVisible, setCancelVisible] = useState(false);
   const [overwriteVisible, setOverwriteVisible] = useState(false);
+  // 源版本 Prompt 详情（用于 diff 左侧与构造草稿）
+  const [sourceDetail, setSourceDetail] = useState<PromptDetail>();
 
   const timeoutRef = useRef<number | null>(null);
   const backoffRef = useRef(1);
   const visibilityRef = useRef(true);
 
-  const exptId = searchParams.get('expt_id') ?? task?.experiment_id ?? '';
+  // 源版本号：新接口无 original_prompt_template，原始 Prompt 取自 optimize_target.target_version
+  const sourceVersion = task?.optimize_target?.target_version;
 
   useBreadcrumb({
-    text: task?.name || I18n.t('prompt_optimization_title'),
+    text: task?.task_name || I18n.t('prompt_optimization_title'),
   });
 
-  const loadFullResult = useCallback(async () => {
-    try {
-      const res = await StoneEvaluationApi.GetPromptOptimization({
-        workspace_id: spaceID,
-        expt_id: exptId,
-        optimization_id: optimizationID ?? '',
-        with_iterations: true,
-        with_sample_results: true,
-      });
-      if (res.task) {
-        setTask(res.task);
-      }
-    } catch (e) {
-      console.error('Load prompt optimization result failed:', e);
-    }
-  }, [spaceID, exptId, optimizationID]);
-
-  const pollOnce = useCallback(async () => {
-    if (!spaceID || !exptId || !optimizationID) {
+  // 拉取源版本 Prompt 详情（模型配置、工具、MCP 等用于构造草稿）
+  const loadSourceDetail = useCallback(async () => {
+    if (!spaceID || !promptID || !sourceVersion) {
       return;
     }
     try {
-      const res = await StoneEvaluationApi.GetPromptOptimization({
+      const res = await StonePromptApi.GetPrompt({
+        prompt_id: promptID,
         workspace_id: spaceID,
-        expt_id: exptId,
-        optimization_id: optimizationID,
-        with_iterations: true,
-        with_sample_results: false,
+        commit_version: sourceVersion,
+        with_commit: true,
+      });
+      setSourceDetail(res.prompt?.prompt_commit?.detail);
+    } catch (e) {
+      console.error('Load source prompt detail failed:', e);
+    }
+  }, [spaceID, promptID, sourceVersion]);
+
+  const pollOnce = useCallback(async () => {
+    if (!spaceID || !promptID || !optimizationID) {
+      return;
+    }
+    try {
+      const res = await StoneEvaluationApi.GetPromptOptimizeTask({
+        workspace_id: spaceID,
+        prompt_id: promptID,
+        task_id: optimizationID,
       });
       backoffRef.current = 1;
       setLoading(false);
-      const t = res.task;
+      const t = res.optimize_task;
       if (!t) {
         return;
       }
       setTask(t);
-      if (t.status === PromptOptimizationStatus.Succeeded) {
-        // 终态后拉取一次完整样本数据
-        void loadFullResult();
+      if (t.status === 'Success') {
+        // 终态后拉取源版本详情用于展示对比与构造草稿
+        void loadSourceDetail();
         return;
       }
-      if (
-        t.status === PromptOptimizationStatus.Queued ||
-        t.status === PromptOptimizationStatus.Running
-      ) {
+      if (STATUS_RUNNING.includes(t.status ?? '')) {
         timeoutRef.current = window.setTimeout(pollOnce, 2000);
       }
     } catch (e) {
-      console.error('Poll prompt optimization failed:', e);
+      console.error('Poll prompt optimize task failed:', e);
       const delay = Math.min(30000, 2000 * backoffRef.current);
       backoffRef.current = Math.min(backoffRef.current * 2, 15);
       timeoutRef.current = window.setTimeout(pollOnce, delay);
     }
-  }, [spaceID, exptId, optimizationID, loadFullResult]);
+  }, [spaceID, promptID, optimizationID, loadSourceDetail]);
 
   useEffect(() => {
     void pollOnce();
@@ -335,109 +337,73 @@ export default function PromptOptimizationPage() {
     };
   }, [pollOnce]);
 
-  const handleCancel = async () => {
-    if (!spaceID || !exptId || !optimizationID) {
-      return;
-    }
-    setCanceling(true);
-    try {
-      const res = await StoneEvaluationApi.CancelPromptOptimization({
-        workspace_id: spaceID,
-        expt_id: exptId,
-        optimization_id: optimizationID,
-      });
-      // 以响应中的 task.status 覆盖本地状态
-      if (res.task) {
-        setTask(res.task);
-      }
-      setCancelVisible(false);
-    } catch (e) {
-      console.error('Cancel prompt optimization failed:', e);
-    } finally {
-      setCanceling(false);
-    }
-  };
-
+  // 用户点击「提交新版本」：把优化结果显式保存为 Prompt 草稿，再跳转编辑器确认
   const handleSubmitNewVersion = async () => {
-    if (!spaceID || !exptId || !optimizationID || !task?.prompt_id) {
+    if (!spaceID || !promptID || !task?.optimize_result) {
       return;
     }
-    setApplyingToDraft(true);
-    try {
-      // 8.1 检查当前草稿
-      const promptRes = await StonePromptApi.GetPrompt({
-        prompt_id: task.prompt_id,
-        workspace_id: spaceID,
-        with_draft: true,
-        with_commit: true,
-      });
-      if (promptRes.prompt?.prompt_draft) {
-        setOverwriteVisible(true);
-        setApplyingToDraft(false);
-        return;
-      }
-      await applyToDraft(false);
-    } catch (e) {
-      console.error('Check draft failed:', e);
-      setApplyingToDraft(false);
-    }
-  };
-
-  const recheckDraftOnApplyError = async () => {
-    if (!task?.prompt_id) {
+    // 检查当前是否已有草稿，有则提示覆盖
+    const promptRes = await StonePromptApi.GetPrompt({
+      prompt_id: promptID,
+      workspace_id: spaceID,
+      with_draft: true,
+      with_commit: true,
+    });
+    if (promptRes.prompt?.prompt_draft) {
+      setOverwriteVisible(true);
       return;
     }
-    try {
-      const promptRes = await StonePromptApi.GetPrompt({
-        prompt_id: task.prompt_id,
-        workspace_id: spaceID,
-        with_draft: true,
-        with_commit: true,
-      });
-      if (promptRes.prompt?.prompt_draft) {
-        setOverwriteVisible(true);
-      }
-    } catch (err) {
-      console.error('Recheck draft failed:', err);
-    }
+    await applyToDraft(false);
   };
 
   const applyToDraft = async (overwrite: boolean) => {
-    if (!spaceID || !exptId || !optimizationID) {
+    if (!spaceID || !promptID || !task?.optimize_result || !sourceVersion) {
       return;
     }
     setApplyingToDraft(true);
     try {
-      const res = await StoneEvaluationApi.ApplyPromptOptimizationToDraft({
-        workspace_id: spaceID,
-        expt_id: exptId,
-        optimization_id: optimizationID,
-        overwrite_existing_draft: overwrite,
+      const optimizedMessages =
+        task.optimize_result.optimized_prompt_message_list;
+      // 组合优化结果 + 源 Prompt 的模型配置、工具、MCP 等
+      const res = await StonePromptApi.SaveDraft({
+        prompt_id: promptID,
+        prompt_draft: {
+          draft_info: { base_version: sourceVersion },
+          detail: {
+            prompt_template: {
+              messages: optimizedMessages ?? [],
+              template_type:
+                sourceDetail?.prompt_template?.template_type ?? 'normal',
+              variable_defs: sourceDetail?.prompt_template?.variable_defs,
+            },
+            model_config: sourceDetail?.model_config ?? {},
+            tools: sourceDetail?.tools ?? [],
+            tool_call_config: sourceDetail?.tool_call_config ?? {},
+            mcp_config: sourceDetail?.mcp_config ?? {},
+          },
+        },
       });
-      setOverwriteVisible(false);
-      // 8.3 跳转 Prompt 编辑器，不显示「发布成功」
-      navigate(`pe/prompts/${res.prompt_id ?? task?.prompt_id}`);
-    } catch (e) {
-      console.error('Apply to draft failed:', e);
-      // 8.2：检查草稿后到写入前，另一标签页可能已新建草稿，首次写请求会返回非零业务错误。
-      // 此时重新读取 Prompt 并让用户确认，禁止静默把 overwrite_existing_draft 改为 true。
+      console.log('res', res);
       if (!overwrite) {
-        const code = (e as { code?: number | string })?.code;
-        if (code !== undefined && code !== 0) {
-          await recheckDraftOnApplyError();
-        }
+        setOverwriteVisible(false);
       }
+      // 保存成功后跳转 Prompt 编辑器，由用户确认版本后自行 commit
+      navigate(`pe/prompts/${promptID}`);
+    } catch (e) {
+      console.error('Save draft failed:', e);
     } finally {
       setApplyingToDraft(false);
     }
   };
 
-  const bestMetrics: PromptOptimizationMetrics | undefined = task?.best_metrics;
+  const result = task?.optimize_result;
+  const bestMetrics: PromptOptimizationMetrics | undefined =
+    result?.best_metrics;
   const baselineMetrics: PromptOptimizationMetrics | undefined =
-    task?.baseline_metrics;
+    result?.baseline_metrics;
 
   const bestIteration = useMemo(() => {
-    const iterations = task?.iterations ?? [];
+    const iterations = result?.iterations ?? [];
     if (!iterations.length) {
       return undefined;
     }
@@ -446,7 +412,7 @@ export default function PromptOptimizationPage() {
         (b.metrics?.average_score ?? -Infinity) -
         (a.metrics?.average_score ?? -Infinity),
     )[0];
-  }, [task?.iterations]);
+  }, [result?.iterations]);
 
   const improved =
     baselineMetrics?.average_score !== undefined &&
@@ -468,16 +434,20 @@ export default function PromptOptimizationPage() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <Typography.Title heading={4} className="!mb-1">
-              {task?.name || I18n.t('prompt_optimization_title')}
+              {task?.task_name || I18n.t('prompt_optimization_title')}
             </Typography.Title>
             <Typography.Text className="coz-fg-secondary">
               {I18n.t('prompt_optimization_source_version')}:{' '}
-              {task?.source_prompt_version ?? '-'}
+              {sourceVersion ?? '-'}
             </Typography.Text>
           </div>
-          {status === PromptOptimizationStatus.Failed ? (
+          {status === 'Failed' ? (
             <Button
-              onClick={() => navigate(`evaluation/experiments/${exptId}`)}
+              onClick={() =>
+                navigate(
+                  `evaluation/experiments/${task?.optimize_task_data_set?.related_expt_id}`,
+                )
+              }
             >
               {I18n.t('prompt_optimization_back_to_experiment')}
             </Button>
@@ -485,13 +455,12 @@ export default function PromptOptimizationPage() {
         </div>
 
         {/* 运行中 / 排队中 */}
-        {status === PromptOptimizationStatus.Queued ||
-        status === PromptOptimizationStatus.Running ? (
+        {status === 'Created' || status === 'Running' ? (
           <div className="rounded border border-solid coz-stroke-primary p-6">
             <div className="mb-4 flex items-center gap-2">
               <Spin size="small" />
               <Typography.Text strong>
-                {status === PromptOptimizationStatus.Queued
+                {status === 'Created'
                   ? I18n.t('prompt_optimization_queued')
                   : I18n.t('prompt_optimization_running')}
               </Typography.Text>
@@ -518,7 +487,7 @@ export default function PromptOptimizationPage() {
             <div className="flex flex-wrap gap-3">
               <MetricItem
                 label={I18n.t('prompt_optimization_iterations')}
-                value={`${task?.iterations?.length ?? 0}`}
+                value={`${result?.iterations?.length ?? 0}`}
               />
               <MetricItem
                 label={I18n.t('prompt_optimization_best_score')}
@@ -529,20 +498,11 @@ export default function PromptOptimizationPage() {
                 value={`${bestMetrics?.input_tokens ?? '-'} / ${bestMetrics?.output_tokens ?? '-'}`}
               />
             </div>
-
-            <div className="mt-6">
-              <Button
-                loading={canceling}
-                onClick={() => setCancelVisible(true)}
-              >
-                {I18n.t('prompt_optimization_cancel')}
-              </Button>
-            </div>
           </div>
         ) : null}
 
         {/* 失败 */}
-        {status === PromptOptimizationStatus.Failed ? (
+        {status === 'Failed' ? (
           <div className="rounded border border-solid coz-stroke-primary p-6">
             <Typography.Text className="text-[#cf1322]" strong>
               {I18n.t('prompt_optimization_failed')}
@@ -555,8 +515,8 @@ export default function PromptOptimizationPage() {
           </div>
         ) : null}
 
-        {/* 已取消 */}
-        {status === PromptOptimizationStatus.Canceled ? (
+        {/* 终止 */}
+        {status === 'Terminated' ? (
           <div className="rounded border border-solid coz-stroke-primary p-6">
             <Typography.Text className="coz-fg-secondary">
               {I18n.t('prompt_optimization_canceled')}
@@ -565,7 +525,7 @@ export default function PromptOptimizationPage() {
         ) : null}
 
         {/* 结果 */}
-        {status === PromptOptimizationStatus.Succeeded ? (
+        {status === 'Success' ? (
           <>
             {/* 7.1 顶部汇总 */}
             <div className="mb-6 rounded border border-solid coz-stroke-primary p-6">
@@ -626,18 +586,18 @@ export default function PromptOptimizationPage() {
                   {I18n.t('prompt_optimization_optimized_prompt')}
                 </Typography.Text>
               </div>
-              {task?.optimized_prompt_template
+              {result?.optimized_prompt_message_list?.length
                 ? renderDiffMessages(
                     (
-                      task.original_prompt_template as
+                      sourceDetail?.prompt_template as
                         | PromptTemplate
                         | undefined
                     )?.messages ?? [],
-                    task.optimized_prompt_template.messages ?? [],
+                    result.optimized_prompt_message_list,
                   )
                 : renderMessages(
                     (
-                      task?.original_prompt_template as
+                      sourceDetail?.prompt_template as
                         | PromptTemplate
                         | undefined
                     )?.messages ?? [],
@@ -663,7 +623,7 @@ export default function PromptOptimizationPage() {
               <Button
                 type="primary"
                 loading={applyingToDraft}
-                onClick={handleSubmitNewVersion}
+                onClick={() => void handleSubmitNewVersion()}
               >
                 {I18n.t('prompt_optimization_submit_new_version')}
               </Button>
@@ -671,21 +631,6 @@ export default function PromptOptimizationPage() {
           </>
         ) : null}
       </div>
-
-      {/* 取消确认框 */}
-      <Modal
-        visible={cancelVisible}
-        title={I18n.t('prompt_optimization_cancel')}
-        okText={I18n.t('confirm')}
-        cancelText={I18n.t('cancel')}
-        onCancel={() => setCancelVisible(false)}
-        onOk={handleCancel}
-        confirmLoading={canceling}
-      >
-        <Typography.Text>
-          {I18n.t('prompt_optimization_cancel_confirm')}
-        </Typography.Text>
-      </Modal>
 
       {/* 覆盖草稿确认框 */}
       <Modal
