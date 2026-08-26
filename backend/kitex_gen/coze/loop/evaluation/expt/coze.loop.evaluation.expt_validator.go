@@ -1171,7 +1171,40 @@ func (p *PromptOptimizationIteration) IsValid() error {
 	}
 	return nil
 }
-func (p *PromptOptimizationTask) IsValid() error {
+func (p *PromptOptimizationEvalSetInfo) IsValid() error {
+	return nil
+}
+func (p *PromptOptimizeFieldMapping) IsValid() error {
+	return nil
+}
+func (p *PromptOptimizeResourceUsage) IsValid() error {
+	return nil
+}
+func (p *PromptOptimizeTarget) IsValid() error {
+	return nil
+}
+func (p *PromptOptimizeTaskDataSet) IsValid() error {
+	if p.EvalSetToReference != nil {
+		if err := p.EvalSetToReference.IsValid(); err != nil {
+			return fmt.Errorf("field EvalSetToReference not valid, %w", err)
+		}
+	}
+	if p.EvalSetToActualOutput != nil {
+		if err := p.EvalSetToActualOutput.IsValid(); err != nil {
+			return fmt.Errorf("field EvalSetToActualOutput not valid, %w", err)
+		}
+	}
+	if p.EstimateResourceUsage != nil {
+		if err := p.EstimateResourceUsage.IsValid(); err != nil {
+			return fmt.Errorf("field EstimateResourceUsage not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *PromptOptimizeEngineConfig) IsValid() error {
+	return nil
+}
+func (p *PromptOptimizeTaskResult_) IsValid() error {
 	if p.BaselineMetrics != nil {
 		if err := p.BaselineMetrics.IsValid(); err != nil {
 			return fmt.Errorf("field BaselineMetrics not valid, %w", err)
@@ -1182,28 +1215,74 @@ func (p *PromptOptimizationTask) IsValid() error {
 			return fmt.Errorf("field BestMetrics not valid, %w", err)
 		}
 	}
-	if p.OriginalPromptTemplate != nil {
-		if err := p.OriginalPromptTemplate.IsValid(); err != nil {
-			return fmt.Errorf("field OriginalPromptTemplate not valid, %w", err)
+	return nil
+}
+func (p *PromptOptimizeTask) IsValid() error {
+	if p.OptimizeTarget != nil {
+		if err := p.OptimizeTarget.IsValid(); err != nil {
+			return fmt.Errorf("field OptimizeTarget not valid, %w", err)
 		}
 	}
-	if p.OptimizedPromptTemplate != nil {
-		if err := p.OptimizedPromptTemplate.IsValid(); err != nil {
-			return fmt.Errorf("field OptimizedPromptTemplate not valid, %w", err)
+	if p.OptimizeTaskDataSet != nil {
+		if err := p.OptimizeTaskDataSet.IsValid(); err != nil {
+			return fmt.Errorf("field OptimizeTaskDataSet not valid, %w", err)
+		}
+	}
+	if p.OptimizeEngineConfig != nil {
+		if err := p.OptimizeEngineConfig.IsValid(); err != nil {
+			return fmt.Errorf("field OptimizeEngineConfig not valid, %w", err)
+		}
+	}
+	if p.OptimizeResult_ != nil {
+		if err := p.OptimizeResult_.IsValid(); err != nil {
+			return fmt.Errorf("field OptimizeResult_ not valid, %w", err)
 		}
 	}
 	return nil
 }
-func (p *PreparePromptOptimizationRequest) IsValid() error {
+func (p *EstimatePromptOptimizeTaskRequest) IsValid() error {
 	if p.WorkspaceID <= int64(0) {
 		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
 	}
-	if p.ExptID <= int64(0) {
-		return fmt.Errorf("field ExptID gt rule failed, current value: %v", p.ExptID)
+	if p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", p.PromptID)
+	}
+	if p.RelatedEvalSetID <= int64(0) {
+		return fmt.Errorf("field RelatedEvalSetID gt rule failed, current value: %v", p.RelatedEvalSetID)
+	}
+	if p.RelatedEvalSetVersionID <= int64(0) {
+		return fmt.Errorf("field RelatedEvalSetVersionID gt rule failed, current value: %v", p.RelatedEvalSetVersionID)
+	}
+	if p.RelatedExptID <= int64(0) {
+		return fmt.Errorf("field RelatedExptID gt rule failed, current value: %v", p.RelatedExptID)
+	}
+	if len(p.SelectedItemIDList) < int(20) {
+		return fmt.Errorf("field SelectedItemIDList MinLen rule failed, current value: %v", p.SelectedItemIDList)
+	}
+	if len(p.SelectedItemIDList) > int(500) {
+		return fmt.Errorf("field SelectedItemIDList MaxLen rule failed, current value: %v", p.SelectedItemIDList)
+	}
+	if p.EvalSetToReference != nil {
+		if err := p.EvalSetToReference.IsValid(); err != nil {
+			return fmt.Errorf("field EvalSetToReference not valid, %w", err)
+		}
+	}
+	if p.EvalSetToActualOutput != nil {
+		if err := p.EvalSetToActualOutput.IsValid(); err != nil {
+			return fmt.Errorf("field EvalSetToActualOutput not valid, %w", err)
+		}
+	}
+	if p.OptimizeFactor != nil {
+		if *p.OptimizeFactor < float64(0) {
+			return fmt.Errorf("field OptimizeFactor ge rule failed, current value: %v", *p.OptimizeFactor)
+		}
+		if *p.OptimizeFactor > float64(1) {
+			return fmt.Errorf("field OptimizeFactor le rule failed, current value: %v", *p.OptimizeFactor)
+		}
 	}
 	return nil
 }
-func (p *PreparePromptOptimizationResponse) IsValid() error {
+func (p *EstimatePromptOptimizeTaskResponse) IsValid() error {
 	if p.BaseResp != nil {
 		if err := p.BaseResp.IsValid(); err != nil {
 			return fmt.Errorf("field BaseResp not valid, %w", err)
@@ -1211,87 +1290,111 @@ func (p *PreparePromptOptimizationResponse) IsValid() error {
 	}
 	return nil
 }
-func (p *CreatePromptOptimizationRequest) IsValid() error {
+func (p *CreatePromptOptimizeTaskRequest) IsValid() error {
 	if p.WorkspaceID <= int64(0) {
 		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
 	}
-	if p.ExptID <= int64(0) {
-		return fmt.Errorf("field ExptID gt rule failed, current value: %v", p.ExptID)
+	if p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", p.PromptID)
 	}
-	if len(p.Samples) < int(1) {
-		return fmt.Errorf("field Samples MinLen rule failed, current value: %v", p.Samples)
+	if p.RelatedEvalSetID <= int64(0) {
+		return fmt.Errorf("field RelatedEvalSetID gt rule failed, current value: %v", p.RelatedEvalSetID)
 	}
-	if len(p.Samples) > int(20) {
-		return fmt.Errorf("field Samples MaxLen rule failed, current value: %v", p.Samples)
+	if p.RelatedEvalSetVersionID <= int64(0) {
+		return fmt.Errorf("field RelatedEvalSetVersionID gt rule failed, current value: %v", p.RelatedEvalSetVersionID)
 	}
-	if p.MaxIterations != nil {
-		if *p.MaxIterations < int32(1) {
-			return fmt.Errorf("field MaxIterations ge rule failed, current value: %v", *p.MaxIterations)
+	if p.RelatedExptID <= int64(0) {
+		return fmt.Errorf("field RelatedExptID gt rule failed, current value: %v", p.RelatedExptID)
+	}
+	if len(p.SelectedItemIDList) < int(20) {
+		return fmt.Errorf("field SelectedItemIDList MinLen rule failed, current value: %v", p.SelectedItemIDList)
+	}
+	if len(p.SelectedItemIDList) > int(500) {
+		return fmt.Errorf("field SelectedItemIDList MaxLen rule failed, current value: %v", p.SelectedItemIDList)
+	}
+	if p.EvalSetToReference != nil {
+		if err := p.EvalSetToReference.IsValid(); err != nil {
+			return fmt.Errorf("field EvalSetToReference not valid, %w", err)
 		}
-		if *p.MaxIterations > int32(20) {
-			return fmt.Errorf("field MaxIterations le rule failed, current value: %v", *p.MaxIterations)
+	}
+	if p.EvalSetToActualOutput != nil {
+		if err := p.EvalSetToActualOutput.IsValid(); err != nil {
+			return fmt.Errorf("field EvalSetToActualOutput not valid, %w", err)
 		}
+	}
+	if p.EstimateResourceUsage != nil {
+		if err := p.EstimateResourceUsage.IsValid(); err != nil {
+			return fmt.Errorf("field EstimateResourceUsage not valid, %w", err)
+		}
+	}
+	if p.OptimizeFactor != nil {
+		if *p.OptimizeFactor < float64(0) {
+			return fmt.Errorf("field OptimizeFactor ge rule failed, current value: %v", *p.OptimizeFactor)
+		}
+		if *p.OptimizeFactor > float64(1) {
+			return fmt.Errorf("field OptimizeFactor le rule failed, current value: %v", *p.OptimizeFactor)
+		}
+	}
+	return nil
+}
+func (p *CreatePromptOptimizeTaskResponse) IsValid() error {
+	if p.OptimizeTask != nil {
+		if err := p.OptimizeTask.IsValid(); err != nil {
+			return fmt.Errorf("field OptimizeTask not valid, %w", err)
+		}
+	}
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *GetPromptOptimizeTaskRequest) IsValid() error {
+	if p.WorkspaceID <= int64(0) {
+		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
+	}
+	if p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", p.PromptID)
+	}
+	if p.TaskID <= int64(0) {
+		return fmt.Errorf("field TaskID gt rule failed, current value: %v", p.TaskID)
+	}
+	return nil
+}
+func (p *GetPromptOptimizeTaskResponse) IsValid() error {
+	if p.OptimizeTask != nil {
+		if err := p.OptimizeTask.IsValid(); err != nil {
+			return fmt.Errorf("field OptimizeTask not valid, %w", err)
+		}
+	}
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *ListPromptOptimizeTasksRequest) IsValid() error {
+	if p.WorkspaceID <= int64(0) {
+		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
+	}
+	if p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", p.PromptID)
 	}
 	if p.Name != nil {
 		if len(*p.Name) > int(128) {
 			return fmt.Errorf("field Name max_len rule failed, current value: %d", len(*p.Name))
 		}
 	}
-	if p.IdempotencyKey != nil {
-		if len(*p.IdempotencyKey) > int(128) {
-			return fmt.Errorf("field IdempotencyKey max_len rule failed, current value: %d", len(*p.IdempotencyKey))
+	if p.Filters != nil {
+		if err := p.Filters.IsValid(); err != nil {
+			return fmt.Errorf("field Filters not valid, %w", err)
 		}
 	}
-	return nil
-}
-func (p *CreatePromptOptimizationResponse) IsValid() error {
-	if p.Task != nil {
-		if err := p.Task.IsValid(); err != nil {
-			return fmt.Errorf("field Task not valid, %w", err)
-		}
-	}
-	if p.BaseResp != nil {
-		if err := p.BaseResp.IsValid(); err != nil {
-			return fmt.Errorf("field BaseResp not valid, %w", err)
-		}
-	}
-	return nil
-}
-func (p *GetPromptOptimizationRequest) IsValid() error {
-	if p.WorkspaceID <= int64(0) {
-		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
-	}
-	if p.ExptID <= int64(0) {
-		return fmt.Errorf("field ExptID gt rule failed, current value: %v", p.ExptID)
-	}
-	if p.OptimizationID <= int64(0) {
-		return fmt.Errorf("field OptimizationID gt rule failed, current value: %v", p.OptimizationID)
-	}
-	return nil
-}
-func (p *GetPromptOptimizationResponse) IsValid() error {
-	if p.Task != nil {
-		if err := p.Task.IsValid(); err != nil {
-			return fmt.Errorf("field Task not valid, %w", err)
-		}
-	}
-	if p.BaseResp != nil {
-		if err := p.BaseResp.IsValid(); err != nil {
-			return fmt.Errorf("field BaseResp not valid, %w", err)
-		}
-	}
-	return nil
-}
-func (p *ListPromptOptimizationsRequest) IsValid() error {
-	if p.WorkspaceID <= int64(0) {
-		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
-	}
-	if p.ExptID <= int64(0) {
-		return fmt.Errorf("field ExptID gt rule failed, current value: %v", p.ExptID)
-	}
-	if p.PageNumber != nil {
-		if *p.PageNumber < int32(1) {
-			return fmt.Errorf("field PageNumber ge rule failed, current value: %v", *p.PageNumber)
+	if p.PageNum != nil {
+		if *p.PageNum < int32(1) {
+			return fmt.Errorf("field PageNum ge rule failed, current value: %v", *p.PageNum)
 		}
 	}
 	if p.PageSize != nil {
@@ -1304,52 +1407,7 @@ func (p *ListPromptOptimizationsRequest) IsValid() error {
 	}
 	return nil
 }
-func (p *ListPromptOptimizationsResponse) IsValid() error {
-	if p.BaseResp != nil {
-		if err := p.BaseResp.IsValid(); err != nil {
-			return fmt.Errorf("field BaseResp not valid, %w", err)
-		}
-	}
-	return nil
-}
-func (p *CancelPromptOptimizationRequest) IsValid() error {
-	if p.WorkspaceID <= int64(0) {
-		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
-	}
-	if p.ExptID <= int64(0) {
-		return fmt.Errorf("field ExptID gt rule failed, current value: %v", p.ExptID)
-	}
-	if p.OptimizationID <= int64(0) {
-		return fmt.Errorf("field OptimizationID gt rule failed, current value: %v", p.OptimizationID)
-	}
-	return nil
-}
-func (p *CancelPromptOptimizationResponse) IsValid() error {
-	if p.Task != nil {
-		if err := p.Task.IsValid(); err != nil {
-			return fmt.Errorf("field Task not valid, %w", err)
-		}
-	}
-	if p.BaseResp != nil {
-		if err := p.BaseResp.IsValid(); err != nil {
-			return fmt.Errorf("field BaseResp not valid, %w", err)
-		}
-	}
-	return nil
-}
-func (p *ApplyPromptOptimizationToDraftRequest) IsValid() error {
-	if p.WorkspaceID <= int64(0) {
-		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
-	}
-	if p.ExptID <= int64(0) {
-		return fmt.Errorf("field ExptID gt rule failed, current value: %v", p.ExptID)
-	}
-	if p.OptimizationID <= int64(0) {
-		return fmt.Errorf("field OptimizationID gt rule failed, current value: %v", p.OptimizationID)
-	}
-	return nil
-}
-func (p *ApplyPromptOptimizationToDraftResponse) IsValid() error {
+func (p *ListPromptOptimizeTasksResponse) IsValid() error {
 	if p.BaseResp != nil {
 		if err := p.BaseResp.IsValid(); err != nil {
 			return fmt.Errorf("field BaseResp not valid, %w", err)

@@ -79,6 +79,17 @@ func (s *promptOptimizationStore) getTask(ctx context.Context, spaceID, exptID, 
 	return &task, nil
 }
 
+func (s *promptOptimizationStore) getTaskByPrompt(ctx context.Context, spaceID, promptID, taskID int64) (*promptOptimizationTaskPO, error) {
+	var task promptOptimizationTaskPO
+	err := s.db.NewSession(ctx, db.WithMaster()).WithContext(ctx).
+		Where("id = ? AND space_id = ? AND prompt_id = ? AND deleted_at = 0", taskID, spaceID, promptID).
+		First(&task).Error
+	if err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
 func (s *promptOptimizationStore) getTaskByID(ctx context.Context, taskID int64) (*promptOptimizationTaskPO, error) {
 	var task promptOptimizationTaskPO
 	err := s.db.NewSession(ctx, db.WithMaster()).WithContext(ctx).
@@ -106,6 +117,24 @@ func (s *promptOptimizationStore) listTasks(ctx context.Context, spaceID, exptID
 		Where("space_id = ? AND experiment_id = ? AND deleted_at = 0", spaceID, exptID)
 	if len(statuses) > 0 {
 		q = q.Where("status IN ?", statuses)
+	}
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []*promptOptimizationTaskPO
+	err := q.Order("created_at DESC, id DESC").Offset(int((page - 1) * size)).Limit(int(size)).Find(&rows).Error
+	return rows, total, err
+}
+
+func (s *promptOptimizationStore) listTasksByPrompt(ctx context.Context, spaceID, promptID int64, page, size int32, statuses []string, keyword string) ([]*promptOptimizationTaskPO, int64, error) {
+	q := s.db.NewSession(ctx, db.WithMaster()).WithContext(ctx).Model(&promptOptimizationTaskPO{}).
+		Where("space_id = ? AND prompt_id = ? AND deleted_at = 0", spaceID, promptID)
+	if len(statuses) > 0 {
+		q = q.Where("status IN ?", statuses)
+	}
+	if keyword != "" {
+		q = q.Where("name LIKE ?", "%"+keyword+"%")
 	}
 	var total int64
 	if err := q.Count(&total).Error; err != nil {

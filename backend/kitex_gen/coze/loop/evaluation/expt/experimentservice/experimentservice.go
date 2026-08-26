@@ -118,45 +118,31 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
-	"PreparePromptOptimization": kitex.NewMethodInfo(
-		preparePromptOptimizationHandler,
-		newExperimentServicePreparePromptOptimizationArgs,
-		newExperimentServicePreparePromptOptimizationResult,
+	"EstimatePromptOptimizeTaskResourceUsage": kitex.NewMethodInfo(
+		estimatePromptOptimizeTaskResourceUsageHandler,
+		newExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs,
+		newExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
-	"CreatePromptOptimization": kitex.NewMethodInfo(
-		createPromptOptimizationHandler,
-		newExperimentServiceCreatePromptOptimizationArgs,
-		newExperimentServiceCreatePromptOptimizationResult,
+	"CreatePromptOptimizeTask": kitex.NewMethodInfo(
+		createPromptOptimizeTaskHandler,
+		newExperimentServiceCreatePromptOptimizeTaskArgs,
+		newExperimentServiceCreatePromptOptimizeTaskResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
-	"GetPromptOptimization": kitex.NewMethodInfo(
-		getPromptOptimizationHandler,
-		newExperimentServiceGetPromptOptimizationArgs,
-		newExperimentServiceGetPromptOptimizationResult,
+	"GetPromptOptimizeTask": kitex.NewMethodInfo(
+		getPromptOptimizeTaskHandler,
+		newExperimentServiceGetPromptOptimizeTaskArgs,
+		newExperimentServiceGetPromptOptimizeTaskResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
-	"ListPromptOptimizations": kitex.NewMethodInfo(
-		listPromptOptimizationsHandler,
-		newExperimentServiceListPromptOptimizationsArgs,
-		newExperimentServiceListPromptOptimizationsResult,
-		false,
-		kitex.WithStreamingMode(kitex.StreamingNone),
-	),
-	"CancelPromptOptimization": kitex.NewMethodInfo(
-		cancelPromptOptimizationHandler,
-		newExperimentServiceCancelPromptOptimizationArgs,
-		newExperimentServiceCancelPromptOptimizationResult,
-		false,
-		kitex.WithStreamingMode(kitex.StreamingNone),
-	),
-	"ApplyPromptOptimizationToDraft": kitex.NewMethodInfo(
-		applyPromptOptimizationToDraftHandler,
-		newExperimentServiceApplyPromptOptimizationToDraftArgs,
-		newExperimentServiceApplyPromptOptimizationToDraftResult,
+	"ListPromptOptimizeTasks": kitex.NewMethodInfo(
+		listPromptOptimizeTasksHandler,
+		newExperimentServiceListPromptOptimizeTasksArgs,
+		newExperimentServiceListPromptOptimizeTasksResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
@@ -688,10 +674,10 @@ func newExperimentServiceBatchGetExperimentResultResult() interface{} {
 	return expt.NewExperimentServiceBatchGetExperimentResultResult()
 }
 
-func preparePromptOptimizationHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*expt.ExperimentServicePreparePromptOptimizationArgs)
-	realResult := result.(*expt.ExperimentServicePreparePromptOptimizationResult)
-	success, err := handler.(expt.ExperimentService).PreparePromptOptimization(ctx, realArg.Req)
+func estimatePromptOptimizeTaskResourceUsageHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs)
+	realResult := result.(*expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult)
+	success, err := handler.(expt.ExperimentService).EstimatePromptOptimizeTaskResourceUsage(ctx, realArg.Req)
 	if err != nil {
 		return err
 	}
@@ -699,18 +685,18 @@ func preparePromptOptimizationHandler(ctx context.Context, handler interface{}, 
 	return nil
 }
 
-func newExperimentServicePreparePromptOptimizationArgs() interface{} {
-	return expt.NewExperimentServicePreparePromptOptimizationArgs()
+func newExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs() interface{} {
+	return expt.NewExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs()
 }
 
-func newExperimentServicePreparePromptOptimizationResult() interface{} {
-	return expt.NewExperimentServicePreparePromptOptimizationResult()
+func newExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult() interface{} {
+	return expt.NewExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult()
 }
 
-func createPromptOptimizationHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*expt.ExperimentServiceCreatePromptOptimizationArgs)
-	realResult := result.(*expt.ExperimentServiceCreatePromptOptimizationResult)
-	success, err := handler.(expt.ExperimentService).CreatePromptOptimization(ctx, realArg.Req)
+func createPromptOptimizeTaskHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*expt.ExperimentServiceCreatePromptOptimizeTaskArgs)
+	realResult := result.(*expt.ExperimentServiceCreatePromptOptimizeTaskResult)
+	success, err := handler.(expt.ExperimentService).CreatePromptOptimizeTask(ctx, realArg.Req)
 	if err != nil {
 		return err
 	}
@@ -718,18 +704,18 @@ func createPromptOptimizationHandler(ctx context.Context, handler interface{}, a
 	return nil
 }
 
-func newExperimentServiceCreatePromptOptimizationArgs() interface{} {
-	return expt.NewExperimentServiceCreatePromptOptimizationArgs()
+func newExperimentServiceCreatePromptOptimizeTaskArgs() interface{} {
+	return expt.NewExperimentServiceCreatePromptOptimizeTaskArgs()
 }
 
-func newExperimentServiceCreatePromptOptimizationResult() interface{} {
-	return expt.NewExperimentServiceCreatePromptOptimizationResult()
+func newExperimentServiceCreatePromptOptimizeTaskResult() interface{} {
+	return expt.NewExperimentServiceCreatePromptOptimizeTaskResult()
 }
 
-func getPromptOptimizationHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*expt.ExperimentServiceGetPromptOptimizationArgs)
-	realResult := result.(*expt.ExperimentServiceGetPromptOptimizationResult)
-	success, err := handler.(expt.ExperimentService).GetPromptOptimization(ctx, realArg.Req)
+func getPromptOptimizeTaskHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*expt.ExperimentServiceGetPromptOptimizeTaskArgs)
+	realResult := result.(*expt.ExperimentServiceGetPromptOptimizeTaskResult)
+	success, err := handler.(expt.ExperimentService).GetPromptOptimizeTask(ctx, realArg.Req)
 	if err != nil {
 		return err
 	}
@@ -737,18 +723,18 @@ func getPromptOptimizationHandler(ctx context.Context, handler interface{}, arg,
 	return nil
 }
 
-func newExperimentServiceGetPromptOptimizationArgs() interface{} {
-	return expt.NewExperimentServiceGetPromptOptimizationArgs()
+func newExperimentServiceGetPromptOptimizeTaskArgs() interface{} {
+	return expt.NewExperimentServiceGetPromptOptimizeTaskArgs()
 }
 
-func newExperimentServiceGetPromptOptimizationResult() interface{} {
-	return expt.NewExperimentServiceGetPromptOptimizationResult()
+func newExperimentServiceGetPromptOptimizeTaskResult() interface{} {
+	return expt.NewExperimentServiceGetPromptOptimizeTaskResult()
 }
 
-func listPromptOptimizationsHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*expt.ExperimentServiceListPromptOptimizationsArgs)
-	realResult := result.(*expt.ExperimentServiceListPromptOptimizationsResult)
-	success, err := handler.(expt.ExperimentService).ListPromptOptimizations(ctx, realArg.Req)
+func listPromptOptimizeTasksHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*expt.ExperimentServiceListPromptOptimizeTasksArgs)
+	realResult := result.(*expt.ExperimentServiceListPromptOptimizeTasksResult)
+	success, err := handler.(expt.ExperimentService).ListPromptOptimizeTasks(ctx, realArg.Req)
 	if err != nil {
 		return err
 	}
@@ -756,50 +742,12 @@ func listPromptOptimizationsHandler(ctx context.Context, handler interface{}, ar
 	return nil
 }
 
-func newExperimentServiceListPromptOptimizationsArgs() interface{} {
-	return expt.NewExperimentServiceListPromptOptimizationsArgs()
+func newExperimentServiceListPromptOptimizeTasksArgs() interface{} {
+	return expt.NewExperimentServiceListPromptOptimizeTasksArgs()
 }
 
-func newExperimentServiceListPromptOptimizationsResult() interface{} {
-	return expt.NewExperimentServiceListPromptOptimizationsResult()
-}
-
-func cancelPromptOptimizationHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*expt.ExperimentServiceCancelPromptOptimizationArgs)
-	realResult := result.(*expt.ExperimentServiceCancelPromptOptimizationResult)
-	success, err := handler.(expt.ExperimentService).CancelPromptOptimization(ctx, realArg.Req)
-	if err != nil {
-		return err
-	}
-	realResult.Success = success
-	return nil
-}
-
-func newExperimentServiceCancelPromptOptimizationArgs() interface{} {
-	return expt.NewExperimentServiceCancelPromptOptimizationArgs()
-}
-
-func newExperimentServiceCancelPromptOptimizationResult() interface{} {
-	return expt.NewExperimentServiceCancelPromptOptimizationResult()
-}
-
-func applyPromptOptimizationToDraftHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*expt.ExperimentServiceApplyPromptOptimizationToDraftArgs)
-	realResult := result.(*expt.ExperimentServiceApplyPromptOptimizationToDraftResult)
-	success, err := handler.(expt.ExperimentService).ApplyPromptOptimizationToDraft(ctx, realArg.Req)
-	if err != nil {
-		return err
-	}
-	realResult.Success = success
-	return nil
-}
-
-func newExperimentServiceApplyPromptOptimizationToDraftArgs() interface{} {
-	return expt.NewExperimentServiceApplyPromptOptimizationToDraftArgs()
-}
-
-func newExperimentServiceApplyPromptOptimizationToDraftResult() interface{} {
-	return expt.NewExperimentServiceApplyPromptOptimizationToDraftResult()
+func newExperimentServiceListPromptOptimizeTasksResult() interface{} {
+	return expt.NewExperimentServiceListPromptOptimizeTasksResult()
 }
 
 func mGetExperimentStandardEvalOutputsHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -1534,61 +1482,41 @@ func (p *kClient) BatchGetExperimentResult_(ctx context.Context, req *expt.Batch
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) PreparePromptOptimization(ctx context.Context, req *expt.PreparePromptOptimizationRequest) (r *expt.PreparePromptOptimizationResponse, err error) {
-	var _args expt.ExperimentServicePreparePromptOptimizationArgs
+func (p *kClient) EstimatePromptOptimizeTaskResourceUsage(ctx context.Context, req *expt.EstimatePromptOptimizeTaskRequest) (r *expt.EstimatePromptOptimizeTaskResponse, err error) {
+	var _args expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs
 	_args.Req = req
-	var _result expt.ExperimentServicePreparePromptOptimizationResult
-	if err = p.c.Call(ctx, "PreparePromptOptimization", &_args, &_result); err != nil {
+	var _result expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult
+	if err = p.c.Call(ctx, "EstimatePromptOptimizeTaskResourceUsage", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) CreatePromptOptimization(ctx context.Context, req *expt.CreatePromptOptimizationRequest) (r *expt.CreatePromptOptimizationResponse, err error) {
-	var _args expt.ExperimentServiceCreatePromptOptimizationArgs
+func (p *kClient) CreatePromptOptimizeTask(ctx context.Context, req *expt.CreatePromptOptimizeTaskRequest) (r *expt.CreatePromptOptimizeTaskResponse, err error) {
+	var _args expt.ExperimentServiceCreatePromptOptimizeTaskArgs
 	_args.Req = req
-	var _result expt.ExperimentServiceCreatePromptOptimizationResult
-	if err = p.c.Call(ctx, "CreatePromptOptimization", &_args, &_result); err != nil {
+	var _result expt.ExperimentServiceCreatePromptOptimizeTaskResult
+	if err = p.c.Call(ctx, "CreatePromptOptimizeTask", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) GetPromptOptimization(ctx context.Context, req *expt.GetPromptOptimizationRequest) (r *expt.GetPromptOptimizationResponse, err error) {
-	var _args expt.ExperimentServiceGetPromptOptimizationArgs
+func (p *kClient) GetPromptOptimizeTask(ctx context.Context, req *expt.GetPromptOptimizeTaskRequest) (r *expt.GetPromptOptimizeTaskResponse, err error) {
+	var _args expt.ExperimentServiceGetPromptOptimizeTaskArgs
 	_args.Req = req
-	var _result expt.ExperimentServiceGetPromptOptimizationResult
-	if err = p.c.Call(ctx, "GetPromptOptimization", &_args, &_result); err != nil {
+	var _result expt.ExperimentServiceGetPromptOptimizeTaskResult
+	if err = p.c.Call(ctx, "GetPromptOptimizeTask", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) ListPromptOptimizations(ctx context.Context, req *expt.ListPromptOptimizationsRequest) (r *expt.ListPromptOptimizationsResponse, err error) {
-	var _args expt.ExperimentServiceListPromptOptimizationsArgs
+func (p *kClient) ListPromptOptimizeTasks(ctx context.Context, req *expt.ListPromptOptimizeTasksRequest) (r *expt.ListPromptOptimizeTasksResponse, err error) {
+	var _args expt.ExperimentServiceListPromptOptimizeTasksArgs
 	_args.Req = req
-	var _result expt.ExperimentServiceListPromptOptimizationsResult
-	if err = p.c.Call(ctx, "ListPromptOptimizations", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-
-func (p *kClient) CancelPromptOptimization(ctx context.Context, req *expt.CancelPromptOptimizationRequest) (r *expt.CancelPromptOptimizationResponse, err error) {
-	var _args expt.ExperimentServiceCancelPromptOptimizationArgs
-	_args.Req = req
-	var _result expt.ExperimentServiceCancelPromptOptimizationResult
-	if err = p.c.Call(ctx, "CancelPromptOptimization", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-
-func (p *kClient) ApplyPromptOptimizationToDraft(ctx context.Context, req *expt.ApplyPromptOptimizationToDraftRequest) (r *expt.ApplyPromptOptimizationToDraftResponse, err error) {
-	var _args expt.ExperimentServiceApplyPromptOptimizationToDraftArgs
-	_args.Req = req
-	var _result expt.ExperimentServiceApplyPromptOptimizationToDraftResult
-	if err = p.c.Call(ctx, "ApplyPromptOptimizationToDraft", &_args, &_result); err != nil {
+	var _result expt.ExperimentServiceListPromptOptimizeTasksResult
+	if err = p.c.Call(ctx, "ListPromptOptimizeTasks", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

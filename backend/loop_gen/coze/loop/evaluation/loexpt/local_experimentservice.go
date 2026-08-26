@@ -347,13 +347,13 @@ func (l *LocalExperimentService) BatchGetExperimentResult_(ctx context.Context, 
 	return result.GetSuccess(), nil
 }
 
-// PreparePromptOptimization
-// 智能优化：基于已完成的评测实验优化该实验所使用的 Prompt。
-func (l *LocalExperimentService) PreparePromptOptimization(ctx context.Context, req *expt.PreparePromptOptimizationRequest, callOptions ...callopt.Option) (*expt.PreparePromptOptimizationResponse, error) {
+// EstimatePromptOptimizeTaskResourceUsage
+// Prompt 智能优化：当前只实现官网“基于评测实验优化 Prompt”模式。
+func (l *LocalExperimentService) EstimatePromptOptimizeTaskResourceUsage(ctx context.Context, req *expt.EstimatePromptOptimizeTaskRequest, callOptions ...callopt.Option) (*expt.EstimatePromptOptimizeTaskResponse, error) {
 	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
-		arg := in.(*expt.ExperimentServicePreparePromptOptimizationArgs)
-		result := out.(*expt.ExperimentServicePreparePromptOptimizationResult)
-		resp, err := l.impl.PreparePromptOptimization(ctx, arg.Req)
+		arg := in.(*expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs)
+		result := out.(*expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult)
+		resp, err := l.impl.EstimatePromptOptimizeTaskResourceUsage(ctx, arg.Req)
 		if err != nil {
 			return err
 		}
@@ -361,20 +361,20 @@ func (l *LocalExperimentService) PreparePromptOptimization(ctx context.Context, 
 		return nil
 	})
 
-	arg := &expt.ExperimentServicePreparePromptOptimizationArgs{Req: req}
-	result := &expt.ExperimentServicePreparePromptOptimizationResult{}
-	ctx = l.injectRPCInfo(ctx, "PreparePromptOptimization")
+	arg := &expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs{Req: req}
+	result := &expt.ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult{}
+	ctx = l.injectRPCInfo(ctx, "EstimatePromptOptimizeTaskResourceUsage")
 	if err := chain(ctx, arg, result); err != nil {
 		return nil, err
 	}
 	return result.GetSuccess(), nil
 }
 
-func (l *LocalExperimentService) CreatePromptOptimization(ctx context.Context, req *expt.CreatePromptOptimizationRequest, callOptions ...callopt.Option) (*expt.CreatePromptOptimizationResponse, error) {
+func (l *LocalExperimentService) CreatePromptOptimizeTask(ctx context.Context, req *expt.CreatePromptOptimizeTaskRequest, callOptions ...callopt.Option) (*expt.CreatePromptOptimizeTaskResponse, error) {
 	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
-		arg := in.(*expt.ExperimentServiceCreatePromptOptimizationArgs)
-		result := out.(*expt.ExperimentServiceCreatePromptOptimizationResult)
-		resp, err := l.impl.CreatePromptOptimization(ctx, arg.Req)
+		arg := in.(*expt.ExperimentServiceCreatePromptOptimizeTaskArgs)
+		result := out.(*expt.ExperimentServiceCreatePromptOptimizeTaskResult)
+		resp, err := l.impl.CreatePromptOptimizeTask(ctx, arg.Req)
 		if err != nil {
 			return err
 		}
@@ -382,20 +382,20 @@ func (l *LocalExperimentService) CreatePromptOptimization(ctx context.Context, r
 		return nil
 	})
 
-	arg := &expt.ExperimentServiceCreatePromptOptimizationArgs{Req: req}
-	result := &expt.ExperimentServiceCreatePromptOptimizationResult{}
-	ctx = l.injectRPCInfo(ctx, "CreatePromptOptimization")
+	arg := &expt.ExperimentServiceCreatePromptOptimizeTaskArgs{Req: req}
+	result := &expt.ExperimentServiceCreatePromptOptimizeTaskResult{}
+	ctx = l.injectRPCInfo(ctx, "CreatePromptOptimizeTask")
 	if err := chain(ctx, arg, result); err != nil {
 		return nil, err
 	}
 	return result.GetSuccess(), nil
 }
 
-func (l *LocalExperimentService) GetPromptOptimization(ctx context.Context, req *expt.GetPromptOptimizationRequest, callOptions ...callopt.Option) (*expt.GetPromptOptimizationResponse, error) {
+func (l *LocalExperimentService) GetPromptOptimizeTask(ctx context.Context, req *expt.GetPromptOptimizeTaskRequest, callOptions ...callopt.Option) (*expt.GetPromptOptimizeTaskResponse, error) {
 	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
-		arg := in.(*expt.ExperimentServiceGetPromptOptimizationArgs)
-		result := out.(*expt.ExperimentServiceGetPromptOptimizationResult)
-		resp, err := l.impl.GetPromptOptimization(ctx, arg.Req)
+		arg := in.(*expt.ExperimentServiceGetPromptOptimizeTaskArgs)
+		result := out.(*expt.ExperimentServiceGetPromptOptimizeTaskResult)
+		resp, err := l.impl.GetPromptOptimizeTask(ctx, arg.Req)
 		if err != nil {
 			return err
 		}
@@ -403,20 +403,20 @@ func (l *LocalExperimentService) GetPromptOptimization(ctx context.Context, req 
 		return nil
 	})
 
-	arg := &expt.ExperimentServiceGetPromptOptimizationArgs{Req: req}
-	result := &expt.ExperimentServiceGetPromptOptimizationResult{}
-	ctx = l.injectRPCInfo(ctx, "GetPromptOptimization")
+	arg := &expt.ExperimentServiceGetPromptOptimizeTaskArgs{Req: req}
+	result := &expt.ExperimentServiceGetPromptOptimizeTaskResult{}
+	ctx = l.injectRPCInfo(ctx, "GetPromptOptimizeTask")
 	if err := chain(ctx, arg, result); err != nil {
 		return nil, err
 	}
 	return result.GetSuccess(), nil
 }
 
-func (l *LocalExperimentService) ListPromptOptimizations(ctx context.Context, req *expt.ListPromptOptimizationsRequest, callOptions ...callopt.Option) (*expt.ListPromptOptimizationsResponse, error) {
+func (l *LocalExperimentService) ListPromptOptimizeTasks(ctx context.Context, req *expt.ListPromptOptimizeTasksRequest, callOptions ...callopt.Option) (*expt.ListPromptOptimizeTasksResponse, error) {
 	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
-		arg := in.(*expt.ExperimentServiceListPromptOptimizationsArgs)
-		result := out.(*expt.ExperimentServiceListPromptOptimizationsResult)
-		resp, err := l.impl.ListPromptOptimizations(ctx, arg.Req)
+		arg := in.(*expt.ExperimentServiceListPromptOptimizeTasksArgs)
+		result := out.(*expt.ExperimentServiceListPromptOptimizeTasksResult)
+		resp, err := l.impl.ListPromptOptimizeTasks(ctx, arg.Req)
 		if err != nil {
 			return err
 		}
@@ -424,51 +424,9 @@ func (l *LocalExperimentService) ListPromptOptimizations(ctx context.Context, re
 		return nil
 	})
 
-	arg := &expt.ExperimentServiceListPromptOptimizationsArgs{Req: req}
-	result := &expt.ExperimentServiceListPromptOptimizationsResult{}
-	ctx = l.injectRPCInfo(ctx, "ListPromptOptimizations")
-	if err := chain(ctx, arg, result); err != nil {
-		return nil, err
-	}
-	return result.GetSuccess(), nil
-}
-
-func (l *LocalExperimentService) CancelPromptOptimization(ctx context.Context, req *expt.CancelPromptOptimizationRequest, callOptions ...callopt.Option) (*expt.CancelPromptOptimizationResponse, error) {
-	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
-		arg := in.(*expt.ExperimentServiceCancelPromptOptimizationArgs)
-		result := out.(*expt.ExperimentServiceCancelPromptOptimizationResult)
-		resp, err := l.impl.CancelPromptOptimization(ctx, arg.Req)
-		if err != nil {
-			return err
-		}
-		result.SetSuccess(resp)
-		return nil
-	})
-
-	arg := &expt.ExperimentServiceCancelPromptOptimizationArgs{Req: req}
-	result := &expt.ExperimentServiceCancelPromptOptimizationResult{}
-	ctx = l.injectRPCInfo(ctx, "CancelPromptOptimization")
-	if err := chain(ctx, arg, result); err != nil {
-		return nil, err
-	}
-	return result.GetSuccess(), nil
-}
-
-func (l *LocalExperimentService) ApplyPromptOptimizationToDraft(ctx context.Context, req *expt.ApplyPromptOptimizationToDraftRequest, callOptions ...callopt.Option) (*expt.ApplyPromptOptimizationToDraftResponse, error) {
-	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
-		arg := in.(*expt.ExperimentServiceApplyPromptOptimizationToDraftArgs)
-		result := out.(*expt.ExperimentServiceApplyPromptOptimizationToDraftResult)
-		resp, err := l.impl.ApplyPromptOptimizationToDraft(ctx, arg.Req)
-		if err != nil {
-			return err
-		}
-		result.SetSuccess(resp)
-		return nil
-	})
-
-	arg := &expt.ExperimentServiceApplyPromptOptimizationToDraftArgs{Req: req}
-	result := &expt.ExperimentServiceApplyPromptOptimizationToDraftResult{}
-	ctx = l.injectRPCInfo(ctx, "ApplyPromptOptimizationToDraft")
+	arg := &expt.ExperimentServiceListPromptOptimizeTasksArgs{Req: req}
+	result := &expt.ExperimentServiceListPromptOptimizeTasksResult{}
+	ctx = l.injectRPCInfo(ctx, "ListPromptOptimizeTasks")
 	if err := chain(ctx, arg, result); err != nil {
 		return nil, err
 	}

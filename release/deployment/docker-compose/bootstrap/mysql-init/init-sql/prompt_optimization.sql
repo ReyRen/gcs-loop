@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS `prompt_optimization_task`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_prompt_opt_idempotency` (`space_id`, `created_by`, `idempotency_key`),
     KEY `idx_prompt_opt_expt_created` (`space_id`, `experiment_id`, `created_at`, `id`),
+    KEY `idx_prompt_opt_prompt_created` (`space_id`, `prompt_id`, `deleted_at`, `created_at`, `id`),
     KEY `idx_prompt_opt_status` (`status`, `updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   COMMENT='Durable Prompt optimization tasks based on evaluation experiments';

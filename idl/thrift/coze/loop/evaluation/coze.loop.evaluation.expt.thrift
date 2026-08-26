@@ -1035,130 +1035,164 @@ struct PromptOptimizationIteration {
     6: optional i64 created_at (api.js_conv='true', go.tag='json:"created_at"')
 }
 
-struct PromptOptimizationTask {
+// Prompt 智能优化列表中的关联评测集摘要。
+struct PromptOptimizationEvalSetInfo {
     1: optional i64 id (api.js_conv='true', go.tag='json:"id"')
-    2: optional i64 workspace_id (api.js_conv='true', go.tag='json:"workspace_id"')
-    3: optional i64 experiment_id (api.js_conv='true', go.tag='json:"experiment_id"')
-    4: optional string name
-    5: optional i64 prompt_id (api.js_conv='true', go.tag='json:"prompt_id"')
-    6: optional string prompt_key
-    7: optional string source_prompt_version
-    8: optional PromptOptimizationMode mode
-    9: optional PromptOptimizationStatus status
-    10: optional PromptOptimizationStage stage
-    11: optional i32 progress
-    12: optional PromptOptimizationMetrics baseline_metrics
-    13: optional PromptOptimizationMetrics best_metrics
-    14: optional prompt.PromptTemplate original_prompt_template
-    15: optional prompt.PromptTemplate optimized_prompt_template
-    16: optional list<PromptOptimizationIteration> iterations
-    17: optional string error_message
-    18: optional string created_by
-    19: optional i64 created_at (api.js_conv='true', go.tag='json:"created_at"')
-    20: optional i64 updated_at (api.js_conv='true', go.tag='json:"updated_at"')
-    21: optional i64 started_at (api.js_conv='true', go.tag='json:"started_at"')
-    22: optional i64 ended_at (api.js_conv='true', go.tag='json:"ended_at"')
-    23: optional bool applied_to_draft
-    24: optional i64 applied_at (api.js_conv='true', go.tag='json:"applied_at"')
+    2: optional i64 version_id (api.js_conv='true', go.tag='json:"version_id"')
+    3: optional string name
+    4: optional string version
+    5: optional i64 item_count (api.js_conv='true', go.tag='json:"item_count"')
+    6: optional bool is_primary
 }
 
-struct PreparePromptOptimizationRequest {
-    1: required i64 workspace_id (api.query='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
-    2: required i64 expt_id (api.path='expt_id', api.js_conv='true', go.tag='json:"expt_id"', vt.gt='0')
+// The external contract mirrors the Prompt-centric official flow. An
+// experiment is a referenced data source; the optimized Prompt is the primary
+// resource of every API.
+struct PromptOptimizeFieldMapping {
+    1: optional string from_field_name
+    2: optional string field_name
+    3: optional string const_value
 }
 
-struct PreparePromptOptimizationResponse {
-    1: optional bool eligible
-    2: optional string ineligible_reason
-    3: optional i64 experiment_id (api.js_conv='true', go.tag='json:"experiment_id"')
-    4: optional string experiment_name
-    5: optional i64 prompt_id (api.js_conv='true', go.tag='json:"prompt_id"')
-    6: optional string prompt_key
-    7: optional string prompt_name
-    8: optional string source_prompt_version
-    9: optional list<PromptOptimizationVariable> prompt_variables
-    10: optional list<string> dataset_fields
-    11: optional list<string> target_output_fields
-    12: optional list<evaluator.Evaluator> evaluators
-    13: optional map<string, string> suggested_variable_mappings
-    14: optional string suggested_model_answer_field
-    15: optional string suggested_reference_answer_field
-    16: optional list<PromptOptimizationModeOption> mode_options
-    17: optional i32 max_sample_count
-    18: optional i32 default_sample_count
-    255: base.BaseResp BaseResp
+struct PromptOptimizeResourceUsage {
+    1: optional i64 min_credit_usage (api.js_conv='true', go.tag='json:"min_credit_usage"')
+    2: optional i64 max_credit_usage (api.js_conv='true', go.tag='json:"max_credit_usage"')
 }
 
-struct CreatePromptOptimizationRequest {
+struct PromptOptimizeTarget {
+    1: optional i64 target_id (api.js_conv='true', go.tag='json:"target_id"')
+    2: optional string target_name
+    3: optional string target_key
+    4: optional string target_version
+    5: optional string target_type
+}
+
+struct PromptOptimizeTaskDataSet {
+    1: optional string dataset_type
+    2: optional i64 related_eval_set_id (api.js_conv='true', go.tag='json:"related_eval_set_id"')
+    3: optional i64 related_eval_set_version_id (api.js_conv='true', go.tag='json:"related_eval_set_version_id"')
+    4: optional i64 related_expt_id (api.js_conv='true', go.tag='json:"related_expt_id"')
+    5: optional string related_expt_name
+    6: optional string related_eval_set_name
+    7: optional string related_eval_set_version
+    8: optional list<i64> selected_item_id_list (api.js_conv='true', go.tag='json:"selected_item_id_list"')
+    9: optional list<PromptOptimizeFieldMapping> eval_set_to_target
+    10: optional PromptOptimizeFieldMapping eval_set_to_reference
+    11: optional PromptOptimizeFieldMapping eval_set_to_actual_output
+    12: optional PromptOptimizeResourceUsage estimate_resource_usage
+}
+
+struct PromptOptimizeEngineConfig {
+    1: optional string engine
+    2: optional double optimize_factor
+    3: optional string balance_mode
+    4: optional string optimize_task_type
+}
+
+// gcs-loop renders its report natively rather than embedding PromptPilot, so
+// the official optimized message/tool fields and the local evaluation report
+// are returned together under optimize_result.
+struct PromptOptimizeTaskResult {
+    1: optional list<prompt.Message> optimized_prompt_message_list
+    2: optional list<prompt.Tool> optimized_tool_list
+    3: optional i64 ark_job_credit_usage (api.js_conv='true', go.tag='json:"ark_job_credit_usage"')
+    4: optional PromptOptimizationMetrics baseline_metrics
+    5: optional PromptOptimizationMetrics best_metrics
+    6: optional list<PromptOptimizationIteration> iterations
+}
+
+struct PromptOptimizeTask {
+    1: optional i64 id (api.js_conv='true', go.tag='json:"id"')
+    2: optional string task_name
+    3: optional string status
+    4: optional string stage
+    5: optional i32 progress
+    6: optional string error_message
+    7: optional string ark_task_id
+    8: optional PromptOptimizeTarget optimize_target
+    9: optional PromptOptimizeTaskDataSet optimize_task_data_set
+    10: optional PromptOptimizeEngineConfig optimize_engine_config
+    11: optional PromptOptimizeTaskResult optimize_result
+    12: optional string created_by
+    13: optional i64 created_at (api.js_conv='true', go.tag='json:"created_at"')
+    14: optional i64 updated_at (api.js_conv='true', go.tag='json:"updated_at"')
+    15: optional i64 started_at (api.js_conv='true', go.tag='json:"started_at"')
+    16: optional i64 ended_at (api.js_conv='true', go.tag='json:"ended_at"')
+}
+
+struct EstimatePromptOptimizeTaskRequest {
     1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
-    2: required i64 expt_id (api.path='expt_id', api.js_conv='true', go.tag='json:"expt_id"', vt.gt='0')
-    3: required list<PromptOptimizationSampleRef> samples (api.body='samples', vt.min_size='1', vt.max_size='20')
-    4: required map<string, string> variable_mappings (api.body='variable_mappings')
-    5: optional string model_answer_field (api.body='model_answer_field')
-    6: optional string reference_answer_field (api.body='reference_answer_field')
-    7: optional PromptOptimizationMode mode (api.body='mode')
-    8: optional i32 max_iterations (api.body='max_iterations', vt.ge='1', vt.le='20')
-    9: optional string name (api.body='name', vt.max_size='128')
-    10: optional string idempotency_key (api.body='idempotency_key', vt.max_size='128')
+    2: required i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"', vt.gt='0')
+    3: optional string target_type (api.body='target_type')
+    4: required string target_version (api.body='target_version')
+    5: required string dataset_type (api.body='dataset_type')
+    6: required i64 related_eval_set_id (api.body='related_eval_set_id', api.js_conv='true', go.tag='json:"related_eval_set_id"', vt.gt='0')
+    7: required i64 related_eval_set_version_id (api.body='related_eval_set_version_id', api.js_conv='true', go.tag='json:"related_eval_set_version_id"', vt.gt='0')
+    8: required i64 related_expt_id (api.body='related_expt_id', api.js_conv='true', go.tag='json:"related_expt_id"', vt.gt='0')
+    9: required list<i64> selected_item_id_list (api.body='selected_item_id_list', api.js_conv='true', go.tag='json:"selected_item_id_list"', vt.min_size='20', vt.max_size='500')
+    10: optional PromptOptimizeFieldMapping eval_set_to_reference (api.body='eval_set_to_reference')
+    11: required list<PromptOptimizeFieldMapping> eval_set_to_target (api.body='eval_set_to_target')
+    12: required PromptOptimizeFieldMapping eval_set_to_actual_output (api.body='eval_set_to_actual_output')
+    13: optional string engine (api.body='engine')
+    14: optional double optimize_factor (api.body='optimize_factor', vt.ge='0', vt.le='1')
+    15: optional string optimize_task_type (api.body='optimize_task_type')
 }
 
-struct CreatePromptOptimizationResponse {
-    1: optional PromptOptimizationTask task
+struct EstimatePromptOptimizeTaskResponse {
+    1: optional i64 min_total_resource_usage (api.js_conv='true', go.tag='json:"min_total_resource_usage"')
+    2: optional i64 max_total_resource_usage (api.js_conv='true', go.tag='json:"max_total_resource_usage"')
     255: base.BaseResp BaseResp
 }
 
-struct GetPromptOptimizationRequest {
-    1: required i64 workspace_id (api.query='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
-    2: required i64 expt_id (api.path='expt_id', api.js_conv='true', go.tag='json:"expt_id"', vt.gt='0')
-    3: required i64 optimization_id (api.path='optimization_id', api.js_conv='true', go.tag='json:"optimization_id"', vt.gt='0')
-    4: optional bool with_iterations (api.query='with_iterations')
-    5: optional bool with_sample_results (api.query='with_sample_results')
-}
-
-struct GetPromptOptimizationResponse {
-    1: optional PromptOptimizationTask task
-    255: base.BaseResp BaseResp
-}
-
-struct ListPromptOptimizationsRequest {
+struct CreatePromptOptimizeTaskRequest {
     1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
-    2: required i64 expt_id (api.path='expt_id', api.js_conv='true', go.tag='json:"expt_id"', vt.gt='0')
-    3: optional i32 page_number (api.body='page_number', vt.ge='1')
-    4: optional i32 page_size (api.body='page_size', vt.ge='1', vt.le='100')
-    5: optional list<PromptOptimizationStatus> statuses (api.body='statuses')
+    2: required i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"', vt.gt='0')
+    3: optional string target_type (api.body='target_type')
+    4: required string target_version (api.body='target_version')
+    5: required string dataset_type (api.body='dataset_type')
+    6: required i64 related_eval_set_id (api.body='related_eval_set_id', api.js_conv='true', go.tag='json:"related_eval_set_id"', vt.gt='0')
+    7: required i64 related_eval_set_version_id (api.body='related_eval_set_version_id', api.js_conv='true', go.tag='json:"related_eval_set_version_id"', vt.gt='0')
+    8: required i64 related_expt_id (api.body='related_expt_id', api.js_conv='true', go.tag='json:"related_expt_id"', vt.gt='0')
+    9: required list<i64> selected_item_id_list (api.body='selected_item_id_list', api.js_conv='true', go.tag='json:"selected_item_id_list"', vt.min_size='20', vt.max_size='500')
+    10: optional PromptOptimizeFieldMapping eval_set_to_reference (api.body='eval_set_to_reference')
+    11: required list<PromptOptimizeFieldMapping> eval_set_to_target (api.body='eval_set_to_target')
+    12: required PromptOptimizeFieldMapping eval_set_to_actual_output (api.body='eval_set_to_actual_output')
+    13: optional PromptOptimizeResourceUsage estimate_resource_usage (api.body='estimate_resource_usage')
+    14: optional string engine (api.body='engine')
+    15: optional double optimize_factor (api.body='optimize_factor', vt.ge='0', vt.le='1')
+    16: optional string optimize_task_type (api.body='optimize_task_type')
 }
 
-struct ListPromptOptimizationsResponse {
-    1: optional list<PromptOptimizationTask> tasks
+struct CreatePromptOptimizeTaskResponse {
+    1: optional PromptOptimizeTask optimize_task
+    255: base.BaseResp BaseResp
+}
+
+struct GetPromptOptimizeTaskRequest {
+    1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
+    2: required i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"', vt.gt='0')
+    3: required i64 task_id (api.path='task_id', api.js_conv='true', go.tag='json:"task_id"', vt.gt='0')
+}
+
+struct GetPromptOptimizeTaskResponse {
+    1: optional PromptOptimizeTask optimize_task
+    255: base.BaseResp BaseResp
+}
+
+struct ListPromptOptimizeTasksRequest {
+    1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
+    2: required i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"', vt.gt='0')
+    3: optional list<string> status (api.body='status')
+    4: optional string name (api.body='name', vt.max_size='128')
+    5: optional string relation_type (api.body='relation_type')
+    6: optional expt.Filters filters (api.body='filters')
+    7: optional i32 page_num (api.body='page_num', vt.ge='1')
+    8: optional i32 page_size (api.body='page_size', vt.ge='1', vt.le='100')
+}
+
+struct ListPromptOptimizeTasksResponse {
+    1: optional list<PromptOptimizeTask> optimize_tasks
     2: optional i64 total (api.js_conv='true', go.tag='json:"total"')
-    255: base.BaseResp BaseResp
-}
-
-struct CancelPromptOptimizationRequest {
-    1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
-    2: required i64 expt_id (api.path='expt_id', api.js_conv='true', go.tag='json:"expt_id"', vt.gt='0')
-    3: required i64 optimization_id (api.path='optimization_id', api.js_conv='true', go.tag='json:"optimization_id"', vt.gt='0')
-}
-
-struct CancelPromptOptimizationResponse {
-    1: optional PromptOptimizationTask task
-    255: base.BaseResp BaseResp
-}
-
-struct ApplyPromptOptimizationToDraftRequest {
-    1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
-    2: required i64 expt_id (api.path='expt_id', api.js_conv='true', go.tag='json:"expt_id"', vt.gt='0')
-    3: required i64 optimization_id (api.path='optimization_id', api.js_conv='true', go.tag='json:"optimization_id"', vt.gt='0')
-    // Applying replaces the current user's editable draft. Require an explicit
-    // acknowledgement when a draft already exists to prevent silent data loss.
-    4: optional bool overwrite_existing_draft (api.body='overwrite_existing_draft')
-}
-
-struct ApplyPromptOptimizationToDraftResponse {
-    1: optional i64 prompt_id (api.js_conv='true', go.tag='json:"prompt_id"')
-    2: optional string source_prompt_version
-    3: optional string draft_base_version
-    4: optional string next_action
     255: base.BaseResp BaseResp
 }
 
@@ -1225,24 +1259,18 @@ service ExperimentService {
         api.post = "/api/evaluation/v1/experiments/results/batch_get", api.op_type = 'query', api.tag = 'volc-agentkit,open', api.category = 'experiment'
     )
 
-    // 智能优化：基于已完成的评测实验优化该实验所使用的 Prompt。
-    PreparePromptOptimizationResponse PreparePromptOptimization(1: PreparePromptOptimizationRequest req) (
-        api.get = "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/prepare", api.op_type = 'query', api.tag = 'open', api.category = 'experiment'
+    // Prompt 智能优化：当前只实现官网“基于评测实验优化 Prompt”模式。
+    EstimatePromptOptimizeTaskResponse EstimatePromptOptimizeTaskResourceUsage(1: EstimatePromptOptimizeTaskRequest req) (
+        api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/evaluate", api.op_type = 'query', api.tag = 'open', api.category = 'prompt'
     )
-    CreatePromptOptimizationResponse CreatePromptOptimization(1: CreatePromptOptimizationRequest req) (
-        api.post = "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations", api.op_type = 'create', api.tag = 'open', api.category = 'experiment'
+    CreatePromptOptimizeTaskResponse CreatePromptOptimizeTask(1: CreatePromptOptimizeTaskRequest req) (
+        api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks", api.op_type = 'create', api.tag = 'open', api.category = 'prompt'
     )
-    GetPromptOptimizationResponse GetPromptOptimization(1: GetPromptOptimizationRequest req) (
-        api.get = "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id", api.op_type = 'query', api.tag = 'open', api.category = 'experiment'
+    GetPromptOptimizeTaskResponse GetPromptOptimizeTask(1: GetPromptOptimizeTaskRequest req) (
+        api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/:task_id", api.op_type = 'query', api.tag = 'open', api.category = 'prompt'
     )
-    ListPromptOptimizationsResponse ListPromptOptimizations(1: ListPromptOptimizationsRequest req) (
-        api.post = "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/list", api.op_type = 'list', api.tag = 'open', api.category = 'experiment'
-    )
-    CancelPromptOptimizationResponse CancelPromptOptimization(1: CancelPromptOptimizationRequest req) (
-        api.post = "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/cancel", api.op_type = 'update', api.tag = 'open', api.category = 'experiment'
-    )
-    ApplyPromptOptimizationToDraftResponse ApplyPromptOptimizationToDraft(1: ApplyPromptOptimizationToDraftRequest req) (
-        api.post = "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/apply_to_draft", api.op_type = 'update', api.tag = 'open', api.category = 'experiment'
+    ListPromptOptimizeTasksResponse ListPromptOptimizeTasks(1: ListPromptOptimizeTasksRequest req) (
+        api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/list", api.op_type = 'list', api.tag = 'open', api.category = 'prompt'
     )
 
     MGetExperimentStandardEvalOutputsResponse MGetExperimentStandardEvalOutputs(1: MGetExperimentStandardEvalOutputsRequest req)

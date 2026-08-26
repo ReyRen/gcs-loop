@@ -5,6 +5,7 @@ package application
 
 import (
 	"context"
+	stdjson "encoding/json"
 	"errors"
 	"testing"
 
@@ -230,4 +231,24 @@ func TestPromptTemplateReferencesVariable(t *testing.T) {
 	assert.True(t, promptTemplateReferencesVariable(&rpc.PromptTemplate{Messages: []*rpc.PromptMessage{{Content: "{{ topic }}"}}}, "topic"))
 	assert.True(t, promptTemplateReferencesVariable(&rpc.PromptTemplate{Messages: []*rpc.PromptMessage{{Content: "{{.topic}}"}}}, "topic"))
 	assert.False(t, promptTemplateReferencesVariable(&rpc.PromptTemplate{Messages: []*rpc.PromptMessage{{Content: "{{other}}"}}}, "topic"))
+}
+
+func TestPromptOptimizationTaskListFields(t *testing.T) {
+	requestData, err := stdjson.Marshal(promptOptimizationRequestSnapshot{Samples: []promptOptimizationSampleRefSnapshot{{ItemID: 1}, {ItemID: 2}}})
+	require.NoError(t, err)
+	executor := &promptOptimizationExecutor{}
+	task := executor.taskPOToDTO(context.Background(), &promptOptimizationTaskPO{RequestData: requestData}, false, false)
+	require.NotNil(t, task.OptimizeTaskDataSet)
+	assert.Equal(t, []int64{1, 2}, task.OptimizeTaskDataSet.GetSelectedItemIDList())
+
+	experiment := &entity.Experiment{
+		EvalSetID: 11, EvalSetVersionID: 12,
+		EvalSet: &entity.EvaluationSet{Name: "dataset", EvaluationSetVersion: &entity.EvaluationSetVersion{Version: "0.0.1", ItemCount: 8}},
+	}
+	evalSets := promptOptimizationEvalSetInfos(experiment)
+	require.Len(t, evalSets, 1)
+	assert.Equal(t, int64(11), evalSets[0].GetID())
+	assert.Equal(t, "dataset", evalSets[0].GetName())
+	assert.Equal(t, "0.0.1", evalSets[0].GetVersion())
+	assert.Equal(t, int64(8), evalSets[0].GetItemCount())
 }

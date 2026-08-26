@@ -34699,7 +34699,7 @@ func (p *PromptOptimizationIteration) DeepCopy(s interface{}) error {
 	return nil
 }
 
-func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
+func (p *PromptOptimizationEvalSetInfo) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -34745,7 +34745,7 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 3:
-			if fieldTypeId == thrift.I64 {
+			if fieldTypeId == thrift.STRING {
 				l, err = p.FastReadField3(buf[offset:])
 				offset += l
 				if err != nil {
@@ -34787,6 +34787,1137 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 6:
+			if fieldTypeId == thrift.BOOL {
+				l, err = p.FastReadField6(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationEvalSetInfo[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.ID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.VersionID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Name = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Version = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastReadField5(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.ItemCount = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastReadField6(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *bool
+	if v, l, err := thrift.Binary.ReadBool(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.IsPrimary = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *PromptOptimizationEvalSetInfo) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField5(buf[offset:], w)
+		offset += p.fastWriteField6(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *PromptOptimizationEvalSetInfo) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+		l += p.field4Length()
+		l += p.field5Length()
+		l += p.field6Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *PromptOptimizationEvalSetInfo) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.ID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizationEvalSetInfo) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetVersionID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.VersionID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizationEvalSetInfo) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Name)
+	}
+	return offset
+}
+
+func (p *PromptOptimizationEvalSetInfo) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetVersion() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Version)
+	}
+	return offset
+}
+
+func (p *PromptOptimizationEvalSetInfo) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetItemCount() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 5)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.ItemCount)
+	}
+	return offset
+}
+
+func (p *PromptOptimizationEvalSetInfo) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetIsPrimary() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.BOOL, 6)
+		offset += thrift.Binary.WriteBool(buf[offset:], *p.IsPrimary)
+	}
+	return offset
+}
+
+func (p *PromptOptimizationEvalSetInfo) field1Length() int {
+	l := 0
+	if p.IsSetID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizationEvalSetInfo) field2Length() int {
+	l := 0
+	if p.IsSetVersionID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizationEvalSetInfo) field3Length() int {
+	l := 0
+	if p.IsSetName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Name)
+	}
+	return l
+}
+
+func (p *PromptOptimizationEvalSetInfo) field4Length() int {
+	l := 0
+	if p.IsSetVersion() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Version)
+	}
+	return l
+}
+
+func (p *PromptOptimizationEvalSetInfo) field5Length() int {
+	l := 0
+	if p.IsSetItemCount() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizationEvalSetInfo) field6Length() int {
+	l := 0
+	if p.IsSetIsPrimary() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.BoolLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizationEvalSetInfo) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizationEvalSetInfo)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.ID != nil {
+		tmp := *src.ID
+		p.ID = &tmp
+	}
+
+	if src.VersionID != nil {
+		tmp := *src.VersionID
+		p.VersionID = &tmp
+	}
+
+	if src.Name != nil {
+		var tmp string
+		if *src.Name != "" {
+			tmp = kutils.StringDeepCopy(*src.Name)
+		}
+		p.Name = &tmp
+	}
+
+	if src.Version != nil {
+		var tmp string
+		if *src.Version != "" {
+			tmp = kutils.StringDeepCopy(*src.Version)
+		}
+		p.Version = &tmp
+	}
+
+	if src.ItemCount != nil {
+		tmp := *src.ItemCount
+		p.ItemCount = &tmp
+	}
+
+	if src.IsPrimary != nil {
+		tmp := *src.IsPrimary
+		p.IsPrimary = &tmp
+	}
+
+	return nil
+}
+
+func (p *PromptOptimizeFieldMapping) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizeFieldMapping[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *PromptOptimizeFieldMapping) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.FromFieldName = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeFieldMapping) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.FieldName = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeFieldMapping) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.ConstValue = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeFieldMapping) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *PromptOptimizeFieldMapping) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *PromptOptimizeFieldMapping) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *PromptOptimizeFieldMapping) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetFromFieldName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.FromFieldName)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeFieldMapping) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetFieldName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.FieldName)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeFieldMapping) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetConstValue() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ConstValue)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeFieldMapping) field1Length() int {
+	l := 0
+	if p.IsSetFromFieldName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.FromFieldName)
+	}
+	return l
+}
+
+func (p *PromptOptimizeFieldMapping) field2Length() int {
+	l := 0
+	if p.IsSetFieldName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.FieldName)
+	}
+	return l
+}
+
+func (p *PromptOptimizeFieldMapping) field3Length() int {
+	l := 0
+	if p.IsSetConstValue() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.ConstValue)
+	}
+	return l
+}
+
+func (p *PromptOptimizeFieldMapping) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizeFieldMapping)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.FromFieldName != nil {
+		var tmp string
+		if *src.FromFieldName != "" {
+			tmp = kutils.StringDeepCopy(*src.FromFieldName)
+		}
+		p.FromFieldName = &tmp
+	}
+
+	if src.FieldName != nil {
+		var tmp string
+		if *src.FieldName != "" {
+			tmp = kutils.StringDeepCopy(*src.FieldName)
+		}
+		p.FieldName = &tmp
+	}
+
+	if src.ConstValue != nil {
+		var tmp string
+		if *src.ConstValue != "" {
+			tmp = kutils.StringDeepCopy(*src.ConstValue)
+		}
+		p.ConstValue = &tmp
+	}
+
+	return nil
+}
+
+func (p *PromptOptimizeResourceUsage) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizeResourceUsage[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *PromptOptimizeResourceUsage) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.MinCreditUsage = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeResourceUsage) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.MaxCreditUsage = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeResourceUsage) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *PromptOptimizeResourceUsage) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *PromptOptimizeResourceUsage) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *PromptOptimizeResourceUsage) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetMinCreditUsage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.MinCreditUsage)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeResourceUsage) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetMaxCreditUsage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.MaxCreditUsage)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeResourceUsage) field1Length() int {
+	l := 0
+	if p.IsSetMinCreditUsage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeResourceUsage) field2Length() int {
+	l := 0
+	if p.IsSetMaxCreditUsage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeResourceUsage) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizeResourceUsage)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.MinCreditUsage != nil {
+		tmp := *src.MinCreditUsage
+		p.MinCreditUsage = &tmp
+	}
+
+	if src.MaxCreditUsage != nil {
+		tmp := *src.MaxCreditUsage
+		p.MaxCreditUsage = &tmp
+	}
+
+	return nil
+}
+
+func (p *PromptOptimizeTarget) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField4(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField5(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizeTarget[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *PromptOptimizeTarget) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TargetID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTarget) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TargetName = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTarget) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TargetKey = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTarget) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TargetVersion = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTarget) FastReadField5(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TargetType = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTarget) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *PromptOptimizeTarget) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
+		offset += p.fastWriteField5(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *PromptOptimizeTarget) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+		l += p.field4Length()
+		l += p.field5Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *PromptOptimizeTarget) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTargetID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.TargetID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTarget) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTargetName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.TargetName)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTarget) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTargetKey() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.TargetKey)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTarget) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTargetVersion() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.TargetVersion)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTarget) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTargetType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 5)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.TargetType)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTarget) field1Length() int {
+	l := 0
+	if p.IsSetTargetID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTarget) field2Length() int {
+	l := 0
+	if p.IsSetTargetName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.TargetName)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTarget) field3Length() int {
+	l := 0
+	if p.IsSetTargetKey() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.TargetKey)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTarget) field4Length() int {
+	l := 0
+	if p.IsSetTargetVersion() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.TargetVersion)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTarget) field5Length() int {
+	l := 0
+	if p.IsSetTargetType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.TargetType)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTarget) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizeTarget)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.TargetID != nil {
+		tmp := *src.TargetID
+		p.TargetID = &tmp
+	}
+
+	if src.TargetName != nil {
+		var tmp string
+		if *src.TargetName != "" {
+			tmp = kutils.StringDeepCopy(*src.TargetName)
+		}
+		p.TargetName = &tmp
+	}
+
+	if src.TargetKey != nil {
+		var tmp string
+		if *src.TargetKey != "" {
+			tmp = kutils.StringDeepCopy(*src.TargetKey)
+		}
+		p.TargetKey = &tmp
+	}
+
+	if src.TargetVersion != nil {
+		var tmp string
+		if *src.TargetVersion != "" {
+			tmp = kutils.StringDeepCopy(*src.TargetVersion)
+		}
+		p.TargetVersion = &tmp
+	}
+
+	if src.TargetType != nil {
+		var tmp string
+		if *src.TargetType != "" {
+			tmp = kutils.StringDeepCopy(*src.TargetType)
+		}
+		p.TargetType = &tmp
+	}
+
+	return nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 4:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField4(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField5(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 6:
 			if fieldTypeId == thrift.STRING {
 				l, err = p.FastReadField6(buf[offset:])
 				offset += l
@@ -34815,7 +35946,7 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 8:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.LIST {
 				l, err = p.FastReadField8(buf[offset:])
 				offset += l
 				if err != nil {
@@ -34829,7 +35960,7 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 9:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.LIST {
 				l, err = p.FastReadField9(buf[offset:])
 				offset += l
 				if err != nil {
@@ -34843,7 +35974,7 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 10:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField10(buf[offset:])
 				offset += l
 				if err != nil {
@@ -34857,7 +35988,7 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 11:
-			if fieldTypeId == thrift.I32 {
+			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField11(buf[offset:])
 				offset += l
 				if err != nil {
@@ -34884,65 +36015,614 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
-		case 13:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField13(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizeTaskDataSet[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.DatasetType = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.RelatedEvalSetID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.RelatedEvalSetVersionID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.RelatedExptID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField5(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.RelatedExptName = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField6(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.RelatedEvalSetName = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField7(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.RelatedEvalSetVersion = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField8(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]int64, 0, size)
+	for i := 0; i < size; i++ {
+		var _elem int64
+		if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.SelectedItemIDList = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField9(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]*PromptOptimizeFieldMapping, 0, size)
+	values := make([]PromptOptimizeFieldMapping, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.EvalSetToTarget = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField10(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeFieldMapping()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EvalSetToReference = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField11(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeFieldMapping()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EvalSetToActualOutput = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastReadField12(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeResourceUsage()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EstimateResourceUsage = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskDataSet) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *PromptOptimizeTaskDataSet) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField5(buf[offset:], w)
+		offset += p.fastWriteField6(buf[offset:], w)
+		offset += p.fastWriteField7(buf[offset:], w)
+		offset += p.fastWriteField8(buf[offset:], w)
+		offset += p.fastWriteField9(buf[offset:], w)
+		offset += p.fastWriteField10(buf[offset:], w)
+		offset += p.fastWriteField11(buf[offset:], w)
+		offset += p.fastWriteField12(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+		l += p.field4Length()
+		l += p.field5Length()
+		l += p.field6Length()
+		l += p.field7Length()
+		l += p.field8Length()
+		l += p.field9Length()
+		l += p.field10Length()
+		l += p.field11Length()
+		l += p.field12Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetDatasetType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.DatasetType)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetRelatedEvalSetID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.RelatedEvalSetID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetRelatedEvalSetVersionID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 3)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.RelatedEvalSetVersionID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetRelatedExptID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 4)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.RelatedExptID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetRelatedExptName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 5)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.RelatedExptName)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetRelatedEvalSetName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 6)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.RelatedEvalSetName)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetRelatedEvalSetVersion() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 7)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.RelatedEvalSetVersion)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetSelectedItemIDList() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 8)
+		listBeginOffset := offset
+		offset += thrift.Binary.ListBeginLength()
+		var length int
+		for _, v := range p.SelectedItemIDList {
+			length++
+			offset += thrift.Binary.WriteI64(buf[offset:], v)
+		}
+		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.I64, length)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEvalSetToTarget() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 9)
+		listBeginOffset := offset
+		offset += thrift.Binary.ListBeginLength()
+		var length int
+		for _, v := range p.EvalSetToTarget {
+			length++
+			offset += v.FastWriteNocopy(buf[offset:], w)
+		}
+		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField10(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEvalSetToReference() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 10)
+		offset += p.EvalSetToReference.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField11(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEvalSetToActualOutput() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 11)
+		offset += p.EvalSetToActualOutput.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) fastWriteField12(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEstimateResourceUsage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 12)
+		offset += p.EstimateResourceUsage.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskDataSet) field1Length() int {
+	l := 0
+	if p.IsSetDatasetType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.DatasetType)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field2Length() int {
+	l := 0
+	if p.IsSetRelatedEvalSetID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field3Length() int {
+	l := 0
+	if p.IsSetRelatedEvalSetVersionID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field4Length() int {
+	l := 0
+	if p.IsSetRelatedExptID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field5Length() int {
+	l := 0
+	if p.IsSetRelatedExptName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.RelatedExptName)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field6Length() int {
+	l := 0
+	if p.IsSetRelatedEvalSetName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.RelatedEvalSetName)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field7Length() int {
+	l := 0
+	if p.IsSetRelatedEvalSetVersion() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.RelatedEvalSetVersion)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field8Length() int {
+	l := 0
+	if p.IsSetSelectedItemIDList() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.ListBeginLength()
+		l +=
+			thrift.Binary.I64Length() * len(p.SelectedItemIDList)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field9Length() int {
+	l := 0
+	if p.IsSetEvalSetToTarget() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.ListBeginLength()
+		for _, v := range p.EvalSetToTarget {
+			_ = v
+			l += v.BLength()
+		}
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field10Length() int {
+	l := 0
+	if p.IsSetEvalSetToReference() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.EvalSetToReference.BLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field11Length() int {
+	l := 0
+	if p.IsSetEvalSetToActualOutput() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.EvalSetToActualOutput.BLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) field12Length() int {
+	l := 0
+	if p.IsSetEstimateResourceUsage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.EstimateResourceUsage.BLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskDataSet) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizeTaskDataSet)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.DatasetType != nil {
+		var tmp string
+		if *src.DatasetType != "" {
+			tmp = kutils.StringDeepCopy(*src.DatasetType)
+		}
+		p.DatasetType = &tmp
+	}
+
+	if src.RelatedEvalSetID != nil {
+		tmp := *src.RelatedEvalSetID
+		p.RelatedEvalSetID = &tmp
+	}
+
+	if src.RelatedEvalSetVersionID != nil {
+		tmp := *src.RelatedEvalSetVersionID
+		p.RelatedEvalSetVersionID = &tmp
+	}
+
+	if src.RelatedExptID != nil {
+		tmp := *src.RelatedExptID
+		p.RelatedExptID = &tmp
+	}
+
+	if src.RelatedExptName != nil {
+		var tmp string
+		if *src.RelatedExptName != "" {
+			tmp = kutils.StringDeepCopy(*src.RelatedExptName)
+		}
+		p.RelatedExptName = &tmp
+	}
+
+	if src.RelatedEvalSetName != nil {
+		var tmp string
+		if *src.RelatedEvalSetName != "" {
+			tmp = kutils.StringDeepCopy(*src.RelatedEvalSetName)
+		}
+		p.RelatedEvalSetName = &tmp
+	}
+
+	if src.RelatedEvalSetVersion != nil {
+		var tmp string
+		if *src.RelatedEvalSetVersion != "" {
+			tmp = kutils.StringDeepCopy(*src.RelatedEvalSetVersion)
+		}
+		p.RelatedEvalSetVersion = &tmp
+	}
+
+	if src.SelectedItemIDList != nil {
+		p.SelectedItemIDList = make([]int64, 0, len(src.SelectedItemIDList))
+		for _, elem := range src.SelectedItemIDList {
+			var _elem int64
+			_elem = elem
+			p.SelectedItemIDList = append(p.SelectedItemIDList, _elem)
+		}
+	}
+
+	if src.EvalSetToTarget != nil {
+		p.EvalSetToTarget = make([]*PromptOptimizeFieldMapping, 0, len(src.EvalSetToTarget))
+		for _, elem := range src.EvalSetToTarget {
+			var _elem *PromptOptimizeFieldMapping
+			if elem != nil {
+				_elem = &PromptOptimizeFieldMapping{}
+				if err := _elem.DeepCopy(elem); err != nil {
+					return err
 				}
 			}
-		case 14:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField14(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 15:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField15(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 16:
-			if fieldTypeId == thrift.LIST {
-				l, err = p.FastReadField16(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 17:
+
+			p.EvalSetToTarget = append(p.EvalSetToTarget, _elem)
+		}
+	}
+
+	var _evalSetToReference *PromptOptimizeFieldMapping
+	if src.EvalSetToReference != nil {
+		_evalSetToReference = &PromptOptimizeFieldMapping{}
+		if err := _evalSetToReference.DeepCopy(src.EvalSetToReference); err != nil {
+			return err
+		}
+	}
+	p.EvalSetToReference = _evalSetToReference
+
+	var _evalSetToActualOutput *PromptOptimizeFieldMapping
+	if src.EvalSetToActualOutput != nil {
+		_evalSetToActualOutput = &PromptOptimizeFieldMapping{}
+		if err := _evalSetToActualOutput.DeepCopy(src.EvalSetToActualOutput); err != nil {
+			return err
+		}
+	}
+	p.EvalSetToActualOutput = _evalSetToActualOutput
+
+	var _estimateResourceUsage *PromptOptimizeResourceUsage
+	if src.EstimateResourceUsage != nil {
+		_estimateResourceUsage = &PromptOptimizeResourceUsage{}
+		if err := _estimateResourceUsage.DeepCopy(src.EstimateResourceUsage); err != nil {
+			return err
+		}
+	}
+	p.EstimateResourceUsage = _estimateResourceUsage
+
+	return nil
+}
+
+func (p *PromptOptimizeEngineConfig) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
 			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField17(buf[offset:])
+				l, err = p.FastReadField1(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
@@ -34954,9 +36634,23 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
-		case 18:
+		case 2:
+			if fieldTypeId == thrift.DOUBLE {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
 			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField18(buf[offset:])
+				l, err = p.FastReadField3(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
@@ -34968,79 +36662,9 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
-		case 19:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField19(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 20:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField20(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 21:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField21(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 22:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField22(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 23:
-			if fieldTypeId == thrift.BOOL {
-				l, err = p.FastReadField23(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 24:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField24(buf[offset:])
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField4(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
@@ -35065,54 +36689,12 @@ func (p *PromptOptimizationTask) FastRead(buf []byte) (int, error) {
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizationTask[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizeEngineConfig[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *PromptOptimizationTask) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.ID = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.WorkspaceID = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField3(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.ExperimentID = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField4(buf []byte) (int, error) {
+func (p *PromptOptimizeEngineConfig) FastReadField1(buf []byte) (int, error) {
 	offset := 0
 
 	var _field *string
@@ -35122,11 +36704,360 @@ func (p *PromptOptimizationTask) FastReadField4(buf []byte) (int, error) {
 		offset += l
 		_field = &v
 	}
-	p.Name = _field
+	p.Engine = _field
 	return offset, nil
 }
 
-func (p *PromptOptimizationTask) FastReadField5(buf []byte) (int, error) {
+func (p *PromptOptimizeEngineConfig) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *float64
+	if v, l, err := thrift.Binary.ReadDouble(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.OptimizeFactor = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeEngineConfig) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.BalanceMode = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeEngineConfig) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.OptimizeTaskType = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeEngineConfig) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *PromptOptimizeEngineConfig) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *PromptOptimizeEngineConfig) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+		l += p.field4Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *PromptOptimizeEngineConfig) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEngine() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Engine)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeEngineConfig) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeFactor() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.DOUBLE, 2)
+		offset += thrift.Binary.WriteDouble(buf[offset:], *p.OptimizeFactor)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeEngineConfig) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetBalanceMode() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.BalanceMode)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeEngineConfig) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeTaskType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.OptimizeTaskType)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeEngineConfig) field1Length() int {
+	l := 0
+	if p.IsSetEngine() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Engine)
+	}
+	return l
+}
+
+func (p *PromptOptimizeEngineConfig) field2Length() int {
+	l := 0
+	if p.IsSetOptimizeFactor() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.DoubleLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeEngineConfig) field3Length() int {
+	l := 0
+	if p.IsSetBalanceMode() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.BalanceMode)
+	}
+	return l
+}
+
+func (p *PromptOptimizeEngineConfig) field4Length() int {
+	l := 0
+	if p.IsSetOptimizeTaskType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.OptimizeTaskType)
+	}
+	return l
+}
+
+func (p *PromptOptimizeEngineConfig) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizeEngineConfig)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.Engine != nil {
+		var tmp string
+		if *src.Engine != "" {
+			tmp = kutils.StringDeepCopy(*src.Engine)
+		}
+		p.Engine = &tmp
+	}
+
+	if src.OptimizeFactor != nil {
+		tmp := *src.OptimizeFactor
+		p.OptimizeFactor = &tmp
+	}
+
+	if src.BalanceMode != nil {
+		var tmp string
+		if *src.BalanceMode != "" {
+			tmp = kutils.StringDeepCopy(*src.BalanceMode)
+		}
+		p.BalanceMode = &tmp
+	}
+
+	if src.OptimizeTaskType != nil {
+		var tmp string
+		if *src.OptimizeTaskType != "" {
+			tmp = kutils.StringDeepCopy(*src.OptimizeTaskType)
+		}
+		p.OptimizeTaskType = &tmp
+	}
+
+	return nil
+}
+
+func (p *PromptOptimizeTaskResult_) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.LIST {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.LIST {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 4:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField4(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 5:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField5(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 6:
+			if fieldTypeId == thrift.LIST {
+				l, err = p.FastReadField6(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizeTaskResult_[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *PromptOptimizeTaskResult_) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]*prompt.Message, 0, size)
+	values := make([]prompt.Message, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.OptimizedPromptMessageList = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskResult_) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]*prompt.Tool, 0, size)
+	values := make([]prompt.Tool, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.OptimizedToolList = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskResult_) FastReadField3(buf []byte) (int, error) {
 	offset := 0
 
 	var _field *int64
@@ -35136,95 +37067,11 @@ func (p *PromptOptimizationTask) FastReadField5(buf []byte) (int, error) {
 		offset += l
 		_field = &v
 	}
-	p.PromptID = _field
+	p.ArkJobCreditUsage = _field
 	return offset, nil
 }
 
-func (p *PromptOptimizationTask) FastReadField6(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.PromptKey = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField7(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.SourcePromptVersion = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField8(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *PromptOptimizationMode
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.Mode = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField9(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *PromptOptimizationStatus
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.Status = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField10(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *PromptOptimizationStage
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.Stage = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField11(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int32
-	if v, l, err := thrift.Binary.ReadI32(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.Progress = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField12(buf []byte) (int, error) {
+func (p *PromptOptimizeTaskResult_) FastReadField4(buf []byte) (int, error) {
 	offset := 0
 	_field := NewPromptOptimizationMetrics()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
@@ -35236,7 +37083,7 @@ func (p *PromptOptimizationTask) FastReadField12(buf []byte) (int, error) {
 	return offset, nil
 }
 
-func (p *PromptOptimizationTask) FastReadField13(buf []byte) (int, error) {
+func (p *PromptOptimizeTaskResult_) FastReadField5(buf []byte) (int, error) {
 	offset := 0
 	_field := NewPromptOptimizationMetrics()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
@@ -35248,31 +37095,7 @@ func (p *PromptOptimizationTask) FastReadField13(buf []byte) (int, error) {
 	return offset, nil
 }
 
-func (p *PromptOptimizationTask) FastReadField14(buf []byte) (int, error) {
-	offset := 0
-	_field := prompt.NewPromptTemplate()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.OriginalPromptTemplate = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField15(buf []byte) (int, error) {
-	offset := 0
-	_field := prompt.NewPromptTemplate()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.OptimizedPromptTemplate = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField16(buf []byte) (int, error) {
+func (p *PromptOptimizeTaskResult_) FastReadField6(buf []byte) (int, error) {
 	offset := 0
 
 	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
@@ -35297,155 +37120,25 @@ func (p *PromptOptimizationTask) FastReadField16(buf []byte) (int, error) {
 	return offset, nil
 }
 
-func (p *PromptOptimizationTask) FastReadField17(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.ErrorMessage = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField18(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.CreatedBy = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField19(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.CreatedAt = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField20(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.UpdatedAt = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField21(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.StartedAt = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField22(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.EndedAt = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField23(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *bool
-	if v, l, err := thrift.Binary.ReadBool(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.AppliedToDraft = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastReadField24(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.AppliedAt = _field
-	return offset, nil
-}
-
-func (p *PromptOptimizationTask) FastWrite(buf []byte) int {
+func (p *PromptOptimizeTaskResult_) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *PromptOptimizationTask) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *PromptOptimizeTaskResult_) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
+		offset += p.fastWriteField3(buf[offset:], w)
 		offset += p.fastWriteField1(buf[offset:], w)
 		offset += p.fastWriteField2(buf[offset:], w)
-		offset += p.fastWriteField3(buf[offset:], w)
-		offset += p.fastWriteField5(buf[offset:], w)
-		offset += p.fastWriteField11(buf[offset:], w)
-		offset += p.fastWriteField19(buf[offset:], w)
-		offset += p.fastWriteField20(buf[offset:], w)
-		offset += p.fastWriteField21(buf[offset:], w)
-		offset += p.fastWriteField22(buf[offset:], w)
-		offset += p.fastWriteField23(buf[offset:], w)
-		offset += p.fastWriteField24(buf[offset:], w)
 		offset += p.fastWriteField4(buf[offset:], w)
+		offset += p.fastWriteField5(buf[offset:], w)
 		offset += p.fastWriteField6(buf[offset:], w)
-		offset += p.fastWriteField7(buf[offset:], w)
-		offset += p.fastWriteField8(buf[offset:], w)
-		offset += p.fastWriteField9(buf[offset:], w)
-		offset += p.fastWriteField10(buf[offset:], w)
-		offset += p.fastWriteField12(buf[offset:], w)
-		offset += p.fastWriteField13(buf[offset:], w)
-		offset += p.fastWriteField14(buf[offset:], w)
-		offset += p.fastWriteField15(buf[offset:], w)
-		offset += p.fastWriteField16(buf[offset:], w)
-		offset += p.fastWriteField17(buf[offset:], w)
-		offset += p.fastWriteField18(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
 }
 
-func (p *PromptOptimizationTask) BLength() int {
+func (p *PromptOptimizeTaskResult_) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -35454,168 +37147,74 @@ func (p *PromptOptimizationTask) BLength() int {
 		l += p.field4Length()
 		l += p.field5Length()
 		l += p.field6Length()
-		l += p.field7Length()
-		l += p.field8Length()
-		l += p.field9Length()
-		l += p.field10Length()
-		l += p.field11Length()
-		l += p.field12Length()
-		l += p.field13Length()
-		l += p.field14Length()
-		l += p.field15Length()
-		l += p.field16Length()
-		l += p.field17Length()
-		l += p.field18Length()
-		l += p.field19Length()
-		l += p.field20Length()
-		l += p.field21Length()
-		l += p.field22Length()
-		l += p.field23Length()
-		l += p.field24Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
 }
 
-func (p *PromptOptimizationTask) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *PromptOptimizeTaskResult_) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	if p.IsSetID() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.ID)
+	if p.IsSetOptimizedPromptMessageList() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 1)
+		listBeginOffset := offset
+		offset += thrift.Binary.ListBeginLength()
+		var length int
+		for _, v := range p.OptimizedPromptMessageList {
+			length++
+			offset += v.FastWriteNocopy(buf[offset:], w)
+		}
+		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
 	}
 	return offset
 }
 
-func (p *PromptOptimizationTask) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+func (p *PromptOptimizeTaskResult_) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	if p.IsSetWorkspaceID() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.WorkspaceID)
+	if p.IsSetOptimizedToolList() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 2)
+		listBeginOffset := offset
+		offset += thrift.Binary.ListBeginLength()
+		var length int
+		for _, v := range p.OptimizedToolList {
+			length++
+			offset += v.FastWriteNocopy(buf[offset:], w)
+		}
+		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
 	}
 	return offset
 }
 
-func (p *PromptOptimizationTask) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+func (p *PromptOptimizeTaskResult_) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	if p.IsSetExperimentID() {
+	if p.IsSetArkJobCreditUsage() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 3)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.ExperimentID)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.ArkJobCreditUsage)
 	}
 	return offset
 }
 
-func (p *PromptOptimizationTask) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetName() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Name)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPromptID() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 5)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.PromptID)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPromptKey() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 6)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.PromptKey)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSourcePromptVersion() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 7)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.SourcePromptVersion)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetMode() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 8)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Mode)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetStatus() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 9)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Status)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField10(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetStage() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 10)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Stage)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField11(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetProgress() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 11)
-		offset += thrift.Binary.WriteI32(buf[offset:], *p.Progress)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField12(buf []byte, w thrift.NocopyWriter) int {
+func (p *PromptOptimizeTaskResult_) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetBaselineMetrics() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 12)
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 4)
 		offset += p.BaselineMetrics.FastWriteNocopy(buf[offset:], w)
 	}
 	return offset
 }
 
-func (p *PromptOptimizationTask) fastWriteField13(buf []byte, w thrift.NocopyWriter) int {
+func (p *PromptOptimizeTaskResult_) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetBestMetrics() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 13)
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 5)
 		offset += p.BestMetrics.FastWriteNocopy(buf[offset:], w)
 	}
 	return offset
 }
 
-func (p *PromptOptimizationTask) fastWriteField14(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetOriginalPromptTemplate() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 14)
-		offset += p.OriginalPromptTemplate.FastWriteNocopy(buf[offset:], w)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField15(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetOptimizedPromptTemplate() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 15)
-		offset += p.OptimizedPromptTemplate.FastWriteNocopy(buf[offset:], w)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField16(buf []byte, w thrift.NocopyWriter) int {
+func (p *PromptOptimizeTaskResult_) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetIterations() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 16)
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 6)
 		listBeginOffset := offset
 		offset += thrift.Binary.ListBeginLength()
 		var length int
@@ -35628,178 +37227,42 @@ func (p *PromptOptimizationTask) fastWriteField16(buf []byte, w thrift.NocopyWri
 	return offset
 }
 
-func (p *PromptOptimizationTask) fastWriteField17(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetErrorMessage() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 17)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ErrorMessage)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField18(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetCreatedBy() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 18)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.CreatedBy)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField19(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetCreatedAt() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 19)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.CreatedAt)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField20(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetUpdatedAt() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 20)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.UpdatedAt)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField21(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetStartedAt() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 21)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.StartedAt)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField22(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetEndedAt() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 22)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.EndedAt)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField23(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetAppliedToDraft() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.BOOL, 23)
-		offset += thrift.Binary.WriteBool(buf[offset:], *p.AppliedToDraft)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) fastWriteField24(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetAppliedAt() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 24)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.AppliedAt)
-	}
-	return offset
-}
-
-func (p *PromptOptimizationTask) field1Length() int {
+func (p *PromptOptimizeTaskResult_) field1Length() int {
 	l := 0
-	if p.IsSetID() {
+	if p.IsSetOptimizedPromptMessageList() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.ListBeginLength()
+		for _, v := range p.OptimizedPromptMessageList {
+			_ = v
+			l += v.BLength()
+		}
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskResult_) field2Length() int {
+	l := 0
+	if p.IsSetOptimizedToolList() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.ListBeginLength()
+		for _, v := range p.OptimizedToolList {
+			_ = v
+			l += v.BLength()
+		}
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskResult_) field3Length() int {
+	l := 0
+	if p.IsSetArkJobCreditUsage() {
 		l += thrift.Binary.FieldBeginLength()
 		l += thrift.Binary.I64Length()
 	}
 	return l
 }
 
-func (p *PromptOptimizationTask) field2Length() int {
-	l := 0
-	if p.IsSetWorkspaceID() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field3Length() int {
-	l := 0
-	if p.IsSetExperimentID() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field4Length() int {
-	l := 0
-	if p.IsSetName() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.Name)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field5Length() int {
-	l := 0
-	if p.IsSetPromptID() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field6Length() int {
-	l := 0
-	if p.IsSetPromptKey() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.PromptKey)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field7Length() int {
-	l := 0
-	if p.IsSetSourcePromptVersion() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.SourcePromptVersion)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field8Length() int {
-	l := 0
-	if p.IsSetMode() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.Mode)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field9Length() int {
-	l := 0
-	if p.IsSetStatus() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.Status)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field10Length() int {
-	l := 0
-	if p.IsSetStage() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.Stage)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field11Length() int {
-	l := 0
-	if p.IsSetProgress() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I32Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field12Length() int {
+func (p *PromptOptimizeTaskResult_) field4Length() int {
 	l := 0
 	if p.IsSetBaselineMetrics() {
 		l += thrift.Binary.FieldBeginLength()
@@ -35808,7 +37271,7 @@ func (p *PromptOptimizationTask) field12Length() int {
 	return l
 }
 
-func (p *PromptOptimizationTask) field13Length() int {
+func (p *PromptOptimizeTaskResult_) field5Length() int {
 	l := 0
 	if p.IsSetBestMetrics() {
 		l += thrift.Binary.FieldBeginLength()
@@ -35817,25 +37280,7 @@ func (p *PromptOptimizationTask) field13Length() int {
 	return l
 }
 
-func (p *PromptOptimizationTask) field14Length() int {
-	l := 0
-	if p.IsSetOriginalPromptTemplate() {
-		l += thrift.Binary.FieldBeginLength()
-		l += p.OriginalPromptTemplate.BLength()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field15Length() int {
-	l := 0
-	if p.IsSetOptimizedPromptTemplate() {
-		l += thrift.Binary.FieldBeginLength()
-		l += p.OptimizedPromptTemplate.BLength()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field16Length() int {
+func (p *PromptOptimizeTaskResult_) field6Length() int {
 	l := 0
 	if p.IsSetIterations() {
 		l += thrift.Binary.FieldBeginLength()
@@ -35848,146 +37293,45 @@ func (p *PromptOptimizationTask) field16Length() int {
 	return l
 }
 
-func (p *PromptOptimizationTask) field17Length() int {
-	l := 0
-	if p.IsSetErrorMessage() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.ErrorMessage)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field18Length() int {
-	l := 0
-	if p.IsSetCreatedBy() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.CreatedBy)
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field19Length() int {
-	l := 0
-	if p.IsSetCreatedAt() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field20Length() int {
-	l := 0
-	if p.IsSetUpdatedAt() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field21Length() int {
-	l := 0
-	if p.IsSetStartedAt() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field22Length() int {
-	l := 0
-	if p.IsSetEndedAt() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field23Length() int {
-	l := 0
-	if p.IsSetAppliedToDraft() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.BoolLength()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) field24Length() int {
-	l := 0
-	if p.IsSetAppliedAt() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PromptOptimizationTask) DeepCopy(s interface{}) error {
-	src, ok := s.(*PromptOptimizationTask)
+func (p *PromptOptimizeTaskResult_) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizeTaskResult_)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	if src.ID != nil {
-		tmp := *src.ID
-		p.ID = &tmp
-	}
+	if src.OptimizedPromptMessageList != nil {
+		p.OptimizedPromptMessageList = make([]*prompt.Message, 0, len(src.OptimizedPromptMessageList))
+		for _, elem := range src.OptimizedPromptMessageList {
+			var _elem *prompt.Message
+			if elem != nil {
+				_elem = &prompt.Message{}
+				if err := _elem.DeepCopy(elem); err != nil {
+					return err
+				}
+			}
 
-	if src.WorkspaceID != nil {
-		tmp := *src.WorkspaceID
-		p.WorkspaceID = &tmp
-	}
-
-	if src.ExperimentID != nil {
-		tmp := *src.ExperimentID
-		p.ExperimentID = &tmp
-	}
-
-	if src.Name != nil {
-		var tmp string
-		if *src.Name != "" {
-			tmp = kutils.StringDeepCopy(*src.Name)
+			p.OptimizedPromptMessageList = append(p.OptimizedPromptMessageList, _elem)
 		}
-		p.Name = &tmp
 	}
 
-	if src.PromptID != nil {
-		tmp := *src.PromptID
-		p.PromptID = &tmp
-	}
+	if src.OptimizedToolList != nil {
+		p.OptimizedToolList = make([]*prompt.Tool, 0, len(src.OptimizedToolList))
+		for _, elem := range src.OptimizedToolList {
+			var _elem *prompt.Tool
+			if elem != nil {
+				_elem = &prompt.Tool{}
+				if err := _elem.DeepCopy(elem); err != nil {
+					return err
+				}
+			}
 
-	if src.PromptKey != nil {
-		var tmp string
-		if *src.PromptKey != "" {
-			tmp = kutils.StringDeepCopy(*src.PromptKey)
+			p.OptimizedToolList = append(p.OptimizedToolList, _elem)
 		}
-		p.PromptKey = &tmp
 	}
 
-	if src.SourcePromptVersion != nil {
-		var tmp string
-		if *src.SourcePromptVersion != "" {
-			tmp = kutils.StringDeepCopy(*src.SourcePromptVersion)
-		}
-		p.SourcePromptVersion = &tmp
-	}
-
-	if src.Mode != nil {
-		tmp := *src.Mode
-		p.Mode = &tmp
-	}
-
-	if src.Status != nil {
-		tmp := *src.Status
-		p.Status = &tmp
-	}
-
-	if src.Stage != nil {
-		tmp := *src.Stage
-		p.Stage = &tmp
-	}
-
-	if src.Progress != nil {
-		tmp := *src.Progress
-		p.Progress = &tmp
+	if src.ArkJobCreditUsage != nil {
+		tmp := *src.ArkJobCreditUsage
+		p.ArkJobCreditUsage = &tmp
 	}
 
 	var _baselineMetrics *PromptOptimizationMetrics
@@ -36008,24 +37352,6 @@ func (p *PromptOptimizationTask) DeepCopy(s interface{}) error {
 	}
 	p.BestMetrics = _bestMetrics
 
-	var _originalPromptTemplate *prompt.PromptTemplate
-	if src.OriginalPromptTemplate != nil {
-		_originalPromptTemplate = &prompt.PromptTemplate{}
-		if err := _originalPromptTemplate.DeepCopy(src.OriginalPromptTemplate); err != nil {
-			return err
-		}
-	}
-	p.OriginalPromptTemplate = _originalPromptTemplate
-
-	var _optimizedPromptTemplate *prompt.PromptTemplate
-	if src.OptimizedPromptTemplate != nil {
-		_optimizedPromptTemplate = &prompt.PromptTemplate{}
-		if err := _optimizedPromptTemplate.DeepCopy(src.OptimizedPromptTemplate); err != nil {
-			return err
-		}
-	}
-	p.OptimizedPromptTemplate = _optimizedPromptTemplate
-
 	if src.Iterations != nil {
 		p.Iterations = make([]*PromptOptimizationIteration, 0, len(src.Iterations))
 		for _, elem := range src.Iterations {
@@ -36041,6 +37367,864 @@ func (p *PromptOptimizationTask) DeepCopy(s interface{}) error {
 		}
 	}
 
+	return nil
+}
+
+func (p *PromptOptimizeTask) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField4(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 5:
+			if fieldTypeId == thrift.I32 {
+				l, err = p.FastReadField5(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 6:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField6(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField7(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 8:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField8(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 9:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField9(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 10:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField10(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 11:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField11(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 12:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField12(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 13:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField13(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 14:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField14(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 15:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField15(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 16:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField16(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PromptOptimizeTask[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *PromptOptimizeTask) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.ID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TaskName = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Status = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Stage = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField5(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int32
+	if v, l, err := thrift.Binary.ReadI32(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Progress = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField6(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.ErrorMessage = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField7(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.ArkTaskID = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField8(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeTarget()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.OptimizeTarget = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField9(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeTaskDataSet()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.OptimizeTaskDataSet = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField10(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeEngineConfig()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.OptimizeEngineConfig = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField11(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeTaskResult_()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.OptimizeResult_ = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField12(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.CreatedBy = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField13(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.CreatedAt = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField14(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.UpdatedAt = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField15(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.StartedAt = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastReadField16(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.EndedAt = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTask) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *PromptOptimizeTask) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField5(buf[offset:], w)
+		offset += p.fastWriteField13(buf[offset:], w)
+		offset += p.fastWriteField14(buf[offset:], w)
+		offset += p.fastWriteField15(buf[offset:], w)
+		offset += p.fastWriteField16(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
+		offset += p.fastWriteField6(buf[offset:], w)
+		offset += p.fastWriteField7(buf[offset:], w)
+		offset += p.fastWriteField8(buf[offset:], w)
+		offset += p.fastWriteField9(buf[offset:], w)
+		offset += p.fastWriteField10(buf[offset:], w)
+		offset += p.fastWriteField11(buf[offset:], w)
+		offset += p.fastWriteField12(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *PromptOptimizeTask) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+		l += p.field4Length()
+		l += p.field5Length()
+		l += p.field6Length()
+		l += p.field7Length()
+		l += p.field8Length()
+		l += p.field9Length()
+		l += p.field10Length()
+		l += p.field11Length()
+		l += p.field12Length()
+		l += p.field13Length()
+		l += p.field14Length()
+		l += p.field15Length()
+		l += p.field16Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *PromptOptimizeTask) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.ID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTaskName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.TaskName)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetStatus() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Status)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetStage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Stage)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetProgress() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 5)
+		offset += thrift.Binary.WriteI32(buf[offset:], *p.Progress)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetErrorMessage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 6)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ErrorMessage)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetArkTaskID() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 7)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ArkTaskID)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeTarget() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 8)
+		offset += p.OptimizeTarget.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeTaskDataSet() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 9)
+		offset += p.OptimizeTaskDataSet.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField10(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeEngineConfig() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 10)
+		offset += p.OptimizeEngineConfig.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField11(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeResult_() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 11)
+		offset += p.OptimizeResult_.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField12(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetCreatedBy() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 12)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.CreatedBy)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField13(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetCreatedAt() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 13)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.CreatedAt)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField14(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetUpdatedAt() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 14)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.UpdatedAt)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField15(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetStartedAt() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 15)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.StartedAt)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) fastWriteField16(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEndedAt() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 16)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.EndedAt)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTask) field1Length() int {
+	l := 0
+	if p.IsSetID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field2Length() int {
+	l := 0
+	if p.IsSetTaskName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.TaskName)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field3Length() int {
+	l := 0
+	if p.IsSetStatus() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Status)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field4Length() int {
+	l := 0
+	if p.IsSetStage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Stage)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field5Length() int {
+	l := 0
+	if p.IsSetProgress() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I32Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field6Length() int {
+	l := 0
+	if p.IsSetErrorMessage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.ErrorMessage)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field7Length() int {
+	l := 0
+	if p.IsSetArkTaskID() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.ArkTaskID)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field8Length() int {
+	l := 0
+	if p.IsSetOptimizeTarget() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.OptimizeTarget.BLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field9Length() int {
+	l := 0
+	if p.IsSetOptimizeTaskDataSet() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.OptimizeTaskDataSet.BLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field10Length() int {
+	l := 0
+	if p.IsSetOptimizeEngineConfig() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.OptimizeEngineConfig.BLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field11Length() int {
+	l := 0
+	if p.IsSetOptimizeResult_() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.OptimizeResult_.BLength()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field12Length() int {
+	l := 0
+	if p.IsSetCreatedBy() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.CreatedBy)
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field13Length() int {
+	l := 0
+	if p.IsSetCreatedAt() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field14Length() int {
+	l := 0
+	if p.IsSetUpdatedAt() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field15Length() int {
+	l := 0
+	if p.IsSetStartedAt() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) field16Length() int {
+	l := 0
+	if p.IsSetEndedAt() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTask) DeepCopy(s interface{}) error {
+	src, ok := s.(*PromptOptimizeTask)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.ID != nil {
+		tmp := *src.ID
+		p.ID = &tmp
+	}
+
+	if src.TaskName != nil {
+		var tmp string
+		if *src.TaskName != "" {
+			tmp = kutils.StringDeepCopy(*src.TaskName)
+		}
+		p.TaskName = &tmp
+	}
+
+	if src.Status != nil {
+		var tmp string
+		if *src.Status != "" {
+			tmp = kutils.StringDeepCopy(*src.Status)
+		}
+		p.Status = &tmp
+	}
+
+	if src.Stage != nil {
+		var tmp string
+		if *src.Stage != "" {
+			tmp = kutils.StringDeepCopy(*src.Stage)
+		}
+		p.Stage = &tmp
+	}
+
+	if src.Progress != nil {
+		tmp := *src.Progress
+		p.Progress = &tmp
+	}
+
 	if src.ErrorMessage != nil {
 		var tmp string
 		if *src.ErrorMessage != "" {
@@ -36048,6 +38232,50 @@ func (p *PromptOptimizationTask) DeepCopy(s interface{}) error {
 		}
 		p.ErrorMessage = &tmp
 	}
+
+	if src.ArkTaskID != nil {
+		var tmp string
+		if *src.ArkTaskID != "" {
+			tmp = kutils.StringDeepCopy(*src.ArkTaskID)
+		}
+		p.ArkTaskID = &tmp
+	}
+
+	var _optimizeTarget *PromptOptimizeTarget
+	if src.OptimizeTarget != nil {
+		_optimizeTarget = &PromptOptimizeTarget{}
+		if err := _optimizeTarget.DeepCopy(src.OptimizeTarget); err != nil {
+			return err
+		}
+	}
+	p.OptimizeTarget = _optimizeTarget
+
+	var _optimizeTaskDataSet *PromptOptimizeTaskDataSet
+	if src.OptimizeTaskDataSet != nil {
+		_optimizeTaskDataSet = &PromptOptimizeTaskDataSet{}
+		if err := _optimizeTaskDataSet.DeepCopy(src.OptimizeTaskDataSet); err != nil {
+			return err
+		}
+	}
+	p.OptimizeTaskDataSet = _optimizeTaskDataSet
+
+	var _optimizeEngineConfig *PromptOptimizeEngineConfig
+	if src.OptimizeEngineConfig != nil {
+		_optimizeEngineConfig = &PromptOptimizeEngineConfig{}
+		if err := _optimizeEngineConfig.DeepCopy(src.OptimizeEngineConfig); err != nil {
+			return err
+		}
+	}
+	p.OptimizeEngineConfig = _optimizeEngineConfig
+
+	var _optimizeResult_ *PromptOptimizeTaskResult_
+	if src.OptimizeResult_ != nil {
+		_optimizeResult_ = &PromptOptimizeTaskResult_{}
+		if err := _optimizeResult_.DeepCopy(src.OptimizeResult_); err != nil {
+			return err
+		}
+	}
+	p.OptimizeResult_ = _optimizeResult_
 
 	if src.CreatedBy != nil {
 		var tmp string
@@ -36077,20 +38305,10 @@ func (p *PromptOptimizationTask) DeepCopy(s interface{}) error {
 		p.EndedAt = &tmp
 	}
 
-	if src.AppliedToDraft != nil {
-		tmp := *src.AppliedToDraft
-		p.AppliedToDraft = &tmp
-	}
-
-	if src.AppliedAt != nil {
-		tmp := *src.AppliedAt
-		p.AppliedAt = &tmp
-	}
-
 	return nil
 }
 
-func (p *PreparePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
+func (p *EstimatePromptOptimizeTaskRequest) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -36098,7 +38316,15 @@ func (p *PreparePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 	var fieldTypeId thrift.TType
 	var fieldId int16
 	var issetWorkspaceID bool = false
-	var issetExptID bool = false
+	var issetPromptID bool = false
+	var issetTargetVersion bool = false
+	var issetDatasetType bool = false
+	var issetRelatedEvalSetID bool = false
+	var issetRelatedEvalSetVersionID bool = false
+	var issetRelatedExptID bool = false
+	var issetSelectedItemIDList bool = false
+	var issetEvalSetToTarget bool = false
+	var issetEvalSetToActualOutput bool = false
 	for {
 		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
 		offset += l
@@ -36131,7 +38357,197 @@ func (p *PreparePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetExptID = true
+				issetPromptID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField4(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetTargetVersion = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField5(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetDatasetType = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 6:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField6(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetRelatedEvalSetID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 7:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField7(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetRelatedEvalSetVersionID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 8:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField8(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetRelatedExptID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 9:
+			if fieldTypeId == thrift.LIST {
+				l, err = p.FastReadField9(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetSelectedItemIDList = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 10:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField10(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 11:
+			if fieldTypeId == thrift.LIST {
+				l, err = p.FastReadField11(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetEvalSetToTarget = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 12:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField12(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetEvalSetToActualOutput = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 13:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField13(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 14:
+			if fieldTypeId == thrift.DOUBLE {
+				l, err = p.FastReadField14(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 15:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField15(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36153,22 +38569,62 @@ func (p *PreparePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetExptID {
+	if !issetPromptID {
 		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetTargetVersion {
+		fieldId = 4
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetDatasetType {
+		fieldId = 5
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetRelatedEvalSetID {
+		fieldId = 6
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetRelatedEvalSetVersionID {
+		fieldId = 7
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetRelatedExptID {
+		fieldId = 8
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetSelectedItemIDList {
+		fieldId = 9
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetEvalSetToTarget {
+		fieldId = 11
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetEvalSetToActualOutput {
+		fieldId = 12
 		goto RequiredFieldNotSetError
 	}
 	return offset, nil
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PreparePromptOptimizationRequest[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_EstimatePromptOptimizeTaskRequest[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_PreparePromptOptimizationRequest[fieldId]))
+	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_EstimatePromptOptimizeTaskRequest[fieldId]))
 }
 
-func (p *PreparePromptOptimizationRequest) FastReadField1(buf []byte) (int, error) {
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField1(buf []byte) (int, error) {
 	offset := 0
 
 	var _field int64
@@ -36182,7 +38638,7 @@ func (p *PreparePromptOptimizationRequest) FastReadField1(buf []byte) (int, erro
 	return offset, nil
 }
 
-func (p *PreparePromptOptimizationRequest) FastReadField2(buf []byte) (int, error) {
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField2(buf []byte) (int, error) {
 	offset := 0
 
 	var _field int64
@@ -36192,76 +38648,608 @@ func (p *PreparePromptOptimizationRequest) FastReadField2(buf []byte) (int, erro
 		offset += l
 		_field = v
 	}
-	p.ExptID = _field
+	p.PromptID = _field
 	return offset, nil
 }
 
-func (p *PreparePromptOptimizationRequest) FastWrite(buf []byte) int {
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TargetType = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.TargetVersion = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField5(buf []byte) (int, error) {
+	offset := 0
+
+	var _field string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.DatasetType = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField6(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.RelatedEvalSetID = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField7(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.RelatedEvalSetVersionID = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField8(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.RelatedExptID = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField9(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]int64, 0, size)
+	for i := 0; i < size; i++ {
+		var _elem int64
+		if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.SelectedItemIDList = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField10(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeFieldMapping()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EvalSetToReference = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField11(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]*PromptOptimizeFieldMapping, 0, size)
+	values := make([]PromptOptimizeFieldMapping, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.EvalSetToTarget = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField12(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeFieldMapping()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EvalSetToActualOutput = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField13(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Engine = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField14(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *float64
+	if v, l, err := thrift.Binary.ReadDouble(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.OptimizeFactor = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastReadField15(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.OptimizeTaskType = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *PreparePromptOptimizationRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *EstimatePromptOptimizeTaskRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
 		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField6(buf[offset:], w)
+		offset += p.fastWriteField7(buf[offset:], w)
+		offset += p.fastWriteField8(buf[offset:], w)
+		offset += p.fastWriteField14(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
+		offset += p.fastWriteField5(buf[offset:], w)
+		offset += p.fastWriteField9(buf[offset:], w)
+		offset += p.fastWriteField10(buf[offset:], w)
+		offset += p.fastWriteField11(buf[offset:], w)
+		offset += p.fastWriteField12(buf[offset:], w)
+		offset += p.fastWriteField13(buf[offset:], w)
+		offset += p.fastWriteField15(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
 }
 
-func (p *PreparePromptOptimizationRequest) BLength() int {
+func (p *EstimatePromptOptimizeTaskRequest) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
 		l += p.field2Length()
+		l += p.field3Length()
+		l += p.field4Length()
+		l += p.field5Length()
+		l += p.field6Length()
+		l += p.field7Length()
+		l += p.field8Length()
+		l += p.field9Length()
+		l += p.field10Length()
+		l += p.field11Length()
+		l += p.field12Length()
+		l += p.field13Length()
+		l += p.field14Length()
+		l += p.field15Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
 }
 
-func (p *PreparePromptOptimizationRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
 	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
 	return offset
 }
 
-func (p *PreparePromptOptimizationRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.ExptID)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.PromptID)
 	return offset
 }
 
-func (p *PreparePromptOptimizationRequest) field1Length() int {
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTargetType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.TargetType)
+	}
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.TargetVersion)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 5)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.DatasetType)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 6)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.RelatedEvalSetID)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 7)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.RelatedEvalSetVersionID)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 8)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.RelatedExptID)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 9)
+	listBeginOffset := offset
+	offset += thrift.Binary.ListBeginLength()
+	var length int
+	for _, v := range p.SelectedItemIDList {
+		length++
+		offset += thrift.Binary.WriteI64(buf[offset:], v)
+	}
+	thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.I64, length)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField10(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEvalSetToReference() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 10)
+		offset += p.EvalSetToReference.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField11(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 11)
+	listBeginOffset := offset
+	offset += thrift.Binary.ListBeginLength()
+	var length int
+	for _, v := range p.EvalSetToTarget {
+		length++
+		offset += v.FastWriteNocopy(buf[offset:], w)
+	}
+	thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField12(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 12)
+	offset += p.EvalSetToActualOutput.FastWriteNocopy(buf[offset:], w)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField13(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEngine() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 13)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Engine)
+	}
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField14(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeFactor() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.DOUBLE, 14)
+		offset += thrift.Binary.WriteDouble(buf[offset:], *p.OptimizeFactor)
+	}
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) fastWriteField15(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeTaskType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 15)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.OptimizeTaskType)
+	}
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.I64Length()
 	return l
 }
 
-func (p *PreparePromptOptimizationRequest) field2Length() int {
+func (p *EstimatePromptOptimizeTaskRequest) field2Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.I64Length()
 	return l
 }
 
-func (p *PreparePromptOptimizationRequest) DeepCopy(s interface{}) error {
-	src, ok := s.(*PreparePromptOptimizationRequest)
+func (p *EstimatePromptOptimizeTaskRequest) field3Length() int {
+	l := 0
+	if p.IsSetTargetType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.TargetType)
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field4Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.StringLengthNocopy(p.TargetVersion)
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field5Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.StringLengthNocopy(p.DatasetType)
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field6Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field7Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field8Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field9Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.ListBeginLength()
+	l +=
+		thrift.Binary.I64Length() * len(p.SelectedItemIDList)
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field10Length() int {
+	l := 0
+	if p.IsSetEvalSetToReference() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.EvalSetToReference.BLength()
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field11Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.ListBeginLength()
+	for _, v := range p.EvalSetToTarget {
+		_ = v
+		l += v.BLength()
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field12Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += p.EvalSetToActualOutput.BLength()
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field13Length() int {
+	l := 0
+	if p.IsSetEngine() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Engine)
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field14Length() int {
+	l := 0
+	if p.IsSetOptimizeFactor() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.DoubleLength()
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) field15Length() int {
+	l := 0
+	if p.IsSetOptimizeTaskType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.OptimizeTaskType)
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskRequest) DeepCopy(s interface{}) error {
+	src, ok := s.(*EstimatePromptOptimizeTaskRequest)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
 	p.WorkspaceID = src.WorkspaceID
 
-	p.ExptID = src.ExptID
+	p.PromptID = src.PromptID
+
+	if src.TargetType != nil {
+		var tmp string
+		if *src.TargetType != "" {
+			tmp = kutils.StringDeepCopy(*src.TargetType)
+		}
+		p.TargetType = &tmp
+	}
+
+	if src.TargetVersion != "" {
+		p.TargetVersion = kutils.StringDeepCopy(src.TargetVersion)
+	}
+
+	if src.DatasetType != "" {
+		p.DatasetType = kutils.StringDeepCopy(src.DatasetType)
+	}
+
+	p.RelatedEvalSetID = src.RelatedEvalSetID
+
+	p.RelatedEvalSetVersionID = src.RelatedEvalSetVersionID
+
+	p.RelatedExptID = src.RelatedExptID
+
+	if src.SelectedItemIDList != nil {
+		p.SelectedItemIDList = make([]int64, 0, len(src.SelectedItemIDList))
+		for _, elem := range src.SelectedItemIDList {
+			var _elem int64
+			_elem = elem
+			p.SelectedItemIDList = append(p.SelectedItemIDList, _elem)
+		}
+	}
+
+	var _evalSetToReference *PromptOptimizeFieldMapping
+	if src.EvalSetToReference != nil {
+		_evalSetToReference = &PromptOptimizeFieldMapping{}
+		if err := _evalSetToReference.DeepCopy(src.EvalSetToReference); err != nil {
+			return err
+		}
+	}
+	p.EvalSetToReference = _evalSetToReference
+
+	if src.EvalSetToTarget != nil {
+		p.EvalSetToTarget = make([]*PromptOptimizeFieldMapping, 0, len(src.EvalSetToTarget))
+		for _, elem := range src.EvalSetToTarget {
+			var _elem *PromptOptimizeFieldMapping
+			if elem != nil {
+				_elem = &PromptOptimizeFieldMapping{}
+				if err := _elem.DeepCopy(elem); err != nil {
+					return err
+				}
+			}
+
+			p.EvalSetToTarget = append(p.EvalSetToTarget, _elem)
+		}
+	}
+
+	var _evalSetToActualOutput *PromptOptimizeFieldMapping
+	if src.EvalSetToActualOutput != nil {
+		_evalSetToActualOutput = &PromptOptimizeFieldMapping{}
+		if err := _evalSetToActualOutput.DeepCopy(src.EvalSetToActualOutput); err != nil {
+			return err
+		}
+	}
+	p.EvalSetToActualOutput = _evalSetToActualOutput
+
+	if src.Engine != nil {
+		var tmp string
+		if *src.Engine != "" {
+			tmp = kutils.StringDeepCopy(*src.Engine)
+		}
+		p.Engine = &tmp
+	}
+
+	if src.OptimizeFactor != nil {
+		tmp := *src.OptimizeFactor
+		p.OptimizeFactor = &tmp
+	}
+
+	if src.OptimizeTaskType != nil {
+		var tmp string
+		if *src.OptimizeTaskType != "" {
+			tmp = kutils.StringDeepCopy(*src.OptimizeTaskType)
+		}
+		p.OptimizeTaskType = &tmp
+	}
 
 	return nil
 }
 
-func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
+func (p *EstimatePromptOptimizeTaskResponse) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -36279,7 +39267,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 		}
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.BOOL {
+			if fieldTypeId == thrift.I64 {
 				l, err = p.FastReadField1(buf[offset:])
 				offset += l
 				if err != nil {
@@ -36293,7 +39281,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 2:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I64 {
 				l, err = p.FastReadField2(buf[offset:])
 				offset += l
 				if err != nil {
@@ -36306,8 +39294,241 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
-		case 3:
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField255(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_EstimatePromptOptimizeTaskResponse[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.MinTotalResourceUsage = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.MaxTotalResourceUsage = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) FastReadField255(buf []byte) (int, error) {
+	offset := 0
+	_field := base.NewBaseResp()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.BaseResp = _field
+	return offset, nil
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField255(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field255Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetMinTotalResourceUsage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.MinTotalResourceUsage)
+	}
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetMaxTotalResourceUsage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
+		offset += thrift.Binary.WriteI64(buf[offset:], *p.MaxTotalResourceUsage)
+	}
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
+	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
+	return offset
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) field1Length() int {
+	l := 0
+	if p.IsSetMinTotalResourceUsage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) field2Length() int {
+	l := 0
+	if p.IsSetMaxTotalResourceUsage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I64Length()
+	}
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) field255Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += p.BaseResp.BLength()
+	return l
+}
+
+func (p *EstimatePromptOptimizeTaskResponse) DeepCopy(s interface{}) error {
+	src, ok := s.(*EstimatePromptOptimizeTaskResponse)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	if src.MinTotalResourceUsage != nil {
+		tmp := *src.MinTotalResourceUsage
+		p.MinTotalResourceUsage = &tmp
+	}
+
+	if src.MaxTotalResourceUsage != nil {
+		tmp := *src.MaxTotalResourceUsage
+		p.MaxTotalResourceUsage = &tmp
+	}
+
+	var _baseResp *base.BaseResp
+	if src.BaseResp != nil {
+		_baseResp = &base.BaseResp{}
+		if err := _baseResp.DeepCopy(src.BaseResp); err != nil {
+			return err
+		}
+	}
+	p.BaseResp = _baseResp
+
+	return nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetPromptID bool = false
+	var issetTargetVersion bool = false
+	var issetDatasetType bool = false
+	var issetRelatedEvalSetID bool = false
+	var issetRelatedEvalSetVersionID bool = false
+	var issetRelatedExptID bool = false
+	var issetSelectedItemIDList bool = false
+	var issetEvalSetToTarget bool = false
+	var issetEvalSetToActualOutput bool = false
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
 			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetPromptID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
 				l, err = p.FastReadField3(buf[offset:])
 				offset += l
 				if err != nil {
@@ -36327,6 +39548,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetTargetVersion = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36335,12 +39557,13 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 5:
-			if fieldTypeId == thrift.I64 {
+			if fieldTypeId == thrift.STRING {
 				l, err = p.FastReadField5(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetDatasetType = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36349,12 +39572,13 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 6:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I64 {
 				l, err = p.FastReadField6(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetRelatedEvalSetID = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36363,12 +39587,13 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 7:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I64 {
 				l, err = p.FastReadField7(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetRelatedEvalSetVersionID = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36377,12 +39602,13 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 8:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I64 {
 				l, err = p.FastReadField8(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetRelatedExptID = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36397,6 +39623,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetSelectedItemIDList = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36405,7 +39632,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 10:
-			if fieldTypeId == thrift.LIST {
+			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField10(buf[offset:])
 				offset += l
 				if err != nil {
@@ -36425,6 +39652,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetEvalSetToTarget = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36433,12 +39661,13 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 12:
-			if fieldTypeId == thrift.LIST {
+			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField12(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
 				}
+				issetEvalSetToActualOutput = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -36447,7 +39676,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 13:
-			if fieldTypeId == thrift.MAP {
+			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField13(buf[offset:])
 				offset += l
 				if err != nil {
@@ -36475,7 +39704,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 15:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.DOUBLE {
 				l, err = p.FastReadField15(buf[offset:])
 				offset += l
 				if err != nil {
@@ -36489,7 +39718,7 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 16:
-			if fieldTypeId == thrift.LIST {
+			if fieldTypeId == thrift.STRING {
 				l, err = p.FastReadField16(buf[offset:])
 				offset += l
 				if err != nil {
@@ -36502,23 +39731,761 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
-		case 17:
-			if fieldTypeId == thrift.I32 {
-				l, err = p.FastReadField17(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetPromptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetTargetVersion {
+		fieldId = 4
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetDatasetType {
+		fieldId = 5
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetRelatedEvalSetID {
+		fieldId = 6
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetRelatedEvalSetVersionID {
+		fieldId = 7
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetRelatedExptID {
+		fieldId = 8
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetSelectedItemIDList {
+		fieldId = 9
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetEvalSetToTarget {
+		fieldId = 11
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetEvalSetToActualOutput {
+		fieldId = 12
+		goto RequiredFieldNotSetError
+	}
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CreatePromptOptimizeTaskRequest[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+RequiredFieldNotSetError:
+	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_CreatePromptOptimizeTaskRequest[fieldId]))
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.PromptID = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.TargetType = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.TargetVersion = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField5(buf []byte) (int, error) {
+	offset := 0
+
+	var _field string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.DatasetType = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField6(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.RelatedEvalSetID = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField7(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.RelatedEvalSetVersionID = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField8(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.RelatedExptID = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField9(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]int64, 0, size)
+	for i := 0; i < size; i++ {
+		var _elem int64
+		if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.SelectedItemIDList = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField10(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeFieldMapping()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EvalSetToReference = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField11(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]*PromptOptimizeFieldMapping, 0, size)
+	values := make([]PromptOptimizeFieldMapping, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.EvalSetToTarget = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField12(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeFieldMapping()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EvalSetToActualOutput = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField13(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeResourceUsage()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.EstimateResourceUsage = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField14(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.Engine = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField15(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *float64
+	if v, l, err := thrift.Binary.ReadDouble(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.OptimizeFactor = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastReadField16(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.OptimizeTaskType = _field
+	return offset, nil
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *CreatePromptOptimizeTaskRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField6(buf[offset:], w)
+		offset += p.fastWriteField7(buf[offset:], w)
+		offset += p.fastWriteField8(buf[offset:], w)
+		offset += p.fastWriteField15(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
+		offset += p.fastWriteField5(buf[offset:], w)
+		offset += p.fastWriteField9(buf[offset:], w)
+		offset += p.fastWriteField10(buf[offset:], w)
+		offset += p.fastWriteField11(buf[offset:], w)
+		offset += p.fastWriteField12(buf[offset:], w)
+		offset += p.fastWriteField13(buf[offset:], w)
+		offset += p.fastWriteField14(buf[offset:], w)
+		offset += p.fastWriteField16(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+		l += p.field4Length()
+		l += p.field5Length()
+		l += p.field6Length()
+		l += p.field7Length()
+		l += p.field8Length()
+		l += p.field9Length()
+		l += p.field10Length()
+		l += p.field11Length()
+		l += p.field12Length()
+		l += p.field13Length()
+		l += p.field14Length()
+		l += p.field15Length()
+		l += p.field16Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.PromptID)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetTargetType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.TargetType)
+	}
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.TargetVersion)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 5)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.DatasetType)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 6)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.RelatedEvalSetID)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 7)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.RelatedEvalSetVersionID)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 8)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.RelatedExptID)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 9)
+	listBeginOffset := offset
+	offset += thrift.Binary.ListBeginLength()
+	var length int
+	for _, v := range p.SelectedItemIDList {
+		length++
+		offset += thrift.Binary.WriteI64(buf[offset:], v)
+	}
+	thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.I64, length)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField10(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEvalSetToReference() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 10)
+		offset += p.EvalSetToReference.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField11(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 11)
+	listBeginOffset := offset
+	offset += thrift.Binary.ListBeginLength()
+	var length int
+	for _, v := range p.EvalSetToTarget {
+		length++
+		offset += v.FastWriteNocopy(buf[offset:], w)
+	}
+	thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField12(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 12)
+	offset += p.EvalSetToActualOutput.FastWriteNocopy(buf[offset:], w)
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField13(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEstimateResourceUsage() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 13)
+		offset += p.EstimateResourceUsage.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField14(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetEngine() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 14)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Engine)
+	}
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField15(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeFactor() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.DOUBLE, 15)
+		offset += thrift.Binary.WriteDouble(buf[offset:], *p.OptimizeFactor)
+	}
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) fastWriteField16(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeTaskType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 16)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.OptimizeTaskType)
+	}
+	return offset
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field1Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field2Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field3Length() int {
+	l := 0
+	if p.IsSetTargetType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.TargetType)
+	}
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field4Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.StringLengthNocopy(p.TargetVersion)
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field5Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.StringLengthNocopy(p.DatasetType)
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field6Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field7Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field8Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field9Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.ListBeginLength()
+	l +=
+		thrift.Binary.I64Length() * len(p.SelectedItemIDList)
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field10Length() int {
+	l := 0
+	if p.IsSetEvalSetToReference() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.EvalSetToReference.BLength()
+	}
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field11Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.ListBeginLength()
+	for _, v := range p.EvalSetToTarget {
+		_ = v
+		l += v.BLength()
+	}
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field12Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += p.EvalSetToActualOutput.BLength()
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field13Length() int {
+	l := 0
+	if p.IsSetEstimateResourceUsage() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.EstimateResourceUsage.BLength()
+	}
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field14Length() int {
+	l := 0
+	if p.IsSetEngine() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Engine)
+	}
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field15Length() int {
+	l := 0
+	if p.IsSetOptimizeFactor() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.DoubleLength()
+	}
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) field16Length() int {
+	l := 0
+	if p.IsSetOptimizeTaskType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.OptimizeTaskType)
+	}
+	return l
+}
+
+func (p *CreatePromptOptimizeTaskRequest) DeepCopy(s interface{}) error {
+	src, ok := s.(*CreatePromptOptimizeTaskRequest)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	p.WorkspaceID = src.WorkspaceID
+
+	p.PromptID = src.PromptID
+
+	if src.TargetType != nil {
+		var tmp string
+		if *src.TargetType != "" {
+			tmp = kutils.StringDeepCopy(*src.TargetType)
+		}
+		p.TargetType = &tmp
+	}
+
+	if src.TargetVersion != "" {
+		p.TargetVersion = kutils.StringDeepCopy(src.TargetVersion)
+	}
+
+	if src.DatasetType != "" {
+		p.DatasetType = kutils.StringDeepCopy(src.DatasetType)
+	}
+
+	p.RelatedEvalSetID = src.RelatedEvalSetID
+
+	p.RelatedEvalSetVersionID = src.RelatedEvalSetVersionID
+
+	p.RelatedExptID = src.RelatedExptID
+
+	if src.SelectedItemIDList != nil {
+		p.SelectedItemIDList = make([]int64, 0, len(src.SelectedItemIDList))
+		for _, elem := range src.SelectedItemIDList {
+			var _elem int64
+			_elem = elem
+			p.SelectedItemIDList = append(p.SelectedItemIDList, _elem)
+		}
+	}
+
+	var _evalSetToReference *PromptOptimizeFieldMapping
+	if src.EvalSetToReference != nil {
+		_evalSetToReference = &PromptOptimizeFieldMapping{}
+		if err := _evalSetToReference.DeepCopy(src.EvalSetToReference); err != nil {
+			return err
+		}
+	}
+	p.EvalSetToReference = _evalSetToReference
+
+	if src.EvalSetToTarget != nil {
+		p.EvalSetToTarget = make([]*PromptOptimizeFieldMapping, 0, len(src.EvalSetToTarget))
+		for _, elem := range src.EvalSetToTarget {
+			var _elem *PromptOptimizeFieldMapping
+			if elem != nil {
+				_elem = &PromptOptimizeFieldMapping{}
+				if err := _elem.DeepCopy(elem); err != nil {
+					return err
 				}
 			}
-		case 18:
-			if fieldTypeId == thrift.I32 {
-				l, err = p.FastReadField18(buf[offset:])
+
+			p.EvalSetToTarget = append(p.EvalSetToTarget, _elem)
+		}
+	}
+
+	var _evalSetToActualOutput *PromptOptimizeFieldMapping
+	if src.EvalSetToActualOutput != nil {
+		_evalSetToActualOutput = &PromptOptimizeFieldMapping{}
+		if err := _evalSetToActualOutput.DeepCopy(src.EvalSetToActualOutput); err != nil {
+			return err
+		}
+	}
+	p.EvalSetToActualOutput = _evalSetToActualOutput
+
+	var _estimateResourceUsage *PromptOptimizeResourceUsage
+	if src.EstimateResourceUsage != nil {
+		_estimateResourceUsage = &PromptOptimizeResourceUsage{}
+		if err := _estimateResourceUsage.DeepCopy(src.EstimateResourceUsage); err != nil {
+			return err
+		}
+	}
+	p.EstimateResourceUsage = _estimateResourceUsage
+
+	if src.Engine != nil {
+		var tmp string
+		if *src.Engine != "" {
+			tmp = kutils.StringDeepCopy(*src.Engine)
+		}
+		p.Engine = &tmp
+	}
+
+	if src.OptimizeFactor != nil {
+		tmp := *src.OptimizeFactor
+		p.OptimizeFactor = &tmp
+	}
+
+	if src.OptimizeTaskType != nil {
+		var tmp string
+		if *src.OptimizeTaskType != "" {
+			tmp = kutils.StringDeepCopy(*src.OptimizeTaskType)
+		}
+		p.OptimizeTaskType = &tmp
+	}
+
+	return nil
+}
+
+func (p *CreatePromptOptimizeTaskResponse) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField1(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
@@ -36557,335 +40524,24 @@ func (p *PreparePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_PreparePromptOptimizationResponse[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CreatePromptOptimizeTaskResponse[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *PreparePromptOptimizationResponse) FastReadField1(buf []byte) (int, error) {
+func (p *CreatePromptOptimizeTaskResponse) FastReadField1(buf []byte) (int, error) {
 	offset := 0
-
-	var _field *bool
-	if v, l, err := thrift.Binary.ReadBool(buf[offset:]); err != nil {
+	_field := NewPromptOptimizeTask()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
 		offset += l
-		_field = &v
 	}
-	p.Eligible = _field
+	p.OptimizeTask = _field
 	return offset, nil
 }
 
-func (p *PreparePromptOptimizationResponse) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.IneligibleReason = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField3(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.ExperimentID = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField4(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.ExperimentName = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField5(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.PromptID = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField6(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.PromptKey = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField7(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.PromptName = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField8(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.SourcePromptVersion = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField9(buf []byte) (int, error) {
-	offset := 0
-
-	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make([]*PromptOptimizationVariable, 0, size)
-	values := make([]PromptOptimizationVariable, size)
-	for i := 0; i < size; i++ {
-		_elem := &values[i]
-		_elem.InitDefault()
-		if l, err := _elem.FastRead(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-		}
-
-		_field = append(_field, _elem)
-	}
-	p.PromptVariables = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField10(buf []byte) (int, error) {
-	offset := 0
-
-	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make([]string, 0, size)
-	for i := 0; i < size; i++ {
-		var _elem string
-		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-			_elem = v
-		}
-
-		_field = append(_field, _elem)
-	}
-	p.DatasetFields = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField11(buf []byte) (int, error) {
-	offset := 0
-
-	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make([]string, 0, size)
-	for i := 0; i < size; i++ {
-		var _elem string
-		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-			_elem = v
-		}
-
-		_field = append(_field, _elem)
-	}
-	p.TargetOutputFields = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField12(buf []byte) (int, error) {
-	offset := 0
-
-	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make([]*evaluator.Evaluator, 0, size)
-	values := make([]evaluator.Evaluator, size)
-	for i := 0; i < size; i++ {
-		_elem := &values[i]
-		_elem.InitDefault()
-		if l, err := _elem.FastRead(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-		}
-
-		_field = append(_field, _elem)
-	}
-	p.Evaluators = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField13(buf []byte) (int, error) {
-	offset := 0
-
-	_, _, size, l, err := thrift.Binary.ReadMapBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make(map[string]string, size)
-	for i := 0; i < size; i++ {
-		var _key string
-		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-			_key = v
-		}
-
-		var _val string
-		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-			_val = v
-		}
-
-		_field[_key] = _val
-	}
-	p.SuggestedVariableMappings = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField14(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.SuggestedModelAnswerField = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField15(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.SuggestedReferenceAnswerField = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField16(buf []byte) (int, error) {
-	offset := 0
-
-	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make([]*PromptOptimizationModeOption, 0, size)
-	values := make([]PromptOptimizationModeOption, size)
-	for i := 0; i < size; i++ {
-		_elem := &values[i]
-		_elem.InitDefault()
-		if l, err := _elem.FastRead(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-		}
-
-		_field = append(_field, _elem)
-	}
-	p.ModeOptions = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField17(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int32
-	if v, l, err := thrift.Binary.ReadI32(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.MaxSampleCount = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField18(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int32
-	if v, l, err := thrift.Binary.ReadI32(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.DefaultSampleCount = _field
-	return offset, nil
-}
-
-func (p *PreparePromptOptimizationResponse) FastReadField255(buf []byte) (int, error) {
+func (p *CreatePromptOptimizeTaskResponse) FastReadField255(buf []byte) (int, error) {
 	offset := 0
 	_field := base.NewBaseResp()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
@@ -36897,641 +40553,76 @@ func (p *PreparePromptOptimizationResponse) FastReadField255(buf []byte) (int, e
 	return offset, nil
 }
 
-func (p *PreparePromptOptimizationResponse) FastWrite(buf []byte) int {
+func (p *CreatePromptOptimizeTaskResponse) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *PreparePromptOptimizationResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *CreatePromptOptimizeTaskResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField3(buf[offset:], w)
-		offset += p.fastWriteField5(buf[offset:], w)
-		offset += p.fastWriteField17(buf[offset:], w)
-		offset += p.fastWriteField18(buf[offset:], w)
-		offset += p.fastWriteField2(buf[offset:], w)
-		offset += p.fastWriteField4(buf[offset:], w)
-		offset += p.fastWriteField6(buf[offset:], w)
-		offset += p.fastWriteField7(buf[offset:], w)
-		offset += p.fastWriteField8(buf[offset:], w)
-		offset += p.fastWriteField9(buf[offset:], w)
-		offset += p.fastWriteField10(buf[offset:], w)
-		offset += p.fastWriteField11(buf[offset:], w)
-		offset += p.fastWriteField12(buf[offset:], w)
-		offset += p.fastWriteField13(buf[offset:], w)
-		offset += p.fastWriteField14(buf[offset:], w)
-		offset += p.fastWriteField15(buf[offset:], w)
-		offset += p.fastWriteField16(buf[offset:], w)
 		offset += p.fastWriteField255(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
 }
 
-func (p *PreparePromptOptimizationResponse) BLength() int {
+func (p *CreatePromptOptimizeTaskResponse) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
-		l += p.field2Length()
-		l += p.field3Length()
-		l += p.field4Length()
-		l += p.field5Length()
-		l += p.field6Length()
-		l += p.field7Length()
-		l += p.field8Length()
-		l += p.field9Length()
-		l += p.field10Length()
-		l += p.field11Length()
-		l += p.field12Length()
-		l += p.field13Length()
-		l += p.field14Length()
-		l += p.field15Length()
-		l += p.field16Length()
-		l += p.field17Length()
-		l += p.field18Length()
 		l += p.field255Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
 }
 
-func (p *PreparePromptOptimizationResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *CreatePromptOptimizeTaskResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	if p.IsSetEligible() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.BOOL, 1)
-		offset += thrift.Binary.WriteBool(buf[offset:], *p.Eligible)
+	if p.IsSetOptimizeTask() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
+		offset += p.OptimizeTask.FastWriteNocopy(buf[offset:], w)
 	}
 	return offset
 }
 
-func (p *PreparePromptOptimizationResponse) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetIneligibleReason() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.IneligibleReason)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetExperimentID() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 3)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.ExperimentID)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetExperimentName() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ExperimentName)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPromptID() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 5)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.PromptID)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPromptKey() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 6)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.PromptKey)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPromptName() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 7)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.PromptName)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSourcePromptVersion() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 8)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.SourcePromptVersion)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPromptVariables() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 9)
-		listBeginOffset := offset
-		offset += thrift.Binary.ListBeginLength()
-		var length int
-		for _, v := range p.PromptVariables {
-			length++
-			offset += v.FastWriteNocopy(buf[offset:], w)
-		}
-		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField10(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetDatasetFields() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 10)
-		listBeginOffset := offset
-		offset += thrift.Binary.ListBeginLength()
-		var length int
-		for _, v := range p.DatasetFields {
-			length++
-			offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, v)
-		}
-		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRING, length)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField11(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetTargetOutputFields() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 11)
-		listBeginOffset := offset
-		offset += thrift.Binary.ListBeginLength()
-		var length int
-		for _, v := range p.TargetOutputFields {
-			length++
-			offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, v)
-		}
-		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRING, length)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField12(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetEvaluators() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 12)
-		listBeginOffset := offset
-		offset += thrift.Binary.ListBeginLength()
-		var length int
-		for _, v := range p.Evaluators {
-			length++
-			offset += v.FastWriteNocopy(buf[offset:], w)
-		}
-		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField13(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSuggestedVariableMappings() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.MAP, 13)
-		mapBeginOffset := offset
-		offset += thrift.Binary.MapBeginLength()
-		var length int
-		for k, v := range p.SuggestedVariableMappings {
-			length++
-			offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, k)
-			offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, v)
-		}
-		thrift.Binary.WriteMapBegin(buf[mapBeginOffset:], thrift.STRING, thrift.STRING, length)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField14(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSuggestedModelAnswerField() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 14)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.SuggestedModelAnswerField)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField15(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSuggestedReferenceAnswerField() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 15)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.SuggestedReferenceAnswerField)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField16(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetModeOptions() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 16)
-		listBeginOffset := offset
-		offset += thrift.Binary.ListBeginLength()
-		var length int
-		for _, v := range p.ModeOptions {
-			length++
-			offset += v.FastWriteNocopy(buf[offset:], w)
-		}
-		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField17(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetMaxSampleCount() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 17)
-		offset += thrift.Binary.WriteI32(buf[offset:], *p.MaxSampleCount)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField18(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetDefaultSampleCount() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 18)
-		offset += thrift.Binary.WriteI32(buf[offset:], *p.DefaultSampleCount)
-	}
-	return offset
-}
-
-func (p *PreparePromptOptimizationResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
+func (p *CreatePromptOptimizeTaskResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
 	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *PreparePromptOptimizationResponse) field1Length() int {
+func (p *CreatePromptOptimizeTaskResponse) field1Length() int {
 	l := 0
-	if p.IsSetEligible() {
+	if p.IsSetOptimizeTask() {
 		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.BoolLength()
+		l += p.OptimizeTask.BLength()
 	}
 	return l
 }
 
-func (p *PreparePromptOptimizationResponse) field2Length() int {
-	l := 0
-	if p.IsSetIneligibleReason() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.IneligibleReason)
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field3Length() int {
-	l := 0
-	if p.IsSetExperimentID() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field4Length() int {
-	l := 0
-	if p.IsSetExperimentName() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.ExperimentName)
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field5Length() int {
-	l := 0
-	if p.IsSetPromptID() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field6Length() int {
-	l := 0
-	if p.IsSetPromptKey() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.PromptKey)
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field7Length() int {
-	l := 0
-	if p.IsSetPromptName() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.PromptName)
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field8Length() int {
-	l := 0
-	if p.IsSetSourcePromptVersion() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.SourcePromptVersion)
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field9Length() int {
-	l := 0
-	if p.IsSetPromptVariables() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.ListBeginLength()
-		for _, v := range p.PromptVariables {
-			_ = v
-			l += v.BLength()
-		}
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field10Length() int {
-	l := 0
-	if p.IsSetDatasetFields() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.ListBeginLength()
-		for _, v := range p.DatasetFields {
-			_ = v
-			l += thrift.Binary.StringLengthNocopy(v)
-		}
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field11Length() int {
-	l := 0
-	if p.IsSetTargetOutputFields() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.ListBeginLength()
-		for _, v := range p.TargetOutputFields {
-			_ = v
-			l += thrift.Binary.StringLengthNocopy(v)
-		}
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field12Length() int {
-	l := 0
-	if p.IsSetEvaluators() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.ListBeginLength()
-		for _, v := range p.Evaluators {
-			_ = v
-			l += v.BLength()
-		}
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field13Length() int {
-	l := 0
-	if p.IsSetSuggestedVariableMappings() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.MapBeginLength()
-		for k, v := range p.SuggestedVariableMappings {
-			_, _ = k, v
-
-			l += thrift.Binary.StringLengthNocopy(k)
-			l += thrift.Binary.StringLengthNocopy(v)
-		}
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field14Length() int {
-	l := 0
-	if p.IsSetSuggestedModelAnswerField() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.SuggestedModelAnswerField)
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field15Length() int {
-	l := 0
-	if p.IsSetSuggestedReferenceAnswerField() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.SuggestedReferenceAnswerField)
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field16Length() int {
-	l := 0
-	if p.IsSetModeOptions() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.ListBeginLength()
-		for _, v := range p.ModeOptions {
-			_ = v
-			l += v.BLength()
-		}
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field17Length() int {
-	l := 0
-	if p.IsSetMaxSampleCount() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I32Length()
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field18Length() int {
-	l := 0
-	if p.IsSetDefaultSampleCount() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I32Length()
-	}
-	return l
-}
-
-func (p *PreparePromptOptimizationResponse) field255Length() int {
+func (p *CreatePromptOptimizeTaskResponse) field255Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.BaseResp.BLength()
 	return l
 }
 
-func (p *PreparePromptOptimizationResponse) DeepCopy(s interface{}) error {
-	src, ok := s.(*PreparePromptOptimizationResponse)
+func (p *CreatePromptOptimizeTaskResponse) DeepCopy(s interface{}) error {
+	src, ok := s.(*CreatePromptOptimizeTaskResponse)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	if src.Eligible != nil {
-		tmp := *src.Eligible
-		p.Eligible = &tmp
-	}
-
-	if src.IneligibleReason != nil {
-		var tmp string
-		if *src.IneligibleReason != "" {
-			tmp = kutils.StringDeepCopy(*src.IneligibleReason)
-		}
-		p.IneligibleReason = &tmp
-	}
-
-	if src.ExperimentID != nil {
-		tmp := *src.ExperimentID
-		p.ExperimentID = &tmp
-	}
-
-	if src.ExperimentName != nil {
-		var tmp string
-		if *src.ExperimentName != "" {
-			tmp = kutils.StringDeepCopy(*src.ExperimentName)
-		}
-		p.ExperimentName = &tmp
-	}
-
-	if src.PromptID != nil {
-		tmp := *src.PromptID
-		p.PromptID = &tmp
-	}
-
-	if src.PromptKey != nil {
-		var tmp string
-		if *src.PromptKey != "" {
-			tmp = kutils.StringDeepCopy(*src.PromptKey)
-		}
-		p.PromptKey = &tmp
-	}
-
-	if src.PromptName != nil {
-		var tmp string
-		if *src.PromptName != "" {
-			tmp = kutils.StringDeepCopy(*src.PromptName)
-		}
-		p.PromptName = &tmp
-	}
-
-	if src.SourcePromptVersion != nil {
-		var tmp string
-		if *src.SourcePromptVersion != "" {
-			tmp = kutils.StringDeepCopy(*src.SourcePromptVersion)
-		}
-		p.SourcePromptVersion = &tmp
-	}
-
-	if src.PromptVariables != nil {
-		p.PromptVariables = make([]*PromptOptimizationVariable, 0, len(src.PromptVariables))
-		for _, elem := range src.PromptVariables {
-			var _elem *PromptOptimizationVariable
-			if elem != nil {
-				_elem = &PromptOptimizationVariable{}
-				if err := _elem.DeepCopy(elem); err != nil {
-					return err
-				}
-			}
-
-			p.PromptVariables = append(p.PromptVariables, _elem)
+	var _optimizeTask *PromptOptimizeTask
+	if src.OptimizeTask != nil {
+		_optimizeTask = &PromptOptimizeTask{}
+		if err := _optimizeTask.DeepCopy(src.OptimizeTask); err != nil {
+			return err
 		}
 	}
-
-	if src.DatasetFields != nil {
-		p.DatasetFields = make([]string, 0, len(src.DatasetFields))
-		for _, elem := range src.DatasetFields {
-			var _elem string
-			if elem != "" {
-				_elem = kutils.StringDeepCopy(elem)
-			}
-			p.DatasetFields = append(p.DatasetFields, _elem)
-		}
-	}
-
-	if src.TargetOutputFields != nil {
-		p.TargetOutputFields = make([]string, 0, len(src.TargetOutputFields))
-		for _, elem := range src.TargetOutputFields {
-			var _elem string
-			if elem != "" {
-				_elem = kutils.StringDeepCopy(elem)
-			}
-			p.TargetOutputFields = append(p.TargetOutputFields, _elem)
-		}
-	}
-
-	if src.Evaluators != nil {
-		p.Evaluators = make([]*evaluator.Evaluator, 0, len(src.Evaluators))
-		for _, elem := range src.Evaluators {
-			var _elem *evaluator.Evaluator
-			if elem != nil {
-				_elem = &evaluator.Evaluator{}
-				if err := _elem.DeepCopy(elem); err != nil {
-					return err
-				}
-			}
-
-			p.Evaluators = append(p.Evaluators, _elem)
-		}
-	}
-
-	if src.SuggestedVariableMappings != nil {
-		p.SuggestedVariableMappings = make(map[string]string, len(src.SuggestedVariableMappings))
-		for key, val := range src.SuggestedVariableMappings {
-			var _key string
-			if key != "" {
-				_key = kutils.StringDeepCopy(key)
-			}
-
-			var _val string
-			if val != "" {
-				_val = kutils.StringDeepCopy(val)
-			}
-
-			p.SuggestedVariableMappings[_key] = _val
-		}
-	}
-
-	if src.SuggestedModelAnswerField != nil {
-		var tmp string
-		if *src.SuggestedModelAnswerField != "" {
-			tmp = kutils.StringDeepCopy(*src.SuggestedModelAnswerField)
-		}
-		p.SuggestedModelAnswerField = &tmp
-	}
-
-	if src.SuggestedReferenceAnswerField != nil {
-		var tmp string
-		if *src.SuggestedReferenceAnswerField != "" {
-			tmp = kutils.StringDeepCopy(*src.SuggestedReferenceAnswerField)
-		}
-		p.SuggestedReferenceAnswerField = &tmp
-	}
-
-	if src.ModeOptions != nil {
-		p.ModeOptions = make([]*PromptOptimizationModeOption, 0, len(src.ModeOptions))
-		for _, elem := range src.ModeOptions {
-			var _elem *PromptOptimizationModeOption
-			if elem != nil {
-				_elem = &PromptOptimizationModeOption{}
-				if err := _elem.DeepCopy(elem); err != nil {
-					return err
-				}
-			}
-
-			p.ModeOptions = append(p.ModeOptions, _elem)
-		}
-	}
-
-	if src.MaxSampleCount != nil {
-		tmp := *src.MaxSampleCount
-		p.MaxSampleCount = &tmp
-	}
-
-	if src.DefaultSampleCount != nil {
-		tmp := *src.DefaultSampleCount
-		p.DefaultSampleCount = &tmp
-	}
+	p.OptimizeTask = _optimizeTask
 
 	var _baseResp *base.BaseResp
 	if src.BaseResp != nil {
@@ -37545,7 +40636,7 @@ func (p *PreparePromptOptimizationResponse) DeepCopy(s interface{}) error {
 	return nil
 }
 
-func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
+func (p *GetPromptOptimizeTaskRequest) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -37553,9 +40644,8 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 	var fieldTypeId thrift.TType
 	var fieldId int16
 	var issetWorkspaceID bool = false
-	var issetExptID bool = false
-	var issetSamples bool = false
-	var issetVariableMappings bool = false
+	var issetPromptID bool = false
+	var issetTaskID bool = false
 	for {
 		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
 		offset += l
@@ -37588,7 +40678,400 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetExptID = true
+				issetPromptID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetTaskID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetPromptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetTaskID {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptOptimizeTaskRequest[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+RequiredFieldNotSetError:
+	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_GetPromptOptimizeTaskRequest[fieldId]))
+}
+
+func (p *GetPromptOptimizeTaskRequest) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return offset, nil
+}
+
+func (p *GetPromptOptimizeTaskRequest) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.PromptID = _field
+	return offset, nil
+}
+
+func (p *GetPromptOptimizeTaskRequest) FastReadField3(buf []byte) (int, error) {
+	offset := 0
+
+	var _field int64
+	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.TaskID = _field
+	return offset, nil
+}
+
+func (p *GetPromptOptimizeTaskRequest) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *GetPromptOptimizeTaskRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField3(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *GetPromptOptimizeTaskRequest) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field2Length()
+		l += p.field3Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *GetPromptOptimizeTaskRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
+	return offset
+}
+
+func (p *GetPromptOptimizeTaskRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.PromptID)
+	return offset
+}
+
+func (p *GetPromptOptimizeTaskRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 3)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.TaskID)
+	return offset
+}
+
+func (p *GetPromptOptimizeTaskRequest) field1Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *GetPromptOptimizeTaskRequest) field2Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *GetPromptOptimizeTaskRequest) field3Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I64Length()
+	return l
+}
+
+func (p *GetPromptOptimizeTaskRequest) DeepCopy(s interface{}) error {
+	src, ok := s.(*GetPromptOptimizeTaskRequest)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	p.WorkspaceID = src.WorkspaceID
+
+	p.PromptID = src.PromptID
+
+	p.TaskID = src.TaskID
+
+	return nil
+}
+
+func (p *GetPromptOptimizeTaskResponse) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				l, err = p.FastReadField255(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		default:
+			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+			offset += l
+			if err != nil {
+				goto SkipFieldError
+			}
+		}
+	}
+
+	return offset, nil
+ReadFieldBeginError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptOptimizeTaskResponse[fieldId]), err)
+SkipFieldError:
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+}
+
+func (p *GetPromptOptimizeTaskResponse) FastReadField1(buf []byte) (int, error) {
+	offset := 0
+	_field := NewPromptOptimizeTask()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.OptimizeTask = _field
+	return offset, nil
+}
+
+func (p *GetPromptOptimizeTaskResponse) FastReadField255(buf []byte) (int, error) {
+	offset := 0
+	_field := base.NewBaseResp()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+	}
+	p.BaseResp = _field
+	return offset, nil
+}
+
+func (p *GetPromptOptimizeTaskResponse) FastWrite(buf []byte) int {
+	return p.FastWriteNocopy(buf, nil)
+}
+
+func (p *GetPromptOptimizeTaskResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p != nil {
+		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField255(buf[offset:], w)
+	}
+	offset += thrift.Binary.WriteFieldStop(buf[offset:])
+	return offset
+}
+
+func (p *GetPromptOptimizeTaskResponse) BLength() int {
+	l := 0
+	if p != nil {
+		l += p.field1Length()
+		l += p.field255Length()
+	}
+	l += thrift.Binary.FieldStopLength()
+	return l
+}
+
+func (p *GetPromptOptimizeTaskResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetOptimizeTask() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
+		offset += p.OptimizeTask.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *GetPromptOptimizeTaskResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
+	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
+	return offset
+}
+
+func (p *GetPromptOptimizeTaskResponse) field1Length() int {
+	l := 0
+	if p.IsSetOptimizeTask() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.OptimizeTask.BLength()
+	}
+	return l
+}
+
+func (p *GetPromptOptimizeTaskResponse) field255Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += p.BaseResp.BLength()
+	return l
+}
+
+func (p *GetPromptOptimizeTaskResponse) DeepCopy(s interface{}) error {
+	src, ok := s.(*GetPromptOptimizeTaskResponse)
+	if !ok {
+		return fmt.Errorf("%T's type not matched %T", s, p)
+	}
+
+	var _optimizeTask *PromptOptimizeTask
+	if src.OptimizeTask != nil {
+		_optimizeTask = &PromptOptimizeTask{}
+		if err := _optimizeTask.DeepCopy(src.OptimizeTask); err != nil {
+			return err
+		}
+	}
+	p.OptimizeTask = _optimizeTask
+
+	var _baseResp *base.BaseResp
+	if src.BaseResp != nil {
+		_baseResp = &base.BaseResp{}
+		if err := _baseResp.DeepCopy(src.BaseResp); err != nil {
+			return err
+		}
+	}
+	p.BaseResp = _baseResp
+
+	return nil
+}
+
+func (p *ListPromptOptimizeTasksRequest) FastRead(buf []byte) (int, error) {
+
+	var err error
+	var offset int
+	var l int
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetPromptID bool = false
+	for {
+		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
+		offset += l
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField1(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				l, err = p.FastReadField2(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetPromptID = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -37603,7 +41086,6 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetSamples = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -37612,13 +41094,12 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 4:
-			if fieldTypeId == thrift.MAP {
+			if fieldTypeId == thrift.STRING {
 				l, err = p.FastReadField4(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetVariableMappings = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -37641,7 +41122,7 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 6:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField6(buf[offset:])
 				offset += l
 				if err != nil {
@@ -37655,7 +41136,7 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 7:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I32 {
 				l, err = p.FastReadField7(buf[offset:])
 				offset += l
 				if err != nil {
@@ -37682,34 +41163,6 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
-		case 9:
-			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField9(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 10:
-			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField10(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
 		default:
 			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 			offset += l
@@ -37724,32 +41177,22 @@ func (p *CreatePromptOptimizationRequest) FastRead(buf []byte) (int, error) {
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetExptID {
+	if !issetPromptID {
 		fieldId = 2
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetSamples {
-		fieldId = 3
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetVariableMappings {
-		fieldId = 4
 		goto RequiredFieldNotSetError
 	}
 	return offset, nil
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CreatePromptOptimizationRequest[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptOptimizeTasksRequest[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_CreatePromptOptimizationRequest[fieldId]))
+	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_ListPromptOptimizeTasksRequest[fieldId]))
 }
 
-func (p *CreatePromptOptimizationRequest) FastReadField1(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksRequest) FastReadField1(buf []byte) (int, error) {
 	offset := 0
 
 	var _field int64
@@ -37763,7 +41206,7 @@ func (p *CreatePromptOptimizationRequest) FastReadField1(buf []byte) (int, error
 	return offset, nil
 }
 
-func (p *CreatePromptOptimizationRequest) FastReadField2(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksRequest) FastReadField2(buf []byte) (int, error) {
 	offset := 0
 
 	var _field int64
@@ -37773,11 +41216,11 @@ func (p *CreatePromptOptimizationRequest) FastReadField2(buf []byte) (int, error
 		offset += l
 		_field = v
 	}
-	p.ExptID = _field
+	p.PromptID = _field
 	return offset, nil
 }
 
-func (p *CreatePromptOptimizationRequest) FastReadField3(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksRequest) FastReadField3(buf []byte) (int, error) {
 	offset := 0
 
 	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
@@ -37785,112 +41228,23 @@ func (p *CreatePromptOptimizationRequest) FastReadField3(buf []byte) (int, error
 	if err != nil {
 		return offset, err
 	}
-	_field := make([]*PromptOptimizationSampleRef, 0, size)
-	values := make([]PromptOptimizationSampleRef, size)
+	_field := make([]string, 0, size)
 	for i := 0; i < size; i++ {
-		_elem := &values[i]
-		_elem.InitDefault()
-		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+		var _elem string
+		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
 			return offset, err
 		} else {
 			offset += l
+			_elem = v
 		}
 
 		_field = append(_field, _elem)
 	}
-	p.Samples = _field
+	p.Status = _field
 	return offset, nil
 }
 
-func (p *CreatePromptOptimizationRequest) FastReadField4(buf []byte) (int, error) {
-	offset := 0
-
-	_, _, size, l, err := thrift.Binary.ReadMapBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make(map[string]string, size)
-	for i := 0; i < size; i++ {
-		var _key string
-		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-			_key = v
-		}
-
-		var _val string
-		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-			_val = v
-		}
-
-		_field[_key] = _val
-	}
-	p.VariableMappings = _field
-	return offset, nil
-}
-
-func (p *CreatePromptOptimizationRequest) FastReadField5(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.ModelAnswerField = _field
-	return offset, nil
-}
-
-func (p *CreatePromptOptimizationRequest) FastReadField6(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.ReferenceAnswerField = _field
-	return offset, nil
-}
-
-func (p *CreatePromptOptimizationRequest) FastReadField7(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *PromptOptimizationMode
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.Mode = _field
-	return offset, nil
-}
-
-func (p *CreatePromptOptimizationRequest) FastReadField8(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int32
-	if v, l, err := thrift.Binary.ReadI32(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.MaxIterations = _field
-	return offset, nil
-}
-
-func (p *CreatePromptOptimizationRequest) FastReadField9(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksRequest) FastReadField4(buf []byte) (int, error) {
 	offset := 0
 
 	var _field *string
@@ -37904,7 +41258,7 @@ func (p *CreatePromptOptimizationRequest) FastReadField9(buf []byte) (int, error
 	return offset, nil
 }
 
-func (p *CreatePromptOptimizationRequest) FastReadField10(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksRequest) FastReadField5(buf []byte) (int, error) {
 	offset := 0
 
 	var _field *string
@@ -37914,1145 +41268,23 @@ func (p *CreatePromptOptimizationRequest) FastReadField10(buf []byte) (int, erro
 		offset += l
 		_field = &v
 	}
-	p.IdempotencyKey = _field
+	p.RelationType = _field
 	return offset, nil
 }
 
-func (p *CreatePromptOptimizationRequest) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *CreatePromptOptimizationRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksRequest) FastReadField6(buf []byte) (int, error) {
 	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField2(buf[offset:], w)
-		offset += p.fastWriteField8(buf[offset:], w)
-		offset += p.fastWriteField3(buf[offset:], w)
-		offset += p.fastWriteField4(buf[offset:], w)
-		offset += p.fastWriteField5(buf[offset:], w)
-		offset += p.fastWriteField6(buf[offset:], w)
-		offset += p.fastWriteField7(buf[offset:], w)
-		offset += p.fastWriteField9(buf[offset:], w)
-		offset += p.fastWriteField10(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field2Length()
-		l += p.field3Length()
-		l += p.field4Length()
-		l += p.field5Length()
-		l += p.field6Length()
-		l += p.field7Length()
-		l += p.field8Length()
-		l += p.field9Length()
-		l += p.field10Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.ExptID)
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 3)
-	listBeginOffset := offset
-	offset += thrift.Binary.ListBeginLength()
-	var length int
-	for _, v := range p.Samples {
-		length++
-		offset += v.FastWriteNocopy(buf[offset:], w)
-	}
-	thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.MAP, 4)
-	mapBeginOffset := offset
-	offset += thrift.Binary.MapBeginLength()
-	var length int
-	for k, v := range p.VariableMappings {
-		length++
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, k)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, v)
-	}
-	thrift.Binary.WriteMapBegin(buf[mapBeginOffset:], thrift.STRING, thrift.STRING, length)
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetModelAnswerField() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 5)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ModelAnswerField)
-	}
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetReferenceAnswerField() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 6)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.ReferenceAnswerField)
-	}
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetMode() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 7)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Mode)
-	}
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetMaxIterations() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 8)
-		offset += thrift.Binary.WriteI32(buf[offset:], *p.MaxIterations)
-	}
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField9(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetName() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 9)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Name)
-	}
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) fastWriteField10(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetIdempotencyKey() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 10)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.IdempotencyKey)
-	}
-	return offset
-}
-
-func (p *CreatePromptOptimizationRequest) field1Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field2Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field3Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.ListBeginLength()
-	for _, v := range p.Samples {
-		_ = v
-		l += v.BLength()
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field4Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.MapBeginLength()
-	for k, v := range p.VariableMappings {
-		_, _ = k, v
-
-		l += thrift.Binary.StringLengthNocopy(k)
-		l += thrift.Binary.StringLengthNocopy(v)
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field5Length() int {
-	l := 0
-	if p.IsSetModelAnswerField() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.ModelAnswerField)
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field6Length() int {
-	l := 0
-	if p.IsSetReferenceAnswerField() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.ReferenceAnswerField)
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field7Length() int {
-	l := 0
-	if p.IsSetMode() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.Mode)
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field8Length() int {
-	l := 0
-	if p.IsSetMaxIterations() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I32Length()
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field9Length() int {
-	l := 0
-	if p.IsSetName() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.Name)
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) field10Length() int {
-	l := 0
-	if p.IsSetIdempotencyKey() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.IdempotencyKey)
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationRequest) DeepCopy(s interface{}) error {
-	src, ok := s.(*CreatePromptOptimizationRequest)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	p.WorkspaceID = src.WorkspaceID
-
-	p.ExptID = src.ExptID
-
-	if src.Samples != nil {
-		p.Samples = make([]*PromptOptimizationSampleRef, 0, len(src.Samples))
-		for _, elem := range src.Samples {
-			var _elem *PromptOptimizationSampleRef
-			if elem != nil {
-				_elem = &PromptOptimizationSampleRef{}
-				if err := _elem.DeepCopy(elem); err != nil {
-					return err
-				}
-			}
-
-			p.Samples = append(p.Samples, _elem)
-		}
-	}
-
-	if src.VariableMappings != nil {
-		p.VariableMappings = make(map[string]string, len(src.VariableMappings))
-		for key, val := range src.VariableMappings {
-			var _key string
-			if key != "" {
-				_key = kutils.StringDeepCopy(key)
-			}
-
-			var _val string
-			if val != "" {
-				_val = kutils.StringDeepCopy(val)
-			}
-
-			p.VariableMappings[_key] = _val
-		}
-	}
-
-	if src.ModelAnswerField != nil {
-		var tmp string
-		if *src.ModelAnswerField != "" {
-			tmp = kutils.StringDeepCopy(*src.ModelAnswerField)
-		}
-		p.ModelAnswerField = &tmp
-	}
-
-	if src.ReferenceAnswerField != nil {
-		var tmp string
-		if *src.ReferenceAnswerField != "" {
-			tmp = kutils.StringDeepCopy(*src.ReferenceAnswerField)
-		}
-		p.ReferenceAnswerField = &tmp
-	}
-
-	if src.Mode != nil {
-		tmp := *src.Mode
-		p.Mode = &tmp
-	}
-
-	if src.MaxIterations != nil {
-		tmp := *src.MaxIterations
-		p.MaxIterations = &tmp
-	}
-
-	if src.Name != nil {
-		var tmp string
-		if *src.Name != "" {
-			tmp = kutils.StringDeepCopy(*src.Name)
-		}
-		p.Name = &tmp
-	}
-
-	if src.IdempotencyKey != nil {
-		var tmp string
-		if *src.IdempotencyKey != "" {
-			tmp = kutils.StringDeepCopy(*src.IdempotencyKey)
-		}
-		p.IdempotencyKey = &tmp
-	}
-
-	return nil
-}
-
-func (p *CreatePromptOptimizationResponse) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 255:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField255(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CreatePromptOptimizationResponse[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *CreatePromptOptimizationResponse) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-	_field := NewPromptOptimizationTask()
+	_field := expt.NewFilters()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
 		offset += l
 	}
-	p.Task = _field
+	p.Filters = _field
 	return offset, nil
 }
 
-func (p *CreatePromptOptimizationResponse) FastReadField255(buf []byte) (int, error) {
-	offset := 0
-	_field := base.NewBaseResp()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.BaseResp = _field
-	return offset, nil
-}
-
-func (p *CreatePromptOptimizationResponse) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *CreatePromptOptimizationResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField255(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *CreatePromptOptimizationResponse) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field255Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *CreatePromptOptimizationResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetTask() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
-		offset += p.Task.FastWriteNocopy(buf[offset:], w)
-	}
-	return offset
-}
-
-func (p *CreatePromptOptimizationResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
-	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
-	return offset
-}
-
-func (p *CreatePromptOptimizationResponse) field1Length() int {
-	l := 0
-	if p.IsSetTask() {
-		l += thrift.Binary.FieldBeginLength()
-		l += p.Task.BLength()
-	}
-	return l
-}
-
-func (p *CreatePromptOptimizationResponse) field255Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += p.BaseResp.BLength()
-	return l
-}
-
-func (p *CreatePromptOptimizationResponse) DeepCopy(s interface{}) error {
-	src, ok := s.(*CreatePromptOptimizationResponse)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	var _task *PromptOptimizationTask
-	if src.Task != nil {
-		_task = &PromptOptimizationTask{}
-		if err := _task.DeepCopy(src.Task); err != nil {
-			return err
-		}
-	}
-	p.Task = _task
-
-	var _baseResp *base.BaseResp
-	if src.BaseResp != nil {
-		_baseResp = &base.BaseResp{}
-		if err := _baseResp.DeepCopy(src.BaseResp); err != nil {
-			return err
-		}
-	}
-	p.BaseResp = _baseResp
-
-	return nil
-}
-
-func (p *GetPromptOptimizationRequest) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	var issetWorkspaceID bool = false
-	var issetExptID bool = false
-	var issetOptimizationID bool = false
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetWorkspaceID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 2:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField2(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetExptID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 3:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField3(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetOptimizationID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 4:
-			if fieldTypeId == thrift.BOOL {
-				l, err = p.FastReadField4(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 5:
-			if fieldTypeId == thrift.BOOL {
-				l, err = p.FastReadField5(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	if !issetWorkspaceID {
-		fieldId = 1
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetExptID {
-		fieldId = 2
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetOptimizationID {
-		fieldId = 3
-		goto RequiredFieldNotSetError
-	}
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptOptimizationRequest[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_GetPromptOptimizationRequest[fieldId]))
-}
-
-func (p *GetPromptOptimizationRequest) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.WorkspaceID = _field
-	return offset, nil
-}
-
-func (p *GetPromptOptimizationRequest) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.ExptID = _field
-	return offset, nil
-}
-
-func (p *GetPromptOptimizationRequest) FastReadField3(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.OptimizationID = _field
-	return offset, nil
-}
-
-func (p *GetPromptOptimizationRequest) FastReadField4(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *bool
-	if v, l, err := thrift.Binary.ReadBool(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.WithIterations = _field
-	return offset, nil
-}
-
-func (p *GetPromptOptimizationRequest) FastReadField5(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *bool
-	if v, l, err := thrift.Binary.ReadBool(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.WithSampleResults = _field
-	return offset, nil
-}
-
-func (p *GetPromptOptimizationRequest) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *GetPromptOptimizationRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField2(buf[offset:], w)
-		offset += p.fastWriteField3(buf[offset:], w)
-		offset += p.fastWriteField4(buf[offset:], w)
-		offset += p.fastWriteField5(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *GetPromptOptimizationRequest) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field2Length()
-		l += p.field3Length()
-		l += p.field4Length()
-		l += p.field5Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *GetPromptOptimizationRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
-	return offset
-}
-
-func (p *GetPromptOptimizationRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.ExptID)
-	return offset
-}
-
-func (p *GetPromptOptimizationRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 3)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.OptimizationID)
-	return offset
-}
-
-func (p *GetPromptOptimizationRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetWithIterations() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.BOOL, 4)
-		offset += thrift.Binary.WriteBool(buf[offset:], *p.WithIterations)
-	}
-	return offset
-}
-
-func (p *GetPromptOptimizationRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetWithSampleResults() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.BOOL, 5)
-		offset += thrift.Binary.WriteBool(buf[offset:], *p.WithSampleResults)
-	}
-	return offset
-}
-
-func (p *GetPromptOptimizationRequest) field1Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *GetPromptOptimizationRequest) field2Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *GetPromptOptimizationRequest) field3Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *GetPromptOptimizationRequest) field4Length() int {
-	l := 0
-	if p.IsSetWithIterations() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.BoolLength()
-	}
-	return l
-}
-
-func (p *GetPromptOptimizationRequest) field5Length() int {
-	l := 0
-	if p.IsSetWithSampleResults() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.BoolLength()
-	}
-	return l
-}
-
-func (p *GetPromptOptimizationRequest) DeepCopy(s interface{}) error {
-	src, ok := s.(*GetPromptOptimizationRequest)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	p.WorkspaceID = src.WorkspaceID
-
-	p.ExptID = src.ExptID
-
-	p.OptimizationID = src.OptimizationID
-
-	if src.WithIterations != nil {
-		tmp := *src.WithIterations
-		p.WithIterations = &tmp
-	}
-
-	if src.WithSampleResults != nil {
-		tmp := *src.WithSampleResults
-		p.WithSampleResults = &tmp
-	}
-
-	return nil
-}
-
-func (p *GetPromptOptimizationResponse) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 255:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField255(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetPromptOptimizationResponse[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *GetPromptOptimizationResponse) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-	_field := NewPromptOptimizationTask()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.Task = _field
-	return offset, nil
-}
-
-func (p *GetPromptOptimizationResponse) FastReadField255(buf []byte) (int, error) {
-	offset := 0
-	_field := base.NewBaseResp()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.BaseResp = _field
-	return offset, nil
-}
-
-func (p *GetPromptOptimizationResponse) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *GetPromptOptimizationResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField255(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *GetPromptOptimizationResponse) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field255Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *GetPromptOptimizationResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetTask() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
-		offset += p.Task.FastWriteNocopy(buf[offset:], w)
-	}
-	return offset
-}
-
-func (p *GetPromptOptimizationResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
-	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
-	return offset
-}
-
-func (p *GetPromptOptimizationResponse) field1Length() int {
-	l := 0
-	if p.IsSetTask() {
-		l += thrift.Binary.FieldBeginLength()
-		l += p.Task.BLength()
-	}
-	return l
-}
-
-func (p *GetPromptOptimizationResponse) field255Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += p.BaseResp.BLength()
-	return l
-}
-
-func (p *GetPromptOptimizationResponse) DeepCopy(s interface{}) error {
-	src, ok := s.(*GetPromptOptimizationResponse)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	var _task *PromptOptimizationTask
-	if src.Task != nil {
-		_task = &PromptOptimizationTask{}
-		if err := _task.DeepCopy(src.Task); err != nil {
-			return err
-		}
-	}
-	p.Task = _task
-
-	var _baseResp *base.BaseResp
-	if src.BaseResp != nil {
-		_baseResp = &base.BaseResp{}
-		if err := _baseResp.DeepCopy(src.BaseResp); err != nil {
-			return err
-		}
-	}
-	p.BaseResp = _baseResp
-
-	return nil
-}
-
-func (p *ListPromptOptimizationsRequest) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	var issetWorkspaceID bool = false
-	var issetExptID bool = false
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetWorkspaceID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 2:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField2(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetExptID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 3:
-			if fieldTypeId == thrift.I32 {
-				l, err = p.FastReadField3(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 4:
-			if fieldTypeId == thrift.I32 {
-				l, err = p.FastReadField4(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 5:
-			if fieldTypeId == thrift.LIST {
-				l, err = p.FastReadField5(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	if !issetWorkspaceID {
-		fieldId = 1
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetExptID {
-		fieldId = 2
-		goto RequiredFieldNotSetError
-	}
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptOptimizationsRequest[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_ListPromptOptimizationsRequest[fieldId]))
-}
-
-func (p *ListPromptOptimizationsRequest) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.WorkspaceID = _field
-	return offset, nil
-}
-
-func (p *ListPromptOptimizationsRequest) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.ExptID = _field
-	return offset, nil
-}
-
-func (p *ListPromptOptimizationsRequest) FastReadField3(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksRequest) FastReadField7(buf []byte) (int, error) {
 	offset := 0
 
 	var _field *int32
@@ -39062,11 +41294,11 @@ func (p *ListPromptOptimizationsRequest) FastReadField3(buf []byte) (int, error)
 		offset += l
 		_field = &v
 	}
-	p.PageNumber = _field
+	p.PageNum = _field
 	return offset, nil
 }
 
-func (p *ListPromptOptimizationsRequest) FastReadField4(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksRequest) FastReadField8(buf []byte) (int, error) {
 	offset := 0
 
 	var _field *int32
@@ -39080,48 +41312,27 @@ func (p *ListPromptOptimizationsRequest) FastReadField4(buf []byte) (int, error)
 	return offset, nil
 }
 
-func (p *ListPromptOptimizationsRequest) FastReadField5(buf []byte) (int, error) {
-	offset := 0
-
-	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
-	offset += l
-	if err != nil {
-		return offset, err
-	}
-	_field := make([]PromptOptimizationStatus, 0, size)
-	for i := 0; i < size; i++ {
-		var _elem PromptOptimizationStatus
-		if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-			return offset, err
-		} else {
-			offset += l
-			_elem = v
-		}
-
-		_field = append(_field, _elem)
-	}
-	p.Statuses = _field
-	return offset, nil
-}
-
-func (p *ListPromptOptimizationsRequest) FastWrite(buf []byte) int {
+func (p *ListPromptOptimizeTasksRequest) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ListPromptOptimizationsRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
 		offset += p.fastWriteField2(buf[offset:], w)
+		offset += p.fastWriteField7(buf[offset:], w)
+		offset += p.fastWriteField8(buf[offset:], w)
 		offset += p.fastWriteField3(buf[offset:], w)
 		offset += p.fastWriteField4(buf[offset:], w)
 		offset += p.fastWriteField5(buf[offset:], w)
+		offset += p.fastWriteField6(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
 }
 
-func (p *ListPromptOptimizationsRequest) BLength() int {
+func (p *ListPromptOptimizeTasksRequest) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -39129,51 +41340,36 @@ func (p *ListPromptOptimizationsRequest) BLength() int {
 		l += p.field3Length()
 		l += p.field4Length()
 		l += p.field5Length()
+		l += p.field6Length()
+		l += p.field7Length()
+		l += p.field8Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
 }
 
-func (p *ListPromptOptimizationsRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
 	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
 	return offset
 }
 
-func (p *ListPromptOptimizationsRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.ExptID)
+	offset += thrift.Binary.WriteI64(buf[offset:], p.PromptID)
 	return offset
 }
 
-func (p *ListPromptOptimizationsRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	if p.IsSetPageNumber() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 3)
-		offset += thrift.Binary.WriteI32(buf[offset:], *p.PageNumber)
-	}
-	return offset
-}
-
-func (p *ListPromptOptimizationsRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPageSize() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 4)
-		offset += thrift.Binary.WriteI32(buf[offset:], *p.PageSize)
-	}
-	return offset
-}
-
-func (p *ListPromptOptimizationsRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetStatuses() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 5)
+	if p.IsSetStatus() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 3)
 		listBeginOffset := offset
 		offset += thrift.Binary.ListBeginLength()
 		var length int
-		for _, v := range p.Statuses {
+		for _, v := range p.Status {
 			length++
 			offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, v)
 		}
@@ -39182,30 +41378,115 @@ func (p *ListPromptOptimizationsRequest) fastWriteField5(buf []byte, w thrift.No
 	return offset
 }
 
-func (p *ListPromptOptimizationsRequest) field1Length() int {
+func (p *ListPromptOptimizeTasksRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetName() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Name)
+	}
+	return offset
+}
+
+func (p *ListPromptOptimizeTasksRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetRelationType() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 5)
+		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.RelationType)
+	}
+	return offset
+}
+
+func (p *ListPromptOptimizeTasksRequest) fastWriteField6(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetFilters() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 6)
+		offset += p.Filters.FastWriteNocopy(buf[offset:], w)
+	}
+	return offset
+}
+
+func (p *ListPromptOptimizeTasksRequest) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetPageNum() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 7)
+		offset += thrift.Binary.WriteI32(buf[offset:], *p.PageNum)
+	}
+	return offset
+}
+
+func (p *ListPromptOptimizeTasksRequest) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetPageSize() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 8)
+		offset += thrift.Binary.WriteI32(buf[offset:], *p.PageSize)
+	}
+	return offset
+}
+
+func (p *ListPromptOptimizeTasksRequest) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.I64Length()
 	return l
 }
 
-func (p *ListPromptOptimizationsRequest) field2Length() int {
+func (p *ListPromptOptimizeTasksRequest) field2Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.I64Length()
 	return l
 }
 
-func (p *ListPromptOptimizationsRequest) field3Length() int {
+func (p *ListPromptOptimizeTasksRequest) field3Length() int {
 	l := 0
-	if p.IsSetPageNumber() {
+	if p.IsSetStatus() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.ListBeginLength()
+		for _, v := range p.Status {
+			_ = v
+			l += thrift.Binary.StringLengthNocopy(v)
+		}
+	}
+	return l
+}
+
+func (p *ListPromptOptimizeTasksRequest) field4Length() int {
+	l := 0
+	if p.IsSetName() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.Name)
+	}
+	return l
+}
+
+func (p *ListPromptOptimizeTasksRequest) field5Length() int {
+	l := 0
+	if p.IsSetRelationType() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.StringLengthNocopy(*p.RelationType)
+	}
+	return l
+}
+
+func (p *ListPromptOptimizeTasksRequest) field6Length() int {
+	l := 0
+	if p.IsSetFilters() {
+		l += thrift.Binary.FieldBeginLength()
+		l += p.Filters.BLength()
+	}
+	return l
+}
+
+func (p *ListPromptOptimizeTasksRequest) field7Length() int {
+	l := 0
+	if p.IsSetPageNum() {
 		l += thrift.Binary.FieldBeginLength()
 		l += thrift.Binary.I32Length()
 	}
 	return l
 }
 
-func (p *ListPromptOptimizationsRequest) field4Length() int {
+func (p *ListPromptOptimizeTasksRequest) field8Length() int {
 	l := 0
 	if p.IsSetPageSize() {
 		l += thrift.Binary.FieldBeginLength()
@@ -39214,32 +41495,55 @@ func (p *ListPromptOptimizationsRequest) field4Length() int {
 	return l
 }
 
-func (p *ListPromptOptimizationsRequest) field5Length() int {
-	l := 0
-	if p.IsSetStatuses() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.ListBeginLength()
-		for _, v := range p.Statuses {
-			_ = v
-			l += thrift.Binary.StringLengthNocopy(v)
-		}
-	}
-	return l
-}
-
-func (p *ListPromptOptimizationsRequest) DeepCopy(s interface{}) error {
-	src, ok := s.(*ListPromptOptimizationsRequest)
+func (p *ListPromptOptimizeTasksRequest) DeepCopy(s interface{}) error {
+	src, ok := s.(*ListPromptOptimizeTasksRequest)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
 	p.WorkspaceID = src.WorkspaceID
 
-	p.ExptID = src.ExptID
+	p.PromptID = src.PromptID
 
-	if src.PageNumber != nil {
-		tmp := *src.PageNumber
-		p.PageNumber = &tmp
+	if src.Status != nil {
+		p.Status = make([]string, 0, len(src.Status))
+		for _, elem := range src.Status {
+			var _elem string
+			if elem != "" {
+				_elem = kutils.StringDeepCopy(elem)
+			}
+			p.Status = append(p.Status, _elem)
+		}
+	}
+
+	if src.Name != nil {
+		var tmp string
+		if *src.Name != "" {
+			tmp = kutils.StringDeepCopy(*src.Name)
+		}
+		p.Name = &tmp
+	}
+
+	if src.RelationType != nil {
+		var tmp string
+		if *src.RelationType != "" {
+			tmp = kutils.StringDeepCopy(*src.RelationType)
+		}
+		p.RelationType = &tmp
+	}
+
+	var _filters *expt.Filters
+	if src.Filters != nil {
+		_filters = &expt.Filters{}
+		if err := _filters.DeepCopy(src.Filters); err != nil {
+			return err
+		}
+	}
+	p.Filters = _filters
+
+	if src.PageNum != nil {
+		tmp := *src.PageNum
+		p.PageNum = &tmp
 	}
 
 	if src.PageSize != nil {
@@ -39247,19 +41551,10 @@ func (p *ListPromptOptimizationsRequest) DeepCopy(s interface{}) error {
 		p.PageSize = &tmp
 	}
 
-	if src.Statuses != nil {
-		p.Statuses = make([]PromptOptimizationStatus, 0, len(src.Statuses))
-		for _, elem := range src.Statuses {
-			var _elem PromptOptimizationStatus
-			_elem = elem
-			p.Statuses = append(p.Statuses, _elem)
-		}
-	}
-
 	return nil
 }
 
-func (p *ListPromptOptimizationsResponse) FastRead(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksResponse) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -39331,12 +41626,12 @@ func (p *ListPromptOptimizationsResponse) FastRead(buf []byte) (int, error) {
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptOptimizationsResponse[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ListPromptOptimizeTasksResponse[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ListPromptOptimizationsResponse) FastReadField1(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksResponse) FastReadField1(buf []byte) (int, error) {
 	offset := 0
 
 	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
@@ -39344,8 +41639,8 @@ func (p *ListPromptOptimizationsResponse) FastReadField1(buf []byte) (int, error
 	if err != nil {
 		return offset, err
 	}
-	_field := make([]*PromptOptimizationTask, 0, size)
-	values := make([]PromptOptimizationTask, size)
+	_field := make([]*PromptOptimizeTask, 0, size)
+	values := make([]PromptOptimizeTask, size)
 	for i := 0; i < size; i++ {
 		_elem := &values[i]
 		_elem.InitDefault()
@@ -39357,11 +41652,11 @@ func (p *ListPromptOptimizationsResponse) FastReadField1(buf []byte) (int, error
 
 		_field = append(_field, _elem)
 	}
-	p.Tasks = _field
+	p.OptimizeTasks = _field
 	return offset, nil
 }
 
-func (p *ListPromptOptimizationsResponse) FastReadField2(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksResponse) FastReadField2(buf []byte) (int, error) {
 	offset := 0
 
 	var _field *int64
@@ -39375,7 +41670,7 @@ func (p *ListPromptOptimizationsResponse) FastReadField2(buf []byte) (int, error
 	return offset, nil
 }
 
-func (p *ListPromptOptimizationsResponse) FastReadField255(buf []byte) (int, error) {
+func (p *ListPromptOptimizeTasksResponse) FastReadField255(buf []byte) (int, error) {
 	offset := 0
 	_field := base.NewBaseResp()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
@@ -39387,11 +41682,11 @@ func (p *ListPromptOptimizationsResponse) FastReadField255(buf []byte) (int, err
 	return offset, nil
 }
 
-func (p *ListPromptOptimizationsResponse) FastWrite(buf []byte) int {
+func (p *ListPromptOptimizeTasksResponse) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ListPromptOptimizationsResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField2(buf[offset:], w)
@@ -39402,7 +41697,7 @@ func (p *ListPromptOptimizationsResponse) FastWriteNocopy(buf []byte, w thrift.N
 	return offset
 }
 
-func (p *ListPromptOptimizationsResponse) BLength() int {
+func (p *ListPromptOptimizeTasksResponse) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -39413,14 +41708,14 @@ func (p *ListPromptOptimizationsResponse) BLength() int {
 	return l
 }
 
-func (p *ListPromptOptimizationsResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	if p.IsSetTasks() {
+	if p.IsSetOptimizeTasks() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 1)
 		listBeginOffset := offset
 		offset += thrift.Binary.ListBeginLength()
 		var length int
-		for _, v := range p.Tasks {
+		for _, v := range p.OptimizeTasks {
 			length++
 			offset += v.FastWriteNocopy(buf[offset:], w)
 		}
@@ -39429,7 +41724,7 @@ func (p *ListPromptOptimizationsResponse) fastWriteField1(buf []byte, w thrift.N
 	return offset
 }
 
-func (p *ListPromptOptimizationsResponse) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksResponse) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetTotal() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
@@ -39438,19 +41733,19 @@ func (p *ListPromptOptimizationsResponse) fastWriteField2(buf []byte, w thrift.N
 	return offset
 }
 
-func (p *ListPromptOptimizationsResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
+func (p *ListPromptOptimizeTasksResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
 	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *ListPromptOptimizationsResponse) field1Length() int {
+func (p *ListPromptOptimizeTasksResponse) field1Length() int {
 	l := 0
-	if p.IsSetTasks() {
+	if p.IsSetOptimizeTasks() {
 		l += thrift.Binary.FieldBeginLength()
 		l += thrift.Binary.ListBeginLength()
-		for _, v := range p.Tasks {
+		for _, v := range p.OptimizeTasks {
 			_ = v
 			l += v.BLength()
 		}
@@ -39458,7 +41753,7 @@ func (p *ListPromptOptimizationsResponse) field1Length() int {
 	return l
 }
 
-func (p *ListPromptOptimizationsResponse) field2Length() int {
+func (p *ListPromptOptimizeTasksResponse) field2Length() int {
 	l := 0
 	if p.IsSetTotal() {
 		l += thrift.Binary.FieldBeginLength()
@@ -39467,1044 +41762,37 @@ func (p *ListPromptOptimizationsResponse) field2Length() int {
 	return l
 }
 
-func (p *ListPromptOptimizationsResponse) field255Length() int {
+func (p *ListPromptOptimizeTasksResponse) field255Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.BaseResp.BLength()
 	return l
 }
 
-func (p *ListPromptOptimizationsResponse) DeepCopy(s interface{}) error {
-	src, ok := s.(*ListPromptOptimizationsResponse)
+func (p *ListPromptOptimizeTasksResponse) DeepCopy(s interface{}) error {
+	src, ok := s.(*ListPromptOptimizeTasksResponse)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	if src.Tasks != nil {
-		p.Tasks = make([]*PromptOptimizationTask, 0, len(src.Tasks))
-		for _, elem := range src.Tasks {
-			var _elem *PromptOptimizationTask
+	if src.OptimizeTasks != nil {
+		p.OptimizeTasks = make([]*PromptOptimizeTask, 0, len(src.OptimizeTasks))
+		for _, elem := range src.OptimizeTasks {
+			var _elem *PromptOptimizeTask
 			if elem != nil {
-				_elem = &PromptOptimizationTask{}
+				_elem = &PromptOptimizeTask{}
 				if err := _elem.DeepCopy(elem); err != nil {
 					return err
 				}
 			}
 
-			p.Tasks = append(p.Tasks, _elem)
+			p.OptimizeTasks = append(p.OptimizeTasks, _elem)
 		}
 	}
 
 	if src.Total != nil {
 		tmp := *src.Total
 		p.Total = &tmp
-	}
-
-	var _baseResp *base.BaseResp
-	if src.BaseResp != nil {
-		_baseResp = &base.BaseResp{}
-		if err := _baseResp.DeepCopy(src.BaseResp); err != nil {
-			return err
-		}
-	}
-	p.BaseResp = _baseResp
-
-	return nil
-}
-
-func (p *CancelPromptOptimizationRequest) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	var issetWorkspaceID bool = false
-	var issetExptID bool = false
-	var issetOptimizationID bool = false
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetWorkspaceID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 2:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField2(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetExptID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 3:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField3(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetOptimizationID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	if !issetWorkspaceID {
-		fieldId = 1
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetExptID {
-		fieldId = 2
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetOptimizationID {
-		fieldId = 3
-		goto RequiredFieldNotSetError
-	}
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CancelPromptOptimizationRequest[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_CancelPromptOptimizationRequest[fieldId]))
-}
-
-func (p *CancelPromptOptimizationRequest) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.WorkspaceID = _field
-	return offset, nil
-}
-
-func (p *CancelPromptOptimizationRequest) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.ExptID = _field
-	return offset, nil
-}
-
-func (p *CancelPromptOptimizationRequest) FastReadField3(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.OptimizationID = _field
-	return offset, nil
-}
-
-func (p *CancelPromptOptimizationRequest) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *CancelPromptOptimizationRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField2(buf[offset:], w)
-		offset += p.fastWriteField3(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *CancelPromptOptimizationRequest) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field2Length()
-		l += p.field3Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *CancelPromptOptimizationRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
-	return offset
-}
-
-func (p *CancelPromptOptimizationRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.ExptID)
-	return offset
-}
-
-func (p *CancelPromptOptimizationRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 3)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.OptimizationID)
-	return offset
-}
-
-func (p *CancelPromptOptimizationRequest) field1Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *CancelPromptOptimizationRequest) field2Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *CancelPromptOptimizationRequest) field3Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *CancelPromptOptimizationRequest) DeepCopy(s interface{}) error {
-	src, ok := s.(*CancelPromptOptimizationRequest)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	p.WorkspaceID = src.WorkspaceID
-
-	p.ExptID = src.ExptID
-
-	p.OptimizationID = src.OptimizationID
-
-	return nil
-}
-
-func (p *CancelPromptOptimizationResponse) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 255:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField255(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CancelPromptOptimizationResponse[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *CancelPromptOptimizationResponse) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-	_field := NewPromptOptimizationTask()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.Task = _field
-	return offset, nil
-}
-
-func (p *CancelPromptOptimizationResponse) FastReadField255(buf []byte) (int, error) {
-	offset := 0
-	_field := base.NewBaseResp()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.BaseResp = _field
-	return offset, nil
-}
-
-func (p *CancelPromptOptimizationResponse) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *CancelPromptOptimizationResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField255(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *CancelPromptOptimizationResponse) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field255Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *CancelPromptOptimizationResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetTask() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
-		offset += p.Task.FastWriteNocopy(buf[offset:], w)
-	}
-	return offset
-}
-
-func (p *CancelPromptOptimizationResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
-	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
-	return offset
-}
-
-func (p *CancelPromptOptimizationResponse) field1Length() int {
-	l := 0
-	if p.IsSetTask() {
-		l += thrift.Binary.FieldBeginLength()
-		l += p.Task.BLength()
-	}
-	return l
-}
-
-func (p *CancelPromptOptimizationResponse) field255Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += p.BaseResp.BLength()
-	return l
-}
-
-func (p *CancelPromptOptimizationResponse) DeepCopy(s interface{}) error {
-	src, ok := s.(*CancelPromptOptimizationResponse)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	var _task *PromptOptimizationTask
-	if src.Task != nil {
-		_task = &PromptOptimizationTask{}
-		if err := _task.DeepCopy(src.Task); err != nil {
-			return err
-		}
-	}
-	p.Task = _task
-
-	var _baseResp *base.BaseResp
-	if src.BaseResp != nil {
-		_baseResp = &base.BaseResp{}
-		if err := _baseResp.DeepCopy(src.BaseResp); err != nil {
-			return err
-		}
-	}
-	p.BaseResp = _baseResp
-
-	return nil
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	var issetWorkspaceID bool = false
-	var issetExptID bool = false
-	var issetOptimizationID bool = false
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetWorkspaceID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 2:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField2(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetExptID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 3:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField3(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-				issetOptimizationID = true
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 4:
-			if fieldTypeId == thrift.BOOL {
-				l, err = p.FastReadField4(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	if !issetWorkspaceID {
-		fieldId = 1
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetExptID {
-		fieldId = 2
-		goto RequiredFieldNotSetError
-	}
-
-	if !issetOptimizationID {
-		fieldId = 3
-		goto RequiredFieldNotSetError
-	}
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ApplyPromptOptimizationToDraftRequest[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_ApplyPromptOptimizationToDraftRequest[fieldId]))
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.WorkspaceID = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.ExptID = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) FastReadField3(buf []byte) (int, error) {
-	offset := 0
-
-	var _field int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = v
-	}
-	p.OptimizationID = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) FastReadField4(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *bool
-	if v, l, err := thrift.Binary.ReadBool(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.OverwriteExistingDraft = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField2(buf[offset:], w)
-		offset += p.fastWriteField3(buf[offset:], w)
-		offset += p.fastWriteField4(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field2Length()
-		l += p.field3Length()
-		l += p.field4Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.WorkspaceID)
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 2)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.ExptID)
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 3)
-	offset += thrift.Binary.WriteI64(buf[offset:], p.OptimizationID)
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetOverwriteExistingDraft() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.BOOL, 4)
-		offset += thrift.Binary.WriteBool(buf[offset:], *p.OverwriteExistingDraft)
-	}
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) field1Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) field2Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) field3Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I64Length()
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) field4Length() int {
-	l := 0
-	if p.IsSetOverwriteExistingDraft() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.BoolLength()
-	}
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftRequest) DeepCopy(s interface{}) error {
-	src, ok := s.(*ApplyPromptOptimizationToDraftRequest)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	p.WorkspaceID = src.WorkspaceID
-
-	p.ExptID = src.ExptID
-
-	p.OptimizationID = src.OptimizationID
-
-	if src.OverwriteExistingDraft != nil {
-		tmp := *src.OverwriteExistingDraft
-		p.OverwriteExistingDraft = &tmp
-	}
-
-	return nil
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.I64 {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 2:
-			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField2(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 3:
-			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField3(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 4:
-			if fieldTypeId == thrift.STRING {
-				l, err = p.FastReadField4(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		case 255:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField255(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ApplyPromptOptimizationToDraftResponse[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *int64
-	if v, l, err := thrift.Binary.ReadI64(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.PromptID = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastReadField2(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.SourcePromptVersion = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastReadField3(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.DraftBaseVersion = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastReadField4(buf []byte) (int, error) {
-	offset := 0
-
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-		_field = &v
-	}
-	p.NextAction = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastReadField255(buf []byte) (int, error) {
-	offset := 0
-	_field := base.NewBaseResp()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.BaseResp = _field
-	return offset, nil
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-		offset += p.fastWriteField2(buf[offset:], w)
-		offset += p.fastWriteField3(buf[offset:], w)
-		offset += p.fastWriteField4(buf[offset:], w)
-		offset += p.fastWriteField255(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-		l += p.field2Length()
-		l += p.field3Length()
-		l += p.field4Length()
-		l += p.field255Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetPromptID() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I64, 1)
-		offset += thrift.Binary.WriteI64(buf[offset:], *p.PromptID)
-	}
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSourcePromptVersion() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.SourcePromptVersion)
-	}
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetDraftBaseVersion() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.DraftBaseVersion)
-	}
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetNextAction() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.NextAction)
-	}
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) fastWriteField255(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 255)
-	offset += p.BaseResp.FastWriteNocopy(buf[offset:], w)
-	return offset
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) field1Length() int {
-	l := 0
-	if p.IsSetPromptID() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.I64Length()
-	}
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) field2Length() int {
-	l := 0
-	if p.IsSetSourcePromptVersion() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.SourcePromptVersion)
-	}
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) field3Length() int {
-	l := 0
-	if p.IsSetDraftBaseVersion() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.DraftBaseVersion)
-	}
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) field4Length() int {
-	l := 0
-	if p.IsSetNextAction() {
-		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.NextAction)
-	}
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) field255Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += p.BaseResp.BLength()
-	return l
-}
-
-func (p *ApplyPromptOptimizationToDraftResponse) DeepCopy(s interface{}) error {
-	src, ok := s.(*ApplyPromptOptimizationToDraftResponse)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	if src.PromptID != nil {
-		tmp := *src.PromptID
-		p.PromptID = &tmp
-	}
-
-	if src.SourcePromptVersion != nil {
-		var tmp string
-		if *src.SourcePromptVersion != "" {
-			tmp = kutils.StringDeepCopy(*src.SourcePromptVersion)
-		}
-		p.SourcePromptVersion = &tmp
-	}
-
-	if src.DraftBaseVersion != nil {
-		var tmp string
-		if *src.DraftBaseVersion != "" {
-			tmp = kutils.StringDeepCopy(*src.DraftBaseVersion)
-		}
-		p.DraftBaseVersion = &tmp
-	}
-
-	if src.NextAction != nil {
-		var tmp string
-		if *src.NextAction != "" {
-			tmp = kutils.StringDeepCopy(*src.NextAction)
-		}
-		p.NextAction = &tmp
 	}
 
 	var _baseResp *base.BaseResp
@@ -44029,7 +45317,7 @@ func (p *ExperimentServiceBatchGetExperimentResultResult) DeepCopy(s interface{}
 	return nil
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44073,14 +45361,14 @@ func (p *ExperimentServicePreparePromptOptimizationArgs) FastRead(buf []byte) (i
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServicePreparePromptOptimizationArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) FastReadField1(buf []byte) (int, error) {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) FastReadField1(buf []byte) (int, error) {
 	offset := 0
-	_field := NewPreparePromptOptimizationRequest()
+	_field := NewEstimatePromptOptimizeTaskRequest()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44090,11 +45378,11 @@ func (p *ExperimentServicePreparePromptOptimizationArgs) FastReadField1(buf []by
 	return offset, nil
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) FastWrite(buf []byte) int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -44103,7 +45391,7 @@ func (p *ExperimentServicePreparePromptOptimizationArgs) FastWriteNocopy(buf []b
 	return offset
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) BLength() int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -44112,29 +45400,29 @@ func (p *ExperimentServicePreparePromptOptimizationArgs) BLength() int {
 	return l
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
 	offset += p.Req.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) field1Length() int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.Req.BLength()
 	return l
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServicePreparePromptOptimizationArgs)
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _req *PreparePromptOptimizationRequest
+	var _req *EstimatePromptOptimizeTaskRequest
 	if src.Req != nil {
-		_req = &PreparePromptOptimizationRequest{}
+		_req = &EstimatePromptOptimizeTaskRequest{}
 		if err := _req.DeepCopy(src.Req); err != nil {
 			return err
 		}
@@ -44144,7 +45432,7 @@ func (p *ExperimentServicePreparePromptOptimizationArgs) DeepCopy(s interface{})
 	return nil
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44188,14 +45476,14 @@ func (p *ExperimentServicePreparePromptOptimizationResult) FastRead(buf []byte) 
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServicePreparePromptOptimizationResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) FastReadField0(buf []byte) (int, error) {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) FastReadField0(buf []byte) (int, error) {
 	offset := 0
-	_field := NewPreparePromptOptimizationResponse()
+	_field := NewEstimatePromptOptimizeTaskResponse()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44205,11 +45493,11 @@ func (p *ExperimentServicePreparePromptOptimizationResult) FastReadField0(buf []
 	return offset, nil
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) FastWrite(buf []byte) int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField0(buf[offset:], w)
@@ -44218,7 +45506,7 @@ func (p *ExperimentServicePreparePromptOptimizationResult) FastWriteNocopy(buf [
 	return offset
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) BLength() int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field0Length()
@@ -44227,7 +45515,7 @@ func (p *ExperimentServicePreparePromptOptimizationResult) BLength() int {
 	return l
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetSuccess() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 0)
@@ -44236,7 +45524,7 @@ func (p *ExperimentServicePreparePromptOptimizationResult) fastWriteField0(buf [
 	return offset
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) field0Length() int {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) field0Length() int {
 	l := 0
 	if p.IsSetSuccess() {
 		l += thrift.Binary.FieldBeginLength()
@@ -44245,15 +45533,15 @@ func (p *ExperimentServicePreparePromptOptimizationResult) field0Length() int {
 	return l
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServicePreparePromptOptimizationResult)
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _success *PreparePromptOptimizationResponse
+	var _success *EstimatePromptOptimizeTaskResponse
 	if src.Success != nil {
-		_success = &PreparePromptOptimizationResponse{}
+		_success = &EstimatePromptOptimizeTaskResponse{}
 		if err := _success.DeepCopy(src.Success); err != nil {
 			return err
 		}
@@ -44263,7 +45551,7 @@ func (p *ExperimentServicePreparePromptOptimizationResult) DeepCopy(s interface{
 	return nil
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44307,14 +45595,14 @@ func (p *ExperimentServiceCreatePromptOptimizationArgs) FastRead(buf []byte) (in
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCreatePromptOptimizationArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCreatePromptOptimizeTaskArgs[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) FastReadField1(buf []byte) (int, error) {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) FastReadField1(buf []byte) (int, error) {
 	offset := 0
-	_field := NewCreatePromptOptimizationRequest()
+	_field := NewCreatePromptOptimizeTaskRequest()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44324,11 +45612,11 @@ func (p *ExperimentServiceCreatePromptOptimizationArgs) FastReadField1(buf []byt
 	return offset, nil
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) FastWrite(buf []byte) int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -44337,7 +45625,7 @@ func (p *ExperimentServiceCreatePromptOptimizationArgs) FastWriteNocopy(buf []by
 	return offset
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) BLength() int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -44346,29 +45634,29 @@ func (p *ExperimentServiceCreatePromptOptimizationArgs) BLength() int {
 	return l
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
 	offset += p.Req.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) field1Length() int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.Req.BLength()
 	return l
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceCreatePromptOptimizationArgs)
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceCreatePromptOptimizeTaskArgs)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _req *CreatePromptOptimizationRequest
+	var _req *CreatePromptOptimizeTaskRequest
 	if src.Req != nil {
-		_req = &CreatePromptOptimizationRequest{}
+		_req = &CreatePromptOptimizeTaskRequest{}
 		if err := _req.DeepCopy(src.Req); err != nil {
 			return err
 		}
@@ -44378,7 +45666,7 @@ func (p *ExperimentServiceCreatePromptOptimizationArgs) DeepCopy(s interface{}) 
 	return nil
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44422,14 +45710,14 @@ func (p *ExperimentServiceCreatePromptOptimizationResult) FastRead(buf []byte) (
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCreatePromptOptimizationResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCreatePromptOptimizeTaskResult[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) FastReadField0(buf []byte) (int, error) {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) FastReadField0(buf []byte) (int, error) {
 	offset := 0
-	_field := NewCreatePromptOptimizationResponse()
+	_field := NewCreatePromptOptimizeTaskResponse()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44439,11 +45727,11 @@ func (p *ExperimentServiceCreatePromptOptimizationResult) FastReadField0(buf []b
 	return offset, nil
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) FastWrite(buf []byte) int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField0(buf[offset:], w)
@@ -44452,7 +45740,7 @@ func (p *ExperimentServiceCreatePromptOptimizationResult) FastWriteNocopy(buf []
 	return offset
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) BLength() int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field0Length()
@@ -44461,7 +45749,7 @@ func (p *ExperimentServiceCreatePromptOptimizationResult) BLength() int {
 	return l
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetSuccess() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 0)
@@ -44470,7 +45758,7 @@ func (p *ExperimentServiceCreatePromptOptimizationResult) fastWriteField0(buf []
 	return offset
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) field0Length() int {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) field0Length() int {
 	l := 0
 	if p.IsSetSuccess() {
 		l += thrift.Binary.FieldBeginLength()
@@ -44479,15 +45767,15 @@ func (p *ExperimentServiceCreatePromptOptimizationResult) field0Length() int {
 	return l
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceCreatePromptOptimizationResult)
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceCreatePromptOptimizeTaskResult)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _success *CreatePromptOptimizationResponse
+	var _success *CreatePromptOptimizeTaskResponse
 	if src.Success != nil {
-		_success = &CreatePromptOptimizationResponse{}
+		_success = &CreatePromptOptimizeTaskResponse{}
 		if err := _success.DeepCopy(src.Success); err != nil {
 			return err
 		}
@@ -44497,7 +45785,7 @@ func (p *ExperimentServiceCreatePromptOptimizationResult) DeepCopy(s interface{}
 	return nil
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44541,14 +45829,14 @@ func (p *ExperimentServiceGetPromptOptimizationArgs) FastRead(buf []byte) (int, 
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceGetPromptOptimizationArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceGetPromptOptimizeTaskArgs[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) FastReadField1(buf []byte) (int, error) {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) FastReadField1(buf []byte) (int, error) {
 	offset := 0
-	_field := NewGetPromptOptimizationRequest()
+	_field := NewGetPromptOptimizeTaskRequest()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44558,11 +45846,11 @@ func (p *ExperimentServiceGetPromptOptimizationArgs) FastReadField1(buf []byte) 
 	return offset, nil
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) FastWrite(buf []byte) int {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -44571,7 +45859,7 @@ func (p *ExperimentServiceGetPromptOptimizationArgs) FastWriteNocopy(buf []byte,
 	return offset
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) BLength() int {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -44580,29 +45868,29 @@ func (p *ExperimentServiceGetPromptOptimizationArgs) BLength() int {
 	return l
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
 	offset += p.Req.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) field1Length() int {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.Req.BLength()
 	return l
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceGetPromptOptimizationArgs)
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceGetPromptOptimizeTaskArgs)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _req *GetPromptOptimizationRequest
+	var _req *GetPromptOptimizeTaskRequest
 	if src.Req != nil {
-		_req = &GetPromptOptimizationRequest{}
+		_req = &GetPromptOptimizeTaskRequest{}
 		if err := _req.DeepCopy(src.Req); err != nil {
 			return err
 		}
@@ -44612,7 +45900,7 @@ func (p *ExperimentServiceGetPromptOptimizationArgs) DeepCopy(s interface{}) err
 	return nil
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44656,14 +45944,14 @@ func (p *ExperimentServiceGetPromptOptimizationResult) FastRead(buf []byte) (int
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceGetPromptOptimizationResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceGetPromptOptimizeTaskResult[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) FastReadField0(buf []byte) (int, error) {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) FastReadField0(buf []byte) (int, error) {
 	offset := 0
-	_field := NewGetPromptOptimizationResponse()
+	_field := NewGetPromptOptimizeTaskResponse()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44673,11 +45961,11 @@ func (p *ExperimentServiceGetPromptOptimizationResult) FastReadField0(buf []byte
 	return offset, nil
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) FastWrite(buf []byte) int {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField0(buf[offset:], w)
@@ -44686,7 +45974,7 @@ func (p *ExperimentServiceGetPromptOptimizationResult) FastWriteNocopy(buf []byt
 	return offset
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) BLength() int {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field0Length()
@@ -44695,7 +45983,7 @@ func (p *ExperimentServiceGetPromptOptimizationResult) BLength() int {
 	return l
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetSuccess() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 0)
@@ -44704,7 +45992,7 @@ func (p *ExperimentServiceGetPromptOptimizationResult) fastWriteField0(buf []byt
 	return offset
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) field0Length() int {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) field0Length() int {
 	l := 0
 	if p.IsSetSuccess() {
 		l += thrift.Binary.FieldBeginLength()
@@ -44713,15 +46001,15 @@ func (p *ExperimentServiceGetPromptOptimizationResult) field0Length() int {
 	return l
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceGetPromptOptimizationResult)
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceGetPromptOptimizeTaskResult)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _success *GetPromptOptimizationResponse
+	var _success *GetPromptOptimizeTaskResponse
 	if src.Success != nil {
-		_success = &GetPromptOptimizationResponse{}
+		_success = &GetPromptOptimizeTaskResponse{}
 		if err := _success.DeepCopy(src.Success); err != nil {
 			return err
 		}
@@ -44731,7 +46019,7 @@ func (p *ExperimentServiceGetPromptOptimizationResult) DeepCopy(s interface{}) e
 	return nil
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44775,14 +46063,14 @@ func (p *ExperimentServiceListPromptOptimizationsArgs) FastRead(buf []byte) (int
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceListPromptOptimizationsArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceListPromptOptimizeTasksArgs[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) FastReadField1(buf []byte) (int, error) {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) FastReadField1(buf []byte) (int, error) {
 	offset := 0
-	_field := NewListPromptOptimizationsRequest()
+	_field := NewListPromptOptimizeTasksRequest()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44792,11 +46080,11 @@ func (p *ExperimentServiceListPromptOptimizationsArgs) FastReadField1(buf []byte
 	return offset, nil
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) FastWrite(buf []byte) int {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -44805,7 +46093,7 @@ func (p *ExperimentServiceListPromptOptimizationsArgs) FastWriteNocopy(buf []byt
 	return offset
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) BLength() int {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -44814,29 +46102,29 @@ func (p *ExperimentServiceListPromptOptimizationsArgs) BLength() int {
 	return l
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
 	offset += p.Req.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) field1Length() int {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.Req.BLength()
 	return l
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceListPromptOptimizationsArgs)
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceListPromptOptimizeTasksArgs)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _req *ListPromptOptimizationsRequest
+	var _req *ListPromptOptimizeTasksRequest
 	if src.Req != nil {
-		_req = &ListPromptOptimizationsRequest{}
+		_req = &ListPromptOptimizeTasksRequest{}
 		if err := _req.DeepCopy(src.Req); err != nil {
 			return err
 		}
@@ -44846,7 +46134,7 @@ func (p *ExperimentServiceListPromptOptimizationsArgs) DeepCopy(s interface{}) e
 	return nil
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) FastRead(buf []byte) (int, error) {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) FastRead(buf []byte) (int, error) {
 
 	var err error
 	var offset int
@@ -44890,14 +46178,14 @@ func (p *ExperimentServiceListPromptOptimizationsResult) FastRead(buf []byte) (i
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceListPromptOptimizationsResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceListPromptOptimizeTasksResult[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) FastReadField0(buf []byte) (int, error) {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) FastReadField0(buf []byte) (int, error) {
 	offset := 0
-	_field := NewListPromptOptimizationsResponse()
+	_field := NewListPromptOptimizeTasksResponse()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -44907,11 +46195,11 @@ func (p *ExperimentServiceListPromptOptimizationsResult) FastReadField0(buf []by
 	return offset, nil
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) FastWrite(buf []byte) int {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField0(buf[offset:], w)
@@ -44920,7 +46208,7 @@ func (p *ExperimentServiceListPromptOptimizationsResult) FastWriteNocopy(buf []b
 	return offset
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) BLength() int {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field0Length()
@@ -44929,7 +46217,7 @@ func (p *ExperimentServiceListPromptOptimizationsResult) BLength() int {
 	return l
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetSuccess() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 0)
@@ -44938,7 +46226,7 @@ func (p *ExperimentServiceListPromptOptimizationsResult) fastWriteField0(buf []b
 	return offset
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) field0Length() int {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) field0Length() int {
 	l := 0
 	if p.IsSetSuccess() {
 		l += thrift.Binary.FieldBeginLength()
@@ -44947,483 +46235,15 @@ func (p *ExperimentServiceListPromptOptimizationsResult) field0Length() int {
 	return l
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceListPromptOptimizationsResult)
+func (p *ExperimentServiceListPromptOptimizeTasksResult) DeepCopy(s interface{}) error {
+	src, ok := s.(*ExperimentServiceListPromptOptimizeTasksResult)
 	if !ok {
 		return fmt.Errorf("%T's type not matched %T", s, p)
 	}
 
-	var _success *ListPromptOptimizationsResponse
+	var _success *ListPromptOptimizeTasksResponse
 	if src.Success != nil {
-		_success = &ListPromptOptimizationsResponse{}
-		if err := _success.DeepCopy(src.Success); err != nil {
-			return err
-		}
-	}
-	p.Success = _success
-
-	return nil
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCancelPromptOptimizationArgs[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-	_field := NewCancelPromptOptimizationRequest()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.Req = _field
-	return offset, nil
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
-	offset += p.Req.FastWriteNocopy(buf[offset:], w)
-	return offset
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) field1Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += p.Req.BLength()
-	return l
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceCancelPromptOptimizationArgs)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	var _req *CancelPromptOptimizationRequest
-	if src.Req != nil {
-		_req = &CancelPromptOptimizationRequest{}
-		if err := _req.DeepCopy(src.Req); err != nil {
-			return err
-		}
-	}
-	p.Req = _req
-
-	return nil
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 0:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField0(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceCancelPromptOptimizationResult[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) FastReadField0(buf []byte) (int, error) {
-	offset := 0
-	_field := NewCancelPromptOptimizationResponse()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.Success = _field
-	return offset, nil
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField0(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field0Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSuccess() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 0)
-		offset += p.Success.FastWriteNocopy(buf[offset:], w)
-	}
-	return offset
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) field0Length() int {
-	l := 0
-	if p.IsSetSuccess() {
-		l += thrift.Binary.FieldBeginLength()
-		l += p.Success.BLength()
-	}
-	return l
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceCancelPromptOptimizationResult)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	var _success *CancelPromptOptimizationResponse
-	if src.Success != nil {
-		_success = &CancelPromptOptimizationResponse{}
-		if err := _success.DeepCopy(src.Success); err != nil {
-			return err
-		}
-	}
-	p.Success = _success
-
-	return nil
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField1(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceApplyPromptOptimizationToDraftArgs[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) FastReadField1(buf []byte) (int, error) {
-	offset := 0
-	_field := NewApplyPromptOptimizationToDraftRequest()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.Req = _field
-	return offset, nil
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField1(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field1Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
-	offset += p.Req.FastWriteNocopy(buf[offset:], w)
-	return offset
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) field1Length() int {
-	l := 0
-	l += thrift.Binary.FieldBeginLength()
-	l += p.Req.BLength()
-	return l
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceApplyPromptOptimizationToDraftArgs)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	var _req *ApplyPromptOptimizationToDraftRequest
-	if src.Req != nil {
-		_req = &ApplyPromptOptimizationToDraftRequest{}
-		if err := _req.DeepCopy(src.Req); err != nil {
-			return err
-		}
-	}
-	p.Req = _req
-
-	return nil
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) FastRead(buf []byte) (int, error) {
-
-	var err error
-	var offset int
-	var l int
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	for {
-		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
-		offset += l
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 0:
-			if fieldTypeId == thrift.STRUCT {
-				l, err = p.FastReadField0(buf[offset:])
-				offset += l
-				if err != nil {
-					goto ReadFieldError
-				}
-			} else {
-				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-				offset += l
-				if err != nil {
-					goto SkipFieldError
-				}
-			}
-		default:
-			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
-			offset += l
-			if err != nil {
-				goto SkipFieldError
-			}
-		}
-	}
-
-	return offset, nil
-ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceApplyPromptOptimizationToDraftResult[fieldId]), err)
-SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) FastReadField0(buf []byte) (int, error) {
-	offset := 0
-	_field := NewApplyPromptOptimizationToDraftResponse()
-	if l, err := _field.FastRead(buf[offset:]); err != nil {
-		return offset, err
-	} else {
-		offset += l
-	}
-	p.Success = _field
-	return offset, nil
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) FastWrite(buf []byte) int {
-	return p.FastWriteNocopy(buf, nil)
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p != nil {
-		offset += p.fastWriteField0(buf[offset:], w)
-	}
-	offset += thrift.Binary.WriteFieldStop(buf[offset:])
-	return offset
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) BLength() int {
-	l := 0
-	if p != nil {
-		l += p.field0Length()
-	}
-	l += thrift.Binary.FieldStopLength()
-	return l
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
-	offset := 0
-	if p.IsSetSuccess() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 0)
-		offset += p.Success.FastWriteNocopy(buf[offset:], w)
-	}
-	return offset
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) field0Length() int {
-	l := 0
-	if p.IsSetSuccess() {
-		l += thrift.Binary.FieldBeginLength()
-		l += p.Success.BLength()
-	}
-	return l
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) DeepCopy(s interface{}) error {
-	src, ok := s.(*ExperimentServiceApplyPromptOptimizationToDraftResult)
-	if !ok {
-		return fmt.Errorf("%T's type not matched %T", s, p)
-	}
-
-	var _success *ApplyPromptOptimizationToDraftResponse
-	if src.Success != nil {
-		_success = &ApplyPromptOptimizationToDraftResponse{}
+		_success = &ListPromptOptimizeTasksResponse{}
 		if err := _success.DeepCopy(src.Success); err != nil {
 			return err
 		}
@@ -52573,51 +53393,35 @@ func (p *ExperimentServiceBatchGetExperimentResultResult) GetResult() interface{
 	return p.Success
 }
 
-func (p *ExperimentServicePreparePromptOptimizationArgs) GetFirstArgument() interface{} {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageArgs) GetFirstArgument() interface{} {
 	return p.Req
 }
 
-func (p *ExperimentServicePreparePromptOptimizationResult) GetResult() interface{} {
+func (p *ExperimentServiceEstimatePromptOptimizeTaskResourceUsageResult) GetResult() interface{} {
 	return p.Success
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationArgs) GetFirstArgument() interface{} {
+func (p *ExperimentServiceCreatePromptOptimizeTaskArgs) GetFirstArgument() interface{} {
 	return p.Req
 }
 
-func (p *ExperimentServiceCreatePromptOptimizationResult) GetResult() interface{} {
+func (p *ExperimentServiceCreatePromptOptimizeTaskResult) GetResult() interface{} {
 	return p.Success
 }
 
-func (p *ExperimentServiceGetPromptOptimizationArgs) GetFirstArgument() interface{} {
+func (p *ExperimentServiceGetPromptOptimizeTaskArgs) GetFirstArgument() interface{} {
 	return p.Req
 }
 
-func (p *ExperimentServiceGetPromptOptimizationResult) GetResult() interface{} {
+func (p *ExperimentServiceGetPromptOptimizeTaskResult) GetResult() interface{} {
 	return p.Success
 }
 
-func (p *ExperimentServiceListPromptOptimizationsArgs) GetFirstArgument() interface{} {
+func (p *ExperimentServiceListPromptOptimizeTasksArgs) GetFirstArgument() interface{} {
 	return p.Req
 }
 
-func (p *ExperimentServiceListPromptOptimizationsResult) GetResult() interface{} {
-	return p.Success
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationArgs) GetFirstArgument() interface{} {
-	return p.Req
-}
-
-func (p *ExperimentServiceCancelPromptOptimizationResult) GetResult() interface{} {
-	return p.Success
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftArgs) GetFirstArgument() interface{} {
-	return p.Req
-}
-
-func (p *ExperimentServiceApplyPromptOptimizationToDraftResult) GetResult() interface{} {
+func (p *ExperimentServiceListPromptOptimizeTasksResult) GetResult() interface{} {
 	return p.Success
 }
 

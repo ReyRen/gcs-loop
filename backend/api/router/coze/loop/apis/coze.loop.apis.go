@@ -252,13 +252,6 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 					_expt_id.DELETE("/delete_tag", append(_deleteannotationtagMw(handler), apis.DeleteAnnotationTag)...)
 					_expt_id.POST("/insight_analysis", append(_insightanalysisexperimentMw(handler), apis.InsightAnalysisExperiment)...)
 					_expt_id.POST("/kill", append(_killexperimentMw(handler), apis.KillExperiment)...)
-					_expt_id.POST("/prompt_optimizations", append(_prompt_optimizationsMw(handler), apis.CreatePromptOptimization)...)
-					_prompt_optimizations := _expt_id.Group("/prompt_optimizations", _prompt_optimizationsMw(handler)...)
-					_prompt_optimizations.POST("/list", append(_listpromptoptimizationsMw(handler), apis.ListPromptOptimizations)...)
-					_prompt_optimizations.GET("/:optimization_id", append(_optimization_idMw(handler), apis.GetPromptOptimization)...)
-					_optimization_id := _prompt_optimizations.Group("/:optimization_id", _optimization_idMw(handler)...)
-					_optimization_id.POST("/apply_to_draft", append(_applypromptoptimizationtodraftMw(handler), apis.ApplyPromptOptimizationToDraft)...)
-					_optimization_id.POST("/cancel", append(_cancelpromptoptimizationMw(handler), apis.CancelPromptOptimization)...)
 					_expt_id.POST("/retry", append(_retryexperimentMw(handler), apis.RetryExperiment)...)
 					{
 						_annotate_record := _expt_id.Group("/annotate_record", _annotate_recordMw(handler)...)
@@ -281,10 +274,6 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 						}
 						_insight_analysis_records.POST("/:insight_analysis_record_id", append(_getexptinsightanalysisrecordMw(handler), apis.GetExptInsightAnalysisRecord)...)
 						_insight_analysis_records.POST("/list", append(_listexptinsightanalysisrecordMw(handler), apis.ListExptInsightAnalysisRecord)...)
-					}
-					{
-						_prompt_optimizations0 := _expt_id.Group("/prompt_optimizations", _prompt_optimizations0Mw(handler)...)
-						_prompt_optimizations0.GET("/prepare", append(_preparepromptoptimizationMw(handler), apis.PreparePromptOptimization)...)
 					}
 					{
 						_results := _expt_id.Group("/results", _resultsMw(handler)...)
@@ -507,6 +496,20 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 					_prompt_templates.POST("/list", append(_listprompttemplatesMw(handler), apis.ListPromptTemplates)...)
 					_prompt_templates.GET("/:template_key", append(_getprompttemplateMw(handler), apis.GetPromptTemplate)...)
 				}
+				{
+					_prompts0 := _v15.Group("/prompts", _prompts0Mw(handler)...)
+					{
+						_prompt_id1 := _prompts0.Group("/:prompt_id", _prompt_id1Mw(handler)...)
+						_prompt_id1.POST("/optimize_tasks", append(_optimize_tasksMw(handler), apis.CreatePromptOptimizeTask)...)
+						_optimize_tasks := _prompt_id1.Group("/optimize_tasks", _optimize_tasksMw(handler)...)
+						_optimize_tasks.POST("/list", append(_listpromptoptimizetasksMw(handler), apis.ListPromptOptimizeTasks)...)
+						_optimize_tasks.POST("/:task_id", append(_getpromptoptimizetaskMw(handler), apis.GetPromptOptimizeTask)...)
+						{
+							_optimize_tasks0 := _prompt_id1.Group("/optimize_tasks", _optimize_tasks0Mw(handler)...)
+							_optimize_tasks0.POST("/evaluate", append(_estimatepromptoptimizetaskresourceusageMw(handler), apis.EstimatePromptOptimizeTaskResourceUsage)...)
+						}
+					}
+				}
 			}
 		}
 	}
@@ -516,20 +519,20 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 			_loop := _v16.Group("/loop", _loopMw(handler)...)
 			_loop.DELETE("/annotations", append(_deleteannotationMw(handler), apis.DeleteAnnotation)...)
 			_loop.POST("/annotations", append(_createannotationMw(handler), apis.CreateAnnotation)...)
-			_loop.POST("/prompts", append(_prompts0Mw(handler), apis.CreatePromptOApi)...)
-			_prompts0 := _loop.Group("/prompts", _prompts0Mw(handler)...)
-			_prompts0.DELETE("/:prompt_id", append(_prompt_id1Mw(handler), apis.DeletePromptOApi)...)
-			_prompt_id1 := _prompts0.Group("/:prompt_id", _prompt_id1Mw(handler)...)
+			_loop.POST("/prompts", append(_prompts1Mw(handler), apis.CreatePromptOApi)...)
+			_prompts1 := _loop.Group("/prompts", _prompts1Mw(handler)...)
+			_prompts1.DELETE("/:prompt_id", append(_prompt_id2Mw(handler), apis.DeletePromptOApi)...)
+			_prompt_id2 := _prompts1.Group("/:prompt_id", _prompt_id2Mw(handler)...)
 			{
-				_commits1 := _prompt_id1.Group("/commits", _commits1Mw(handler)...)
+				_commits1 := _prompt_id2.Group("/commits", _commits1Mw(handler)...)
 				_commits1.POST("/list", append(_listcommitoapiMw(handler), apis.ListCommitOApi)...)
 			}
 			{
-				_drafts1 := _prompt_id1.Group("/drafts", _drafts1Mw(handler)...)
+				_drafts1 := _prompt_id2.Group("/drafts", _drafts1Mw(handler)...)
 				_drafts1.POST("/commit", append(_commitdraftoapiMw(handler), apis.CommitDraftOApi)...)
 				_drafts1.POST("/save", append(_savedraftoapiMw(handler), apis.SaveDraftOApi)...)
 			}
-			_prompts0.GET("/:prompt_id", append(_getpromptoapiMw(handler), apis.GetPromptOApi)...)
+			_prompts1.GET("/:prompt_id", append(_getpromptoapiMw(handler), apis.GetPromptOApi)...)
 			{
 				_eval_targets0 := _loop.Group("/eval_targets", _eval_targets0Mw(handler)...)
 				_eval_targets0.POST("/async_debug", append(_asyncdebugevaltargetoapiMw(handler), apis.AsyncDebugEvalTargetOApi)...)
@@ -651,11 +654,11 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 				_pre_span.POST("/search", append(_listprespanoapiMw(handler), apis.ListPreSpanOApi)...)
 			}
 			{
-				_prompts1 := _loop.Group("/prompts", _prompts1Mw(handler)...)
-				_prompts1.POST("/execute", append(_executeMw(handler), apis.Execute)...)
-				_prompts1.POST("/execute_streaming", append(_executestreamingMw(handler), apis.ExecuteStreaming)...)
-				_prompts1.POST("/list", append(_listpromptbasicMw(handler), apis.ListPromptBasic)...)
-				_prompts1.POST("/mget", append(_batchgetpromptbypromptkeyMw(handler), apis.BatchGetPromptByPromptKey)...)
+				_prompts2 := _loop.Group("/prompts", _prompts2Mw(handler)...)
+				_prompts2.POST("/execute", append(_executeMw(handler), apis.Execute)...)
+				_prompts2.POST("/execute_streaming", append(_executestreamingMw(handler), apis.ExecuteStreaming)...)
+				_prompts2.POST("/list", append(_listpromptbasicMw(handler), apis.ListPromptBasic)...)
+				_prompts2.POST("/mget", append(_batchgetpromptbypromptkeyMw(handler), apis.BatchGetPromptByPromptKey)...)
 			}
 			{
 				_spans0 := _loop.Group("/spans", _spans0Mw(handler)...)

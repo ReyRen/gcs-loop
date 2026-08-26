@@ -328,3 +328,63 @@ models:
       scenario: "evaluator"
       quota: { qpm: 0, tpm: 0 }
       unavailable: true
+
+- id: 6
+  name: "Doubao-Seed-1.8"
+  desc: "Dedicated long-context model for experiment-based Prompt optimization."
+  ability:
+    max_context_tokens: 262144
+    max_input_tokens: 262144
+    max_output_tokens: 16384
+    function_call: true
+    json_mode: true
+    multi_modal: false
+    thinking: true
+  frame: "eino"
+  protocol: "openai"
+  protocol_config:
+    <<: *gpt_gateway
+    model: "doubao-seed-1-8-251228"
+    protocol_config_openai:
+      response_format_type: ""
+      response_format_json_schema: ""
+  scenario_configs:
+    default:
+      scenario: "default"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    prompt_debug:
+      scenario: "prompt_debug"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    eval_target:
+      scenario: "eval_target"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+    evaluator:
+      scenario: "evaluator"
+      quota: { qpm: 0, tpm: 0 }
+      unavailable: false
+  param_config:
+    param_schemas:
+      - name: "temperature"
+        label: "temperature"
+        desc: "Controls generation randomness."
+        type: "float"
+        min: "0"
+        max: "1.0"
+        default_val: "0.2"
+      - name: "max_tokens"
+        label: "max_tokens"
+        desc: "Controls the maximum number of output tokens."
+        type: "int"
+        min: "1"
+        max: "16384"
+        default_val: "16384"
+      - name: "top_p"
+        label: "top_p"
+        desc: "Controls nucleus sampling."
+        type: "float"
+        min: "0.001"
+        max: "1.0"
+        default_val: "0.9"

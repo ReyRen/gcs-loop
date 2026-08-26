@@ -17,14 +17,12 @@ import (
 	"time"
 
 	"github.com/bytedance/gg/gptr"
-	"gorm.io/gorm"
 
 	"github.com/coze-dev/coze-loop/backend/infra/db"
 	"github.com/coze-dev/coze-loop/backend/infra/idgen"
 	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/expt"
 	promptdto "github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
-	evaluatorconvertor "github.com/coze-dev/coze-loop/backend/modules/evaluation/application/convertor/evaluator"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/service"
@@ -35,7 +33,8 @@ import (
 )
 
 const (
-	promptOptimizationMaxSamples     = 20
+	promptOptimizationMinSamples     = 20
+	promptOptimizationMaxSamples     = 500
 	promptOptimizationDefaultWorkers = 2
 	promptOptimizationMaxWorkers     = 32
 	promptOptimizationWorkersEnv     = "COZE_LOOP_PROMPT_OPTIMIZATION_WORKERS"
@@ -50,8 +49,23 @@ type promptOptimizationRequestSnapshot struct {
 	ModelAnswerField     string                                `json:"model_answer_field"`
 	ReferenceAnswerField string                                `json:"reference_answer_field"`
 	Mode                 string                                `json:"mode"`
-	RequestedName        string                                `json:"requested_name,omitempty"`
 	MaxIterations        int32                                 `json:"max_iterations"`
+	EvalSetID            int64                                 `json:"eval_set_id"`
+	EvalSetVersionID     int64                                 `json:"eval_set_version_id"`
+	TargetMappings       []promptOptimizeFieldMappingSnapshot  `json:"eval_set_to_target"`
+	ReferenceMapping     *promptOptimizeFieldMappingSnapshot   `json:"eval_set_to_reference,omitempty"`
+	ActualOutputMapping  *promptOptimizeFieldMappingSnapshot   `json:"eval_set_to_actual_output,omitempty"`
+	Engine               string                                `json:"engine"`
+	OptimizeFactor       float64                               `json:"optimize_factor"`
+	OptimizeTaskType     string                                `json:"optimize_task_type"`
+	MinResourceUsage     int64                                 `json:"min_resource_usage"`
+	MaxResourceUsage     int64                                 `json:"max_resource_usage"`
+}
+
+type promptOptimizeFieldMappingSnapshot struct {
+	FromFieldName string `json:"from_field_name"`
+	FieldName     string `json:"field_name"`
+	ConstValue    string `json:"const_value,omitempty"`
 }
 
 type promptOptimizationSampleRefSnapshot struct {
@@ -159,307 +173,346 @@ func (p *promptOptimizationExecutor) cancelRunning(taskID int64) {
 	}
 }
 
-func (e *experimentApplication) PreparePromptOptimization(ctx context.Context, req *expt.PreparePromptOptimizationRequest) (*expt.PreparePromptOptimizationResponse, error) {
+func (e *experimentApplication) EstimatePromptOptimizeTaskResourceUsage(ctx context.Context, req *expt.EstimatePromptOptimizeTaskRequest) (*expt.EstimatePromptOptimizeTaskResponse, error) {
 	if e.promptOptimization == nil {
 		return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("prompt optimization service is not initialized"))
 	}
-	return e.promptOptimization.prepare(ctx, req)
+	return e.promptOptimization.estimate(ctx, req)
 }
 
-func (e *experimentApplication) CreatePromptOptimization(ctx context.Context, req *expt.CreatePromptOptimizationRequest) (*expt.CreatePromptOptimizationResponse, error) {
+func (e *experimentApplication) CreatePromptOptimizeTask(ctx context.Context, req *expt.CreatePromptOptimizeTaskRequest) (*expt.CreatePromptOptimizeTaskResponse, error) {
 	if e.promptOptimization == nil {
 		return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("prompt optimization service is not initialized"))
 	}
 	return e.promptOptimization.create(ctx, req)
 }
 
-func (e *experimentApplication) GetPromptOptimization(ctx context.Context, req *expt.GetPromptOptimizationRequest) (*expt.GetPromptOptimizationResponse, error) {
+func (e *experimentApplication) GetPromptOptimizeTask(ctx context.Context, req *expt.GetPromptOptimizeTaskRequest) (*expt.GetPromptOptimizeTaskResponse, error) {
 	if e.promptOptimization == nil {
 		return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("prompt optimization service is not initialized"))
 	}
 	return e.promptOptimization.get(ctx, req)
 }
 
-func (e *experimentApplication) ListPromptOptimizations(ctx context.Context, req *expt.ListPromptOptimizationsRequest) (*expt.ListPromptOptimizationsResponse, error) {
+func (e *experimentApplication) ListPromptOptimizeTasks(ctx context.Context, req *expt.ListPromptOptimizeTasksRequest) (*expt.ListPromptOptimizeTasksResponse, error) {
 	if e.promptOptimization == nil {
 		return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("prompt optimization service is not initialized"))
 	}
-	return e.promptOptimization.list(ctx, req)
+	return e.promptOptimization.listByPrompt(ctx, req)
 }
 
-func (e *experimentApplication) CancelPromptOptimization(ctx context.Context, req *expt.CancelPromptOptimizationRequest) (*expt.CancelPromptOptimizationResponse, error) {
-	if e.promptOptimization == nil {
-		return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("prompt optimization service is not initialized"))
+type promptOptimizeParams struct {
+	WorkspaceID            int64
+	PromptID               int64
+	TargetType             string
+	TargetVersion          string
+	DatasetType            string
+	RelatedEvalSetID       int64
+	RelatedEvalSetVersion  int64
+	RelatedExptID          int64
+	SelectedItemIDs        []int64
+	TargetMappings         []*expt.PromptOptimizeFieldMapping
+	ReferenceMapping       *expt.PromptOptimizeFieldMapping
+	ActualOutputMapping    *expt.PromptOptimizeFieldMapping
+	Engine                 string
+	OptimizeFactor         float64
+	OptimizeFactorProvided bool
+	OptimizeTaskType       string
+}
+
+func (p *promptOptimizationExecutor) estimate(ctx context.Context, req *expt.EstimatePromptOptimizeTaskRequest) (*expt.EstimatePromptOptimizeTaskResponse, error) {
+	params := promptOptimizeParams{
+		WorkspaceID: req.GetWorkspaceID(), PromptID: req.GetPromptID(), TargetType: req.GetTargetType(),
+		TargetVersion: req.GetTargetVersion(), DatasetType: req.GetDatasetType(), RelatedEvalSetID: req.GetRelatedEvalSetID(),
+		RelatedEvalSetVersion: req.GetRelatedEvalSetVersionID(), RelatedExptID: req.GetRelatedExptID(),
+		SelectedItemIDs: req.GetSelectedItemIDList(), TargetMappings: req.GetEvalSetToTarget(),
+		ReferenceMapping: req.GetEvalSetToReference(), ActualOutputMapping: req.GetEvalSetToActualOutput(),
+		Engine: req.GetEngine(), OptimizeFactor: req.GetOptimizeFactor(), OptimizeFactorProvided: req.OptimizeFactor != nil,
+		OptimizeTaskType: req.GetOptimizeTaskType(),
 	}
-	return e.promptOptimization.cancel(ctx, req)
-}
-
-func (e *experimentApplication) ApplyPromptOptimizationToDraft(ctx context.Context, req *expt.ApplyPromptOptimizationToDraftRequest) (*expt.ApplyPromptOptimizationToDraftResponse, error) {
-	if e.promptOptimization == nil {
-		return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("prompt optimization service is not initialized"))
-	}
-	return e.promptOptimization.apply(ctx, req)
-}
-
-func (p *promptOptimizationExecutor) prepare(ctx context.Context, req *expt.PreparePromptOptimizationRequest) (*expt.PreparePromptOptimizationResponse, error) {
-	experiment, source, promptDO, err := p.loadSource(ctx, req.GetWorkspaceID(), req.GetExptID(), entity.NewSession(ctx))
+	_, _, _, _, _, maxIterations, err := p.validatePromptOptimizeParams(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	result, err := p.resultSvc.MGetExperimentResult(ctx, &entity.MGetExperimentResultParam{
-		SpaceID: req.GetWorkspaceID(), ExptIDs: []int64{req.GetExptID()}, Page: entity.NewPage(0, 1),
-	})
-	if err != nil {
-		return nil, err
-	}
-	datasetFields := make([]string, 0, len(result.ColumnEvalSetFields))
-	for _, field := range result.ColumnEvalSetFields {
-		if field != nil && strings.TrimSpace(gptr.Indirect(field.Key)) != "" {
-			datasetFields = append(datasetFields, gptr.Indirect(field.Key))
-		}
-	}
-	targetFields := make([]string, 0)
-	for _, columns := range result.ExptColumnsEvalTarget {
-		if columns == nil || columns.ExptID != req.GetExptID() {
-			continue
-		}
-		for _, column := range columns.Columns {
-			if column == nil {
-				continue
-			}
-			name := strings.TrimSpace(column.Name)
-			if name == "" {
-				name = strings.TrimSpace(column.DisplayName)
-			}
-			if name != "" {
-				targetFields = append(targetFields, name)
-			}
-		}
-	}
-	vars := make([]*expt.PromptOptimizationVariable, 0)
-	suggested := make(map[string]string)
-	if promptDO.PromptCommit != nil && promptDO.PromptCommit.Detail != nil && promptDO.PromptCommit.Detail.PromptTemplate != nil {
-		for _, variable := range promptDO.PromptCommit.Detail.PromptTemplate.VariableDefs {
-			if variable == nil || strings.TrimSpace(gptr.Indirect(variable.Key)) == "" {
-				continue
-			}
-			key := gptr.Indirect(variable.Key)
-			vars = append(vars, &expt.PromptOptimizationVariable{Key: key, Type: variable.Type, TypeTags: append([]string(nil), variable.TypeTags...), Description: variable.Desc})
-			if containsString(datasetFields, key) {
-				suggested[key] = key
-			} else if len(datasetFields) == 1 {
-				suggested[key] = datasetFields[0]
-			}
-		}
-	}
-	modelField := chooseField(targetFields, []string{"actual_output", "output", "answer"})
-	referenceField := chooseField(datasetFields, []string{"reference_output", "reference_answer", "expected_output"})
-	modeEffect, modeCost := expt.PromptOptimizationModeEffectFirst, expt.PromptOptimizationModeCostEffective
-	return &expt.PreparePromptOptimizationResponse{
-		Eligible: gptr.Of(true), ExperimentID: gptr.Of(experiment.ID), ExperimentName: gptr.Of(experiment.Name),
-		PromptID: gptr.Of(source.PromptID), PromptKey: gptr.Of(source.PromptKey), PromptName: gptr.Of(source.Name),
-		SourcePromptVersion: gptr.Of(source.Version), PromptVariables: vars, DatasetFields: datasetFields,
-		TargetOutputFields: targetFields, Evaluators: evaluatorconvertor.ConvertEvaluatorDOList2DTO(experiment.Evaluators),
-		SuggestedVariableMappings: suggested, SuggestedModelAnswerField: optionalString(modelField),
-		SuggestedReferenceAnswerField: optionalString(referenceField), MaxSampleCount: gptr.Of(int32(promptOptimizationMaxSamples)),
-		DefaultSampleCount: gptr.Of(int32(promptOptimizationMaxSamples)),
-		ModeOptions: []*expt.PromptOptimizationModeOption{
-			{Mode: modeEffect, DisplayName: "效果优先", Description: gptr.Of("使用更多迭代，优先提升评估器得分"), DefaultMaxIterations: gptr.Of(int32(8))},
-			{Mode: modeCost, DisplayName: "性价比优先", Description: gptr.Of("使用更少迭代，在效果与模型消耗之间平衡"), DefaultMaxIterations: gptr.Of(int32(3))},
-		},
+	minUsage, maxUsage := promptOptimizeResourceUsage(len(params.SelectedItemIDs), maxIterations)
+	return &expt.EstimatePromptOptimizeTaskResponse{
+		MinTotalResourceUsage: gptr.Of(minUsage), MaxTotalResourceUsage: gptr.Of(maxUsage),
 	}, nil
 }
 
-func (p *promptOptimizationExecutor) create(ctx context.Context, req *expt.CreatePromptOptimizationRequest) (*expt.CreatePromptOptimizationResponse, error) {
+func (p *promptOptimizationExecutor) create(ctx context.Context, req *expt.CreatePromptOptimizeTaskRequest) (*expt.CreatePromptOptimizeTaskResponse, error) {
 	userID := session.UserIDInCtxOrEmpty(ctx)
 	if userID == "" {
 		return nil, errorx.NewByCode(errno.CommonInternalErrorCode, errorx.WithExtraMsg("user session is required"))
 	}
-	if len(req.GetSamples()) == 0 || len(req.GetSamples()) > promptOptimizationMaxSamples {
-		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("samples must contain 1 to 20 experiment rows"))
+	params := promptOptimizeParams{
+		WorkspaceID: req.GetWorkspaceID(), PromptID: req.GetPromptID(), TargetType: req.GetTargetType(),
+		TargetVersion: req.GetTargetVersion(), DatasetType: req.GetDatasetType(), RelatedEvalSetID: req.GetRelatedEvalSetID(),
+		RelatedEvalSetVersion: req.GetRelatedEvalSetVersionID(), RelatedExptID: req.GetRelatedExptID(),
+		SelectedItemIDs: req.GetSelectedItemIDList(), TargetMappings: req.GetEvalSetToTarget(),
+		ReferenceMapping: req.GetEvalSetToReference(), ActualOutputMapping: req.GetEvalSetToActualOutput(),
+		Engine: req.GetEngine(), OptimizeFactor: req.GetOptimizeFactor(), OptimizeFactorProvided: req.OptimizeFactor != nil,
+		OptimizeTaskType: req.GetOptimizeTaskType(),
 	}
-	experiment, source, promptDO, err := p.loadSource(ctx, req.GetWorkspaceID(), req.GetExptID(), entity.NewSession(ctx))
+	experiment, source, promptDO, variableMappings, mode, maxIterations, err := p.validatePromptOptimizeParams(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	_ = experiment
-	if len(req.GetVariableMappings()) == 0 && promptDO.PromptCommit != nil && promptDO.PromptCommit.Detail != nil &&
-		promptDO.PromptCommit.Detail.PromptTemplate != nil && len(promptDO.PromptCommit.Detail.PromptTemplate.VariableDefs) > 0 {
-		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("variable_mappings is required for a Prompt with variables"))
+	minUsage, maxUsage := promptOptimizeResourceUsage(len(params.SelectedItemIDs), maxIterations)
+	if usage := req.GetEstimateResourceUsage(); usage != nil {
+		minUsage, maxUsage = usage.GetMinCreditUsage(), usage.GetMaxCreditUsage()
 	}
-	if err := validateOptimizationVariableMappings(promptDO.PromptCommit.Detail.PromptTemplate, req.GetVariableMappings()); err != nil {
-		return nil, err
-	}
-	mode := req.GetMode()
-	if mode == "" {
-		mode = expt.PromptOptimizationModeEffectFirst
-	}
-	if mode != expt.PromptOptimizationModeEffectFirst && mode != expt.PromptOptimizationModeCostEffective {
-		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("unsupported optimization mode"))
-	}
-	maxIterations := req.GetMaxIterations()
-	if maxIterations == 0 {
-		if mode == expt.PromptOptimizationModeCostEffective {
-			maxIterations = 3
-		} else {
-			maxIterations = 8
-		}
-	}
-	seen := make(map[string]struct{}, len(req.GetSamples()))
 	snapshot := promptOptimizationRequestSnapshot{
-		VariableMappings: copyStringMap(req.GetVariableMappings()), ModelAnswerField: strings.TrimSpace(req.GetModelAnswerField()),
-		ReferenceAnswerField: strings.TrimSpace(req.GetReferenceAnswerField()), Mode: string(mode),
-		RequestedName: strings.TrimSpace(req.GetName()), MaxIterations: maxIterations,
+		VariableMappings: variableMappings, ModelAnswerField: strings.TrimSpace(params.ActualOutputMapping.GetFromFieldName()),
+		Mode: mode, MaxIterations: maxIterations, EvalSetID: params.RelatedEvalSetID,
+		EvalSetVersionID: params.RelatedEvalSetVersion, Engine: normalizeOptimizeEngine(params.Engine),
+		OptimizeFactor:   normalizeOptimizeFactor(params.OptimizeFactor, params.OptimizeFactorProvided),
+		OptimizeTaskType: normalizeOptimizeTaskType(params.OptimizeTaskType), MinResourceUsage: minUsage, MaxResourceUsage: maxUsage,
 	}
-	for _, sample := range req.GetSamples() {
-		if sample == nil || sample.GetItemID() <= 0 {
-			return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("sample item_id must be positive"))
+	if params.ReferenceMapping != nil {
+		snapshot.ReferenceAnswerField = strings.TrimSpace(params.ReferenceMapping.GetFromFieldName())
+		snapshot.ReferenceMapping = promptOptimizeFieldMappingToSnapshot(params.ReferenceMapping)
+	}
+	snapshot.ActualOutputMapping = promptOptimizeFieldMappingToSnapshot(params.ActualOutputMapping)
+	for _, mapping := range params.TargetMappings {
+		if mapped := promptOptimizeFieldMappingToSnapshot(mapping); mapped != nil {
+			snapshot.TargetMappings = append(snapshot.TargetMappings, *mapped)
 		}
-		key := fmt.Sprintf("%d:%d", sample.GetItemID(), sample.GetTurnID())
-		if _, ok := seen[key]; ok {
-			return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("duplicate optimization sample"))
-		}
-		seen[key] = struct{}{}
-		snapshot.Samples = append(snapshot.Samples, promptOptimizationSampleRefSnapshot{ItemID: sample.GetItemID(), TurnID: sample.GetTurnID()})
+	}
+	for _, itemID := range params.SelectedItemIDs {
+		snapshot.Samples = append(snapshot.Samples, promptOptimizationSampleRefSnapshot{ItemID: itemID})
 	}
 	requestData, _ := stdjson.Marshal(snapshot)
-	idempotencyKey := strings.TrimSpace(req.GetIdempotencyKey())
-	if idempotencyKey != "" {
-		existing, getErr := p.store.getTaskByIdempotency(ctx, req.GetWorkspaceID(), userID, idempotencyKey)
-		if getErr == nil {
-			if string(existing.RequestData) != string(requestData) || existing.ExperimentID != req.GetExptID() {
-				return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("idempotency_key was reused with a different optimization request"))
-			}
-			return &expt.CreatePromptOptimizationResponse{Task: p.taskPOToDTO(ctx, existing, false, false)}, nil
-		}
-		if !isPromptOptimizationNotFound(getErr) {
-			return nil, getErr
-		}
-	}
 	taskID, err := p.idgen.GenID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	name := snapshot.RequestedName
-	if name == "" {
-		name = fmt.Sprintf("%s%s_优化%s", source.Name, source.Version, time.Now().Format("20060102_1504"))
-	}
-	originalDTO := promptTemplateRPCToDTO(promptDO.PromptCommit.Detail.PromptTemplate)
-	originalData, _ := stdjson.Marshal(originalDTO)
-	var idem *string
-	if idempotencyKey != "" {
-		idem = gptr.Of(idempotencyKey)
-	}
+	name := fmt.Sprintf("%s%s_优化%s", source.Name, source.Version, time.Now().Format("20060102_1504"))
+	originalData, _ := stdjson.Marshal(promptTemplateRPCToDTO(promptDO.PromptCommit.Detail.PromptTemplate))
 	row := &promptOptimizationTaskPO{
-		ID: taskID, SpaceID: req.GetWorkspaceID(), ExperimentID: req.GetExptID(), PromptID: source.PromptID,
-		PromptKey: source.PromptKey, SourcePromptVersion: source.Version, Name: name, Mode: string(mode),
+		ID: taskID, SpaceID: params.WorkspaceID, ExperimentID: experiment.ID, PromptID: source.PromptID,
+		PromptKey: source.PromptKey, SourcePromptVersion: source.Version, Name: name, Mode: mode,
 		Status: string(expt.PromptOptimizationStatusQueued), Stage: string(expt.PromptOptimizationStagePreparing),
-		RequestData: requestData, OriginalPromptTemplate: originalData, IdempotencyKey: idem, CreatedBy: userID,
+		RequestData: requestData, OriginalPromptTemplate: originalData, CreatedBy: userID,
 	}
 	if err := p.store.createTask(ctx, row); err != nil {
-		if idempotencyKey != "" && (err == gorm.ErrDuplicatedKey || strings.Contains(strings.ToLower(err.Error()), "duplicate")) {
-			existing, getErr := p.store.getTaskByIdempotency(ctx, req.GetWorkspaceID(), userID, idempotencyKey)
-			if getErr == nil {
-				if string(existing.RequestData) != string(requestData) || existing.ExperimentID != req.GetExptID() {
-					return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("idempotency_key was reused with a different optimization request"))
-				}
-				return &expt.CreatePromptOptimizationResponse{Task: p.taskPOToDTO(ctx, existing, false, false)}, nil
-			}
-		}
 		return nil, err
 	}
 	p.enqueue(taskID)
-	return &expt.CreatePromptOptimizationResponse{Task: p.taskPOToDTO(ctx, row, false, false)}, nil
+	task := p.taskPOToDTO(ctx, row, false, false)
+	p.enrichPromptOptimizationTasks(ctx, params.WorkspaceID, []*promptOptimizationTaskPO{row}, []*expt.PromptOptimizeTask{task})
+	return &expt.CreatePromptOptimizeTaskResponse{OptimizeTask: task}, nil
 }
 
-func (p *promptOptimizationExecutor) get(ctx context.Context, req *expt.GetPromptOptimizationRequest) (*expt.GetPromptOptimizationResponse, error) {
-	if _, _, _, err := p.loadSource(ctx, req.GetWorkspaceID(), req.GetExptID(), entity.NewSession(ctx)); err != nil {
+func (p *promptOptimizationExecutor) get(ctx context.Context, req *expt.GetPromptOptimizeTaskRequest) (*expt.GetPromptOptimizeTaskResponse, error) {
+	if _, err := p.prompt.GetPrompt(ctx, req.GetWorkspaceID(), req.GetPromptID(), rpc.GetPromptParams{}); err != nil {
 		return nil, err
 	}
-	row, err := p.store.getTask(ctx, req.GetWorkspaceID(), req.GetExptID(), req.GetOptimizationID())
+	row, err := p.store.getTaskByPrompt(ctx, req.GetWorkspaceID(), req.GetPromptID(), req.GetTaskID())
 	if err != nil {
 		return nil, promptOptimizationStoreError(err)
 	}
-	return &expt.GetPromptOptimizationResponse{Task: p.taskPOToDTO(ctx, row, req.GetWithIterations(), req.GetWithSampleResults())}, nil
+	task := p.taskPOToDTO(ctx, row, true, true)
+	p.enrichPromptOptimizationTasks(ctx, req.GetWorkspaceID(), []*promptOptimizationTaskPO{row}, []*expt.PromptOptimizeTask{task})
+	return &expt.GetPromptOptimizeTaskResponse{OptimizeTask: task}, nil
 }
 
-func (p *promptOptimizationExecutor) list(ctx context.Context, req *expt.ListPromptOptimizationsRequest) (*expt.ListPromptOptimizationsResponse, error) {
-	if _, _, _, err := p.loadSource(ctx, req.GetWorkspaceID(), req.GetExptID(), entity.NewSession(ctx)); err != nil {
+func (p *promptOptimizationExecutor) listByPrompt(ctx context.Context, req *expt.ListPromptOptimizeTasksRequest) (*expt.ListPromptOptimizeTasksResponse, error) {
+	if _, err := p.prompt.GetPrompt(ctx, req.GetWorkspaceID(), req.GetPromptID(), rpc.GetPromptParams{}); err != nil {
 		return nil, err
 	}
-	page, size := req.GetPageNumber(), req.GetPageSize()
+	page, size := req.GetPageNum(), req.GetPageSize()
 	if page <= 0 {
 		page = 1
 	}
 	if size <= 0 {
 		size = 20
 	}
-	statuses := make([]string, 0, len(req.GetStatuses()))
-	for _, status := range req.GetStatuses() {
-		statuses = append(statuses, string(status))
+	statuses := make([]string, 0, len(req.GetStatus()))
+	for _, status := range req.GetStatus() {
+		dbStatus, ok := promptOptimizeStatusToDB(status)
+		if !ok {
+			return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("unsupported optimize task status "+status))
+		}
+		statuses = append(statuses, dbStatus)
 	}
-	rows, total, err := p.store.listTasks(ctx, req.GetWorkspaceID(), req.GetExptID(), page, size, statuses)
+	rows, total, err := p.store.listTasksByPrompt(ctx, req.GetWorkspaceID(), req.GetPromptID(), page, size, statuses, strings.TrimSpace(req.GetName()))
 	if err != nil {
 		return nil, err
 	}
-	tasks := make([]*expt.PromptOptimizationTask, 0, len(rows))
+	tasks := make([]*expt.PromptOptimizeTask, 0, len(rows))
 	for _, row := range rows {
-		tasks = append(tasks, p.taskPOToDTO(ctx, row, false, false))
+		task := p.taskPOToDTO(ctx, row, false, false)
+		if task.OptimizeResult_ != nil {
+			task.OptimizeResult_.OptimizedPromptMessageList = nil
+			task.OptimizeResult_.OptimizedToolList = nil
+		}
+		tasks = append(tasks, task)
 	}
-	return &expt.ListPromptOptimizationsResponse{Tasks: tasks, Total: gptr.Of(total)}, nil
+	p.enrichPromptOptimizationTasks(ctx, req.GetWorkspaceID(), rows, tasks)
+	return &expt.ListPromptOptimizeTasksResponse{OptimizeTasks: tasks, Total: gptr.Of(total)}, nil
 }
 
-func (p *promptOptimizationExecutor) cancel(ctx context.Context, req *expt.CancelPromptOptimizationRequest) (*expt.CancelPromptOptimizationResponse, error) {
-	row, err := p.store.getTask(ctx, req.GetWorkspaceID(), req.GetExptID(), req.GetOptimizationID())
+func (p *promptOptimizationExecutor) validatePromptOptimizeParams(ctx context.Context, params promptOptimizeParams) (*entity.Experiment, *entity.LoopPrompt, *rpc.LoopPrompt, map[string]string, string, int32, error) {
+	if targetType := strings.TrimSpace(params.TargetType); targetType != "" && targetType != "Prompt" {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("target_type must be Prompt"))
+	}
+	if params.DatasetType != "Experiment" {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("only dataset_type=Experiment is supported"))
+	}
+	if len(params.SelectedItemIDs) < promptOptimizationMinSamples || len(params.SelectedItemIDs) > promptOptimizationMaxSamples {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("selected_item_id_list must contain 20 to 500 experiment rows"))
+	}
+	seen := make(map[int64]struct{}, len(params.SelectedItemIDs))
+	for _, itemID := range params.SelectedItemIDs {
+		if itemID <= 0 {
+			return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("selected experiment item IDs must be positive"))
+		}
+		if _, exists := seen[itemID]; exists {
+			return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("selected_item_id_list contains duplicate IDs"))
+		}
+		seen[itemID] = struct{}{}
+	}
+	if engine := normalizeOptimizeEngine(params.Engine); engine != "Ark" {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("engine must be Ark"))
+	}
+	if taskType := normalizeOptimizeTaskType(params.OptimizeTaskType); taskType != "Score" {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("optimize_task_type must be Score"))
+	}
+	factor := normalizeOptimizeFactor(params.OptimizeFactor, params.OptimizeFactorProvided)
+	if factor < 0 || factor > 1 {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("optimize_factor must be between 0 and 1"))
+	}
+	experiment, source, promptDO, err := p.loadSource(ctx, params.WorkspaceID, params.RelatedExptID, entity.NewSession(ctx))
 	if err != nil {
-		return nil, promptOptimizationStoreError(err)
+		return nil, nil, nil, nil, "", 0, err
 	}
-	if row.CreatedBy != session.UserIDInCtxOrEmpty(ctx) {
-		return nil, errorx.NewByCode(errno.CommonNoPermissionCode, errorx.WithExtraMsg("only the task creator can cancel this optimization"))
+	if source.PromptID != params.PromptID || source.Version != params.TargetVersion {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("the selected experiment does not use this Prompt version"))
 	}
-	if row.Status == string(expt.PromptOptimizationStatusQueued) || row.Status == string(expt.PromptOptimizationStatusRunning) {
-		canceled, cancelErr := p.store.tryCancelTask(ctx, row.ID)
-		if cancelErr != nil {
-			return nil, cancelErr
-		}
-		if canceled {
-			p.cancelRunning(row.ID)
-		}
-		row, err = p.store.getTask(ctx, req.GetWorkspaceID(), req.GetExptID(), req.GetOptimizationID())
-		if err != nil {
-			return nil, err
-		}
+	if !experimentContainsEvalSet(experiment, params.RelatedEvalSetID, params.RelatedEvalSetVersion) {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("the evaluation set does not belong to the selected experiment"))
 	}
-	return &expt.CancelPromptOptimizationResponse{Task: p.taskPOToDTO(ctx, row, false, false)}, nil
+	template := promptDO.PromptCommit.Detail.PromptTemplate
+	if strings.EqualFold(template.TemplateType, "jinja2") {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("Jinja2 Prompt templates are not supported"))
+	}
+	if len(template.VariableDefs) == 0 {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("the Prompt must contain at least one variable"))
+	}
+	variableMappings := make(map[string]string, len(params.TargetMappings))
+	for _, mapping := range params.TargetMappings {
+		if mapping == nil {
+			continue
+		}
+		variableMappings[strings.TrimSpace(mapping.GetFieldName())] = strings.TrimSpace(mapping.GetFromFieldName())
+	}
+	if err := validateOptimizationVariableMappings(template, variableMappings); err != nil {
+		return nil, nil, nil, nil, "", 0, err
+	}
+	if params.ActualOutputMapping == nil || strings.TrimSpace(params.ActualOutputMapping.GetFromFieldName()) == "" {
+		return nil, nil, nil, nil, "", 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("eval_set_to_actual_output.from_field_name is required"))
+	}
+	mode := string(expt.PromptOptimizationModeCostEffective)
+	if factor >= 0.5 {
+		mode = string(expt.PromptOptimizationModeEffectFirst)
+	}
+	maxIterations := int32(3 + math.Round(factor*5))
+	return experiment, source, promptDO, variableMappings, mode, maxIterations, nil
 }
 
-func (p *promptOptimizationExecutor) apply(ctx context.Context, req *expt.ApplyPromptOptimizationToDraftRequest) (*expt.ApplyPromptOptimizationToDraftResponse, error) {
-	row, err := p.store.getTask(ctx, req.GetWorkspaceID(), req.GetExptID(), req.GetOptimizationID())
+func (p *promptOptimizationExecutor) enrichPromptOptimizationTasks(ctx context.Context, spaceID int64, rows []*promptOptimizationTaskPO, tasks []*expt.PromptOptimizeTask) {
+	if len(rows) == 0 || len(rows) != len(tasks) {
+		return
+	}
+	experimentIDs := make([]int64, 0, len(rows))
+	seen := make(map[int64]struct{}, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		if _, ok := seen[row.ExperimentID]; ok {
+			continue
+		}
+		seen[row.ExperimentID] = struct{}{}
+		experimentIDs = append(experimentIDs, row.ExperimentID)
+	}
+	experiments, err := p.manager.MGetDetail(ctx, experimentIDs, spaceID, entity.NewSession(ctx))
 	if err != nil {
-		return nil, promptOptimizationStoreError(err)
+		// Optimization history remains usable even if an associated experiment
+		// was removed or its detail can no longer be hydrated.
+		logs.CtxWarn(ctx, "hydrate Prompt optimization task associations failed: %v", err)
+		return
 	}
-	if row.CreatedBy != session.UserIDInCtxOrEmpty(ctx) {
-		return nil, errorx.NewByCode(errno.CommonNoPermissionCode, errorx.WithExtraMsg("only the task creator can apply this optimization"))
+	experimentByID := make(map[int64]*entity.Experiment, len(experiments))
+	for _, experiment := range experiments {
+		if experiment != nil {
+			experimentByID[experiment.ID] = experiment
+		}
 	}
-	if row.Status != string(expt.PromptOptimizationStatusSucceeded) || len(row.OptimizedPromptTemplate) == 0 {
-		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("only a succeeded optimization can be applied"))
+	for i, row := range rows {
+		if row == nil || tasks[i] == nil {
+			continue
+		}
+		experiment := experimentByID[row.ExperimentID]
+		if experiment == nil {
+			continue
+		}
+		if tasks[i].OptimizeTaskDataSet == nil {
+			tasks[i].OptimizeTaskDataSet = &expt.PromptOptimizeTaskDataSet{}
+		}
+		if tasks[i].OptimizeTarget != nil && experiment.Target != nil && experiment.Target.EvalTargetVersion != nil && experiment.Target.EvalTargetVersion.Prompt != nil {
+			tasks[i].OptimizeTarget.TargetName = optionalString(experiment.Target.EvalTargetVersion.Prompt.Name)
+		}
+		tasks[i].OptimizeTaskDataSet.RelatedExptName = optionalString(experiment.Name)
+		infos := promptOptimizationEvalSetInfos(experiment)
+		if len(infos) > 0 {
+			if tasks[i].OptimizeTaskDataSet.RelatedEvalSetID == nil {
+				tasks[i].OptimizeTaskDataSet.RelatedEvalSetID = infos[0].ID
+			}
+			if tasks[i].OptimizeTaskDataSet.RelatedEvalSetVersionID == nil {
+				tasks[i].OptimizeTaskDataSet.RelatedEvalSetVersionID = infos[0].VersionID
+			}
+			tasks[i].OptimizeTaskDataSet.RelatedEvalSetName = infos[0].Name
+			tasks[i].OptimizeTaskDataSet.RelatedEvalSetVersion = infos[0].Version
+		}
 	}
-	var candidate promptdto.PromptTemplate
-	if err := stdjson.Unmarshal(row.OptimizedPromptTemplate, &candidate); err != nil {
-		return nil, err
+}
+
+func promptOptimizationEvalSetInfos(experiment *entity.Experiment) []*expt.PromptOptimizationEvalSetInfo {
+	if experiment == nil {
+		return nil
 	}
-	if err := p.prompt.ApplyPromptTemplateToDraft(ctx, row.SpaceID, row.PromptID, row.SourcePromptVersion,
-		promptTemplateDTOToRPC(&candidate), req.GetOverwriteExistingDraft()); err != nil {
-		return nil, err
+	infos := make([]*expt.PromptOptimizationEvalSetInfo, 0, len(experiment.EvalSetDetails))
+	for _, detail := range experiment.EvalSetDetails {
+		if detail == nil {
+			continue
+		}
+		info := &expt.PromptOptimizationEvalSetInfo{
+			ID: gptr.Of(detail.EvalSetID), VersionID: gptr.Of(detail.EvalSetVersionID),
+			ItemCount: gptr.Of(int64(detail.ItemCount)), IsPrimary: gptr.Of(detail.IsPrimary),
+		}
+		if detail.EvalSet != nil {
+			info.Name = optionalString(detail.EvalSet.Name)
+			if detail.EvalSet.EvaluationSetVersion != nil {
+				info.Version = optionalString(detail.EvalSet.EvaluationSetVersion.Version)
+			}
+		}
+		infos = append(infos, info)
 	}
-	now := time.Now().UnixMilli()
-	if err := p.store.updateTask(ctx, row.ID, map[string]any{"applied_at": now}); err != nil {
-		return nil, err
+	if len(infos) == 0 && experiment.EvalSet != nil {
+		info := &expt.PromptOptimizationEvalSetInfo{
+			ID: gptr.Of(experiment.EvalSetID), VersionID: gptr.Of(experiment.EvalSetVersionID), Name: optionalString(experiment.EvalSet.Name), IsPrimary: gptr.Of(true),
+		}
+		if experiment.EvalSet.EvaluationSetVersion != nil {
+			info.Version = optionalString(experiment.EvalSet.EvaluationSetVersion.Version)
+			info.ItemCount = gptr.Of(experiment.EvalSet.EvaluationSetVersion.ItemCount)
+		} else {
+			info.ItemCount = gptr.Of(experiment.EvalSet.ItemCount)
+		}
+		infos = append(infos, info)
 	}
-	return &expt.ApplyPromptOptimizationToDraftResponse{
-		PromptID: gptr.Of(row.PromptID), SourcePromptVersion: gptr.Of(row.SourcePromptVersion),
-		DraftBaseVersion: gptr.Of(row.SourcePromptVersion), NextAction: gptr.Of("open_prompt_editor_and_submit_new_version"),
-	}, nil
+	return infos
 }
 
 func (p *promptOptimizationExecutor) loadSource(ctx context.Context, spaceID, exptID int64, userSession *entity.Session) (*entity.Experiment, *entity.LoopPrompt, *rpc.LoopPrompt, error) {
@@ -472,6 +525,9 @@ func (p *promptOptimizationExecutor) loadSource(ctx context.Context, spaceID, ex
 	}
 	if experiment.TargetType != entity.EvalTargetTypeLoopPrompt || experiment.Target == nil || experiment.Target.EvalTargetVersion == nil || experiment.Target.EvalTargetVersion.Prompt == nil {
 		return nil, nil, nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("the experiment target is not a committed Prompt"))
+	}
+	if len(experiment.Evaluators) == 0 {
+		return nil, nil, nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("the experiment must configure at least one evaluator"))
 	}
 	for _, evaluator := range experiment.Evaluators {
 		if evaluator != nil && evaluator.IsAsync() {
@@ -490,6 +546,16 @@ func (p *promptOptimizationExecutor) loadSource(ctx context.Context, spaceID, ex
 	if promptDO.PromptCommit.Detail.PromptTemplate.HasSnippet {
 		return nil, nil, nil, errorx.NewByCode(errno.CommonInvalidParamCode,
 			errorx.WithExtraMsg("Prompt optimization does not support snippet-based templates yet"))
+	}
+	for _, variable := range promptDO.PromptCommit.Detail.PromptTemplate.VariableDefs {
+		if variable == nil {
+			continue
+		}
+		variableType := strings.TrimSpace(gptr.Indirect(variable.Type))
+		if variableType != "" && !strings.EqualFold(variableType, "string") {
+			return nil, nil, nil, errorx.NewByCode(errno.CommonInvalidParamCode,
+				errorx.WithExtraMsg("Prompt optimization only supports text variables"))
+		}
 	}
 	return experiment, source, promptDO, nil
 }
@@ -1160,23 +1226,76 @@ func (p *promptOptimizationExecutor) isCanceled(ctx context.Context, taskID int6
 	return row.Status == string(expt.PromptOptimizationStatusCanceled), nil
 }
 
-func (p *promptOptimizationExecutor) taskPOToDTO(ctx context.Context, row *promptOptimizationTaskPO, withIterations, withSamples bool) *expt.PromptOptimizationTask {
+func (p *promptOptimizationExecutor) taskPOToDTO(ctx context.Context, row *promptOptimizationTaskPO, withIterations, withSamples bool) *expt.PromptOptimizeTask {
 	if row == nil {
 		return nil
 	}
-	mode, status, stage := expt.PromptOptimizationMode(row.Mode), expt.PromptOptimizationStatus(row.Status), expt.PromptOptimizationStage(row.Stage)
-	task := &expt.PromptOptimizationTask{
-		ID: &row.ID, WorkspaceID: &row.SpaceID, ExperimentID: &row.ExperimentID, Name: &row.Name, PromptID: &row.PromptID,
-		PromptKey: &row.PromptKey, SourcePromptVersion: &row.SourcePromptVersion, Mode: &mode, Status: &status, Stage: &stage,
-		Progress: &row.Progress, ErrorMessage: optionalString(row.ErrorMessage), CreatedBy: &row.CreatedBy,
+	task := &expt.PromptOptimizeTask{
+		ID: &row.ID, TaskName: &row.Name, Status: gptr.Of(promptOptimizeStatusFromDB(row.Status)),
+		Stage: gptr.Of(promptOptimizeStageFromDB(row.Stage)), Progress: &row.Progress,
+		ErrorMessage: optionalString(row.ErrorMessage), CreatedBy: &row.CreatedBy,
 		CreatedAt: gptr.Of(row.CreatedAt.UnixMilli()), UpdatedAt: gptr.Of(row.UpdatedAt.UnixMilli()), StartedAt: optionalInt64(row.StartedAt),
-		EndedAt: optionalInt64(row.EndedAt), AppliedToDraft: gptr.Of(row.AppliedAt > 0), AppliedAt: optionalInt64(row.AppliedAt),
+		EndedAt: optionalInt64(row.EndedAt),
+		OptimizeTarget: &expt.PromptOptimizeTarget{
+			TargetID: &row.PromptID, TargetKey: &row.PromptKey, TargetVersion: &row.SourcePromptVersion, TargetType: gptr.Of("Prompt"),
+		},
 	}
-	_ = stdjson.Unmarshal(row.OriginalPromptTemplate, &task.OriginalPromptTemplate)
-	_ = stdjson.Unmarshal(row.OptimizedPromptTemplate, &task.OptimizedPromptTemplate)
-	_ = stdjson.Unmarshal(row.BaselineMetrics, &task.BaselineMetrics)
-	_ = stdjson.Unmarshal(row.BestMetrics, &task.BestMetrics)
-	if withIterations {
+	var request promptOptimizationRequestSnapshot
+	if stdjson.Unmarshal(row.RequestData, &request) == nil {
+		dataset := &expt.PromptOptimizeTaskDataSet{
+			DatasetType: gptr.Of("Experiment"), RelatedExptID: &row.ExperimentID,
+			RelatedEvalSetID: optionalPositiveInt64(request.EvalSetID), RelatedEvalSetVersionID: optionalPositiveInt64(request.EvalSetVersionID),
+			EvalSetToReference:    promptOptimizeFieldMappingFromSnapshot(request.ReferenceMapping),
+			EvalSetToActualOutput: promptOptimizeFieldMappingFromSnapshot(request.ActualOutputMapping),
+			EstimateResourceUsage: &expt.PromptOptimizeResourceUsage{
+				MinCreditUsage: gptr.Of(request.MinResourceUsage), MaxCreditUsage: gptr.Of(request.MaxResourceUsage),
+			},
+		}
+		for _, sample := range request.Samples {
+			dataset.SelectedItemIDList = append(dataset.SelectedItemIDList, sample.ItemID)
+		}
+		for i := range request.TargetMappings {
+			mapping := request.TargetMappings[i]
+			dataset.EvalSetToTarget = append(dataset.EvalSetToTarget, promptOptimizeFieldMappingFromSnapshot(&mapping))
+		}
+		if len(dataset.EvalSetToTarget) == 0 {
+			for fieldName, fromFieldName := range request.VariableMappings {
+				dataset.EvalSetToTarget = append(dataset.EvalSetToTarget, &expt.PromptOptimizeFieldMapping{
+					FieldName: gptr.Of(fieldName), FromFieldName: gptr.Of(fromFieldName),
+				})
+			}
+		}
+		if dataset.EvalSetToReference == nil && request.ReferenceAnswerField != "" {
+			dataset.EvalSetToReference = &expt.PromptOptimizeFieldMapping{FromFieldName: gptr.Of(request.ReferenceAnswerField), FieldName: gptr.Of("output")}
+		}
+		if dataset.EvalSetToActualOutput == nil && request.ModelAnswerField != "" {
+			dataset.EvalSetToActualOutput = &expt.PromptOptimizeFieldMapping{FromFieldName: gptr.Of(request.ModelAnswerField), FieldName: gptr.Of("actual_output")}
+		}
+		task.OptimizeTaskDataSet = dataset
+		factor := request.OptimizeFactor
+		if request.Engine == "" {
+			if request.Mode == string(expt.PromptOptimizationModeCostEffective) {
+				factor = 0.2
+			} else {
+				factor = 0.8
+			}
+		}
+		task.OptimizeEngineConfig = &expt.PromptOptimizeEngineConfig{
+			Engine: gptr.Of(normalizeOptimizeEngine(request.Engine)), OptimizeFactor: gptr.Of(factor),
+			BalanceMode: gptr.Of(promptOptimizeBalanceMode(factor)), OptimizeTaskType: gptr.Of(normalizeOptimizeTaskType(request.OptimizeTaskType)),
+		}
+	}
+	if row.Status == string(expt.PromptOptimizationStatusSucceeded) && len(row.OptimizedPromptTemplate) > 0 {
+		result := &expt.PromptOptimizeTaskResult_{}
+		var optimizedTemplate promptdto.PromptTemplate
+		if stdjson.Unmarshal(row.OptimizedPromptTemplate, &optimizedTemplate) == nil {
+			result.OptimizedPromptMessageList = optimizedTemplate.Messages
+		}
+		_ = stdjson.Unmarshal(row.BaselineMetrics, &result.BaselineMetrics)
+		_ = stdjson.Unmarshal(row.BestMetrics, &result.BestMetrics)
+		task.OptimizeResult_ = result
+	}
+	if withIterations && task.OptimizeResult_ != nil {
 		iterations, err := p.store.listIterations(ctx, row.ID)
 		if err == nil {
 			for _, iteration := range iterations {
@@ -1186,7 +1305,7 @@ func (p *promptOptimizationExecutor) taskPOToDTO(ctx context.Context, row *promp
 				if withSamples {
 					_ = stdjson.Unmarshal(iteration.SampleResults, &item.SampleResults)
 				}
-				task.Iterations = append(task.Iterations, item)
+				task.OptimizeResult_.Iterations = append(task.OptimizeResult_.Iterations, item)
 			}
 		}
 	}
@@ -1303,6 +1422,136 @@ func copyStringMap(from map[string]string) map[string]string {
 		to[key] = value
 	}
 	return to
+}
+
+func promptOptimizeFieldMappingToSnapshot(mapping *expt.PromptOptimizeFieldMapping) *promptOptimizeFieldMappingSnapshot {
+	if mapping == nil {
+		return nil
+	}
+	return &promptOptimizeFieldMappingSnapshot{
+		FromFieldName: strings.TrimSpace(mapping.GetFromFieldName()),
+		FieldName:     strings.TrimSpace(mapping.GetFieldName()),
+		ConstValue:    mapping.GetConstValue(),
+	}
+}
+
+func promptOptimizeFieldMappingFromSnapshot(mapping *promptOptimizeFieldMappingSnapshot) *expt.PromptOptimizeFieldMapping {
+	if mapping == nil {
+		return nil
+	}
+	return &expt.PromptOptimizeFieldMapping{
+		FromFieldName: optionalString(mapping.FromFieldName), FieldName: optionalString(mapping.FieldName), ConstValue: optionalString(mapping.ConstValue),
+	}
+}
+
+func normalizeOptimizeEngine(engine string) string {
+	if strings.TrimSpace(engine) == "" {
+		return "Ark"
+	}
+	return strings.TrimSpace(engine)
+}
+
+func normalizeOptimizeTaskType(taskType string) string {
+	if strings.TrimSpace(taskType) == "" {
+		return "Score"
+	}
+	return strings.TrimSpace(taskType)
+}
+
+func normalizeOptimizeFactor(factor float64, provided bool) float64 {
+	if !provided {
+		return 0.5
+	}
+	return factor
+}
+
+func promptOptimizeBalanceMode(factor float64) string {
+	if factor >= 0.5 {
+		return "EffectFirst"
+	}
+	return "CostEffectiveFirst"
+}
+
+func promptOptimizeResourceUsage(sampleCount int, maxIterations int32) (int64, int64) {
+	// gcs-loop has no resource-point billing. These values estimate the number
+	// of model calls: one candidate generation plus one evaluation per sample.
+	perIteration := int64(sampleCount + 1)
+	return perIteration, perIteration * int64(maxIterations)
+}
+
+func experimentContainsEvalSet(experiment *entity.Experiment, evalSetID, evalSetVersionID int64) bool {
+	if experiment == nil {
+		return false
+	}
+	if experiment.EvalSetID == evalSetID && experiment.EvalSetVersionID == evalSetVersionID {
+		return true
+	}
+	for _, detail := range experiment.EvalSetDetails {
+		if detail != nil && detail.EvalSetID == evalSetID && detail.EvalSetVersionID == evalSetVersionID {
+			return true
+		}
+	}
+	return false
+}
+
+func promptOptimizeStatusToDB(status string) (string, bool) {
+	switch status {
+	case "Created":
+		return string(expt.PromptOptimizationStatusQueued), true
+	case "Running":
+		return string(expt.PromptOptimizationStatusRunning), true
+	case "Success":
+		return string(expt.PromptOptimizationStatusSucceeded), true
+	case "Failed":
+		return string(expt.PromptOptimizationStatusFailed), true
+	case "Terminated":
+		return string(expt.PromptOptimizationStatusCanceled), true
+	default:
+		return "", false
+	}
+}
+
+func promptOptimizeStatusFromDB(status string) string {
+	switch status {
+	case string(expt.PromptOptimizationStatusQueued):
+		return "Created"
+	case string(expt.PromptOptimizationStatusRunning):
+		return "Running"
+	case string(expt.PromptOptimizationStatusSucceeded):
+		return "Success"
+	case string(expt.PromptOptimizationStatusFailed):
+		return "Failed"
+	case string(expt.PromptOptimizationStatusCanceled):
+		return "Terminated"
+	default:
+		return status
+	}
+}
+
+func promptOptimizeStageFromDB(stage string) string {
+	switch stage {
+	case string(expt.PromptOptimizationStagePreparing):
+		return "Preparing"
+	case string(expt.PromptOptimizationStageAnalyzing):
+		return "Analyzing"
+	case string(expt.PromptOptimizationStageOptimizing):
+		return "Optimizing"
+	case string(expt.PromptOptimizationStageEvaluating):
+		return "Evaluating"
+	case string(expt.PromptOptimizationStageFinalizing):
+		return "Finalizing"
+	case string(expt.PromptOptimizationStageCompleted):
+		return "Completed"
+	default:
+		return stage
+	}
+}
+
+func optionalPositiveInt64(value int64) *int64 {
+	if value <= 0 {
+		return nil
+	}
+	return &value
 }
 
 func validateOptimizationVariableMappings(template *rpc.PromptTemplate, mappings map[string]string) error {
