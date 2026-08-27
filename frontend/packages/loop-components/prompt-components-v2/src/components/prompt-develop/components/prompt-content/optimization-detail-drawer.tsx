@@ -17,15 +17,6 @@ import {
   Typography,
 } from '@coze-arch/coze-design';
 
-const BALANCE_MODE_MAP: Record<string, string> = {
-  EffectFirst: I18n.t('prompt_optimization_effect_first', {}, '效果优先'),
-  CostEffectiveFirst: I18n.t(
-    'prompt_optimization_cost_effective_first',
-    {},
-    '性价比优先',
-  ),
-};
-
 function Row({ label, children }: { label: string; children?: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 py-2">
@@ -183,14 +174,11 @@ export function OptimizationDetailDrawer({
 
   const data = detail ?? task;
   const dataSet = data?.optimize_task_data_set;
-  const engineConfig = data?.optimize_engine_config;
   const optimizeResult = data?.optimize_result;
   const target = data?.optimize_target;
 
   const targetType = target?.target_type ?? '';
   const targetVersion = target?.target_version ?? '';
-  const balanceMode = engineConfig?.balance_mode ?? '';
-  const optimizeFactor = engineConfig?.optimize_factor;
 
   const evalSetToTarget = dataSet?.eval_set_to_target ?? [];
   const evalSetToActualOutput = dataSet?.eval_set_to_actual_output;
@@ -366,7 +354,7 @@ export function OptimizationDetailDrawer({
             </div>
 
             {/* Prompt 优化设置 */}
-            <section>
+            {/* <section>
               <Typography.Title heading={6} className="!mb-1">
                 {I18n.t('prompt_optimization_settings', {}, 'Prompt 优化设置')}
               </Typography.Title>
@@ -377,10 +365,10 @@ export function OptimizationDetailDrawer({
               <Row label={I18n.t('optimize_factor', {}, '优化因子')}>
                 {optimizeFactor !== undefined ? String(optimizeFactor) : '-'}
               </Row>
-            </section>
+            </section> */}
 
             {/* 真实值：消耗资源点 */}
-            <section>
+            {/* <section>
               <Typography.Title heading={6} className="!mb-1">
                 {I18n.t('actual_value', {}, '真实值')}
               </Typography.Title>
@@ -394,7 +382,7 @@ export function OptimizationDetailDrawer({
               >
                 {optimizeResult?.ark_job_credit_usage ?? '-'}
               </Row>
-            </section>
+            </section> */}
           </div>
         )}
       </div>

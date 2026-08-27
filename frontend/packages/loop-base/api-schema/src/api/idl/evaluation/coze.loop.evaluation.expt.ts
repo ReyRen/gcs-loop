@@ -825,6 +825,12 @@ export interface ListPromptOptimizeTasksResponse {
   optimize_tasks?: PromptOptimizeTask[],
   total?: string,
 }
+export interface TerminatePromptOptimizeTaskRequest {
+  workspace_id: string,
+  prompt_id: string,
+  task_id: string,
+}
+export interface TerminatePromptOptimizeTaskResponse {}
 /** 预估与创建优化任务的公共参数 */
 export interface OptimizeTaskParams {
   workspace_id: string,
@@ -1071,6 +1077,19 @@ export const GetPromptOptimizeTask = /*#__PURE__*/createAPI<GetPromptOptimizeTas
     "path": ["prompt_id", "task_id"]
   },
   "resType": "GetPromptOptimizeTaskResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const TerminatePromptOptimizeTask = /*#__PURE__*/createAPI<TerminatePromptOptimizeTaskRequest, TerminatePromptOptimizeTaskResponse>({
+  "url": "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/:task_id/terminate",
+  "method": "POST",
+  "name": "TerminatePromptOptimizeTask",
+  "reqType": "TerminatePromptOptimizeTaskRequest",
+  "reqMapping": {
+    "body": ["workspace_id"],
+    "path": ["prompt_id", "task_id"]
+  },
+  "resType": "TerminatePromptOptimizeTaskResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });

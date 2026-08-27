@@ -9,14 +9,17 @@ import { useShallow } from 'zustand/react/shallow';
 import { debounce } from 'lodash-es';
 import { usePagination } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
-import { DEFAULT_PAGE_SIZE, TableWithPagination } from '@cozeloop/components';
+import {
+  DEFAULT_PAGE_SIZE,
+  TableWithPagination,
+  TableColActions,
+} from '@cozeloop/components';
 import type { PromptOptimizeTask } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
 import { IconCozIllusEmpty } from '@coze-arch/coze-design/illustrations';
 import {
   type ColumnProps,
   type SearchProps,
-  Button,
   EmptyState,
   Search,
   Select,
@@ -166,7 +169,7 @@ export function OptimizationArea() {
 
   const columns: ColumnProps<PromptOptimizeTask>[] = [
     {
-      title: I18n.t('task_name'),
+      title: I18n.t('prompt_optimization_task_name'),
       dataIndex: 'task_name',
       key: 'task_name',
       width: 200,
@@ -192,14 +195,14 @@ export function OptimizationArea() {
       },
     },
     {
-      title: I18n.t('prompt_optimization_data_count', {}, '数据条数'),
+      title: I18n.t('prompt_optimization_data_count'),
       dataIndex: 'data_count',
       key: 'data_count',
       width: 100,
       render: (_, task) => formatDataCount(task),
     },
     {
-      title: I18n.t('prompt_optimization_mode', {}, '优化模式'),
+      title: I18n.t('prompt_optimization_mode'),
       dataIndex: 'optimize_mode',
       key: 'optimize_mode',
       width: 180,
@@ -207,14 +210,14 @@ export function OptimizationArea() {
       render: (_, task) => formatOptimizeMode(task),
     },
     {
-      title: I18n.t('prompt_optimization_score_change', {}, '评分变化'),
+      title: I18n.t('prompt_optimization_score_change'),
       dataIndex: 'score_change',
       key: 'score_change',
       width: 140,
       render: (_, task) => formatScoreChange(task),
     },
     {
-      title: I18n.t('prompt_optimization_eval_set', {}, '关联评测集'),
+      title: I18n.t('prompt_optimization_eval_set'),
       dataIndex: 'eval_set',
       key: 'eval_set',
       width: 160,
@@ -228,7 +231,7 @@ export function OptimizationArea() {
       ),
     },
     {
-      title: I18n.t('prompt_optimization_expt', {}, '关联评测实验'),
+      title: I18n.t('prompt_optimization_expt'),
       dataIndex: 'expt',
       key: 'expt',
       width: 160,
@@ -240,7 +243,7 @@ export function OptimizationArea() {
       ),
     },
     {
-      title: I18n.t('created_at'),
+      title: I18n.t('create_time'),
       dataIndex: 'created_at',
       key: 'created_at',
       width: 160,
@@ -251,7 +254,7 @@ export function OptimizationArea() {
       dataIndex: 'operation',
       key: 'operation',
       fixed: 'right',
-      width: 220,
+      width: 150,
       render: (_, task) => {
         const targetId = task.optimize_target?.target_id ?? '';
         const exptId = task.optimize_task_data_set?.related_expt_id ?? '';
@@ -259,22 +262,20 @@ export function OptimizationArea() {
           `/console/enterprise/personal/space/${spaceID}` +
           `/pe/prompts/${targetId}/optimization/${task.id}?expt_id=${exptId}`;
         return (
-          <div className="flex items-center gap-2">
-            <Button
-              size="small"
-              color="primary"
-              onClick={() => setVisibleTask(task)}
-            >
-              {I18n.t('view_detail', {}, '查看详情')}
-            </Button>
-            <Button
-              size="small"
-              color="brand"
-              onClick={() => window.open(reportUrl, '_blank')}
-            >
-              {I18n.t('prompt_optimization_report', {}, '智能优化报告')}
-            </Button>
-          </div>
+          <TableColActions
+            actions={[
+              {
+                label: I18n.t('detail'),
+                onClick: () => setVisibleTask(task),
+              },
+              {
+                label: I18n.t('prompt_optimization_report'),
+                onClick: () => {
+                  window.location.href = reportUrl;
+                },
+              },
+            ]}
+          />
         );
       },
     },
@@ -286,7 +287,7 @@ export function OptimizationArea() {
 
   return (
     <div className="flex flex-1 flex-col overflow-auto">
-      <div className="flex items-center justify-between gap-3 p-4 pb-3">
+      <div className="flex items-center gap-3 p-4 pb-3">
         <div className="w-60">
           <Search
             className="box-border !w-full"
