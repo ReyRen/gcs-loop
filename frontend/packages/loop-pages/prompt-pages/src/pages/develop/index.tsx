@@ -8,6 +8,7 @@ import {
   showSubmitSuccess,
 } from '@cozeloop/prompt-components-v2';
 import { useBreadcrumb, useModalData } from '@cozeloop/hooks';
+import { SmartOptimizationModal } from '@cozeloop/evaluate';
 import { useReportEvent } from '@cozeloop/components';
 import {
   useModelList,
@@ -31,6 +32,7 @@ export default function PromptDevelopPage() {
   const [promptInfo, setPromptInfo] = useState<Prompt>();
   const traceHistoryPannel = useModalData();
   const traceLogPannel = useModalData<string>();
+  const smartOptimizationModal = useModalData();
   const navigate = useNavigateModule();
   const { openBlank } = useOpenWindow();
 
@@ -63,6 +65,9 @@ export default function PromptDevelopPage() {
         }}
         uploadFile={uploadFile}
         buttonConfig={{
+          optimizeButton: {
+            onClick: () => smartOptimizationModal.open(),
+          },
           traceHistoryButton: {
             onClick: () => traceHistoryPannel.open(),
           },
@@ -94,6 +99,10 @@ export default function PromptDevelopPage() {
         promptID={promptInfo?.id}
         visible={traceHistoryPannel.visible}
         onCancel={traceHistoryPannel.close}
+      />
+      <SmartOptimizationModal
+        visible={smartOptimizationModal.visible}
+        onClose={smartOptimizationModal.close}
       />
     </>
   );

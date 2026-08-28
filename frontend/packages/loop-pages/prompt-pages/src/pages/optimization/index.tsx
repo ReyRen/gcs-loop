@@ -36,7 +36,7 @@ export default function PromptOptimizationPage() {
   const [loading, setLoading] = useState(true);
   const [applyingToDraft, setApplyingToDraft] = useState(false);
   const [overwriteVisible, setOverwriteVisible] = useState(false);
-  const [setTerminating] = useState(false);
+  const [terminating, setTerminating] = useState(false);
   // 源版本 Prompt 详情（用于 diff 左侧与构造草稿）
   const [sourceDetail, setSourceDetail] = useState<PromptDetail>();
 
@@ -237,7 +237,7 @@ export default function PromptOptimizationPage() {
               {sourceVersion ?? '-'}
             </Typography.Text>
           </div>
-          {status === 'Failed' ? (
+          {/* {status === 'Failed' ? (
             <Button
               onClick={() =>
                 navigate(
@@ -247,12 +247,16 @@ export default function PromptOptimizationPage() {
             >
               {I18n.t('prompt_optimization_back_to_experiment')}
             </Button>
-          ) : null}
+          ) : null} */}
         </div>
 
         {/* 运行中 / 排队中 */}
         {task && (status === 'Created' || status === 'Running') ? (
-          <RunningStatus task={task} onTerminate={handleTerminate} />
+          <RunningStatus
+            task={task}
+            terminating={terminating}
+            onTerminate={handleTerminate}
+          />
         ) : null}
 
         {/* 失败 */}

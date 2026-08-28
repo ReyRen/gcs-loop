@@ -40,10 +40,8 @@ import {
   Button,
   Form,
   type FormApi,
-  InputNumber,
   Modal,
   Select,
-  Slider,
   Tag,
   Toast,
   Tooltip,
@@ -94,7 +92,7 @@ export default function SmartOptimizationModal({
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [promptDetail, setPromptDetail] = useState<Prompt | undefined>();
   const [promptDetailLoading, setPromptDetailLoading] = useState(false);
-  const [optimizeMode, setOptimizeMode] = useState(50);
+  const [optimizeMode] = useState(50);
   const [referenceAnswerField, setReferenceAnswerField] =
     useState('reference_output');
   const [selectedRows, setSelectedRows] = useState<ExperimentItem[]>([]);
@@ -186,7 +184,7 @@ export default function SmartOptimizationModal({
   const problemVariableMappings = useMemo(
     () =>
       variableDefs
-        .filter(variable => !!variable?.key)
+        .filter((variable): variable is { key: string } => !!variable?.key)
         .map(variable => ({
           field_name: variable.key,
           from_field_name: variableMappings[variable.key] ?? '',
@@ -478,7 +476,7 @@ export default function SmartOptimizationModal({
             />
           ),
         }}
-        disabled
+        disabled={Boolean(baseExperiment)}
         placeholder={I18n.t('prompt_optimizable_experiment')}
         filters={promptExptFilters}
         loadOptionByIds={loadExptOptionByIds}
@@ -496,7 +494,7 @@ export default function SmartOptimizationModal({
         className="w-full"
         field="promptVersion"
         promptId={promptId}
-        disabled
+        disabled={Boolean(baseExperiment)}
         label={{
           text: I18n.t('prompt_version'),
           className: 'justify-between pr-0',
@@ -815,7 +813,7 @@ export default function SmartOptimizationModal({
       </div>
 
       {/* 优化设置 */}
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <div className="mb-2">
           <Typography.Text strong>
             {I18n.t('smart_optimization_settings')}
@@ -860,7 +858,7 @@ export default function SmartOptimizationModal({
             </Typography.Text>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 
@@ -903,11 +901,7 @@ export default function SmartOptimizationModal({
         ) : step === 'prompt_detail' ? (
           <div className="flex justify-end gap-2">
             <Button onClick={handleBackToTable}>{I18n.t('prev_step')}</Button>
-            <Button
-              type="primary"
-              loading={createTaskLoading}
-              onClick={handleCreateTask}
-            >
+            <Button loading={createTaskLoading} onClick={handleCreateTask}>
               {I18n.t('smart_optimization_create_task')}
             </Button>
           </div>

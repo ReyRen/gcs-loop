@@ -1,211 +1,212 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
-
-/* eslint-disable @typescript-eslint/no-magic-numbers */
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 
 import { useShallow } from 'zustand/react/shallow';
-import { useRequest } from 'ahooks';
 import { I18n } from '@cozeloop/i18n-adapter';
 import {
-  AggregatorType,
-  ExptStatus,
+  ExperimentNameSearch,
+  ExperimentStatusSelect,
+  ExperimentEvaluatorLogicFilter,
+  ExperimentListEmptyState,
+  ColumnsManage,
+  RefreshButton,
+  useExperimentListStore,
+  type SemiTableSort,
+} from '@cozeloop/evaluate-components';
+import { TableWithPagination } from '@cozeloop/components';
+import { useNavigateModule } from '@cozeloop/biz-hooks-adapter';
+import {
+  type ExptStatus,
+  type Experiment,
+  type ListExperimentsRequest,
+  type ListExperimentsResponse,
   FieldType,
   FilterLogicOp,
   FilterOperatorType,
-  type ExptFilterOption,
+  EvalTargetType,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi } from '@cozeloop/api-schema';
-import { IconCozIllusEmpty } from '@coze-arch/coze-design/illustrations';
-import { Button, Empty, Spin, Tag, Typography } from '@coze-arch/coze-design';
+import { IconCozPlus } from '@coze-arch/coze-design/icons';
+import { Button } from '@coze-arch/coze-design';
 
 import { usePromptStore } from '@/store/use-prompt-store';
 
-import { usePromptDevProviderContext } from '../prompt-provider';
-
-/** 实验状态 -> 展示信息 */
-const EXPT_STATUS_MAP: Record<number, { label: string; color: string }> = {
-  [ExptStatus.Success]: { label: I18n.t('success'), color: 'green' },
-  [ExptStatus.Failed]: { label: I18n.t('failure'), color: 'red' },
-  [ExptStatus.Processing]: {
-    label: I18n.t('status_running', {}, '执行中'),
-    color: 'blue',
-  },
-  [ExptStatus.Pending]: {
-    label: I18n.t('to_be_executed', {}, '待执行'),
-    color: 'primary',
-  },
-  [ExptStatus.Terminated]: { label: I18n.t('terminate'), color: 'yellow' },
-  [ExptStatus.Terminating]: { label: I18n.t('terminating'), color: 'yellow' },
-};
-
-function formatTime(ts?: string) {
-  if (!ts) {
-    return '-';
-  }
-  return new Date(Number(ts) * 1000).toLocaleString();
+interface Filter {
+  name?: string;
+  status?: ExptStatus[];
 }
 
+const filterFields: { key: keyof Filter; type: FieldType }[] = [
+  {
+    key: 'status',
+    type: FieldType.ExptStatus,
+  },
+];
+
+const columnsOptions = {
+  enableSort: true,
+  enableIdColumn: false,
+  columnManageStorageKey: 'prompt_evaluation_area_column_manage',
+};
+
+// eslint-disable-next-line @coze-arch/max-line-per-function -- 评测实验列表功能集中于此，代码行数超限
 export function EvaluationArea() {
-  const { spaceID } = usePromptDevProviderContext();
+  const navigateModule = useNavigateModule();
   const { promptInfo } = usePromptStore(
     useShallow(state => ({ promptInfo: state.promptInfo })),
   );
   const promptID = promptInfo?.id;
 
-  // 按当前 Prompt 过滤评测实验
-  const filterOption = useMemo<ExptFilterOption>(
-    () => ({
-      filters: {
-        logic_op: FilterLogicOp.And,
-        filter_conditions: [
-          {
-            field: { field_type: FieldType.SourceTarget },
-            operator: FilterOperatorType.Equal,
-            value: promptID ?? '',
-            source_target: {
-              eval_target_type: undefined,
-              source_target_ids: promptID ? [promptID] : [],
-            },
+  // 拉取实验列表时，默认按当前 Prompt 的 id 追加过滤条件
+  const pullExperiments = useCallback(
+    (req: ListExperimentsRequest): Promise<ListExperimentsResponse> => {
+      if (!promptID) {
+        return StoneEvaluationApi.ListExperiments(req);
+      }
+      const promptCondition = {
+        field: { field_type: FieldType.SourceTarget, field_key: 'eval_target' },
+        operator: FilterOperatorType.In,
+        value: '',
+        source_target: {
+          eval_target_type: EvalTargetType.CozeLoopPrompt,
+          source_target_ids: [promptID],
+        },
+      };
+      const reqWithPromptFilter: ListExperimentsRequest = {
+        ...req,
+        filter_option: {
+          ...(req.filter_option ?? {}),
+          filters: {
+            logic_op: req.filter_option?.filters?.logic_op ?? FilterLogicOp.And,
+            filter_conditions: [
+              ...(req.filter_option?.filters?.filter_conditions ?? []),
+              promptCondition,
+            ],
           },
-        ],
-      },
-    }),
+        },
+      };
+      return StoneEvaluationApi.ListExperiments(reqWithPromptFilter);
+    },
     [promptID],
   );
 
-  const service = useRequest(
-    () =>
-      StoneEvaluationApi.ListExperiments({
-        workspace_id: spaceID,
-        page_number: 1,
-        page_size: 100,
-        filter_option: filterOption,
-      }),
-    {
-      ready: Boolean(spaceID && promptID),
-      refreshDeps: [spaceID, promptID, filterOption],
-    },
+  const {
+    service,
+    columns,
+    defaultColumns,
+    setColumns,
+    filter,
+    setFilter,
+    logicFilter,
+    hasFilterCondition,
+    onSortChange,
+    onFilterDebounceChange,
+    onLogicFilterChange,
+  } = useExperimentListStore<Filter>({
+    filterFields,
+    columnsOptions,
+    pullExperiments,
+    pageSizeStorageKey: 'prompt_evaluation_area_page_size',
+    source: 'prompt_evaluation_area',
+  });
+
+  const filters = (
+    <>
+      <ExperimentNameSearch
+        value={filter?.name}
+        onChange={val => {
+          setFilter(old => ({ ...old, name: val }));
+          onFilterDebounceChange();
+        }}
+      />
+
+      <ExperimentStatusSelect
+        value={filter?.status}
+        onChange={val => {
+          setFilter(old => ({ ...old, status: val as ExptStatus[] }));
+          onFilterDebounceChange();
+        }}
+      />
+
+      <ExperimentEvaluatorLogicFilter
+        value={logicFilter}
+        onChange={onLogicFilterChange}
+      />
+    </>
   );
 
-  const experiments = service.data?.experiments ?? [];
+  const actions = (
+    <>
+      <RefreshButton onRefresh={service.refresh} />
+      <ColumnsManage
+        columns={columns}
+        defaultColumns={defaultColumns}
+        storageKey={columnsOptions.columnManageStorageKey}
+        onColumnsChange={setColumns}
+      />
+      <Button
+        icon={<IconCozPlus />}
+        onClick={() => {
+          navigateModule('evaluation/experiments/create');
+        }}
+      >
+        {I18n.t('new_experiment')}
+      </Button>
+    </>
+  );
+
+  const tableOnRowClick = useCallback(
+    (record: Experiment) => {
+      // 如果当前有选中的文本，不触发点击事件
+      if (!window.getSelection()?.isCollapsed) {
+        return;
+      }
+      navigateModule(`evaluation/experiments/${record.id}`);
+    },
+    [navigateModule],
+  );
+
+  const tableOnChange = useCallback(
+    changeInfo => {
+      if (changeInfo.extra?.changeType === 'sorter' && changeInfo.sorter?.key) {
+        onSortChange(changeInfo.sorter as SemiTableSort);
+      }
+    },
+    [onSortChange],
+  );
+
+  const tableHeader = (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 grow">{filters}</div>
+      <div className="flex items-center gap-2 ml-auto">{actions}</div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-1 overflow-auto styled-scrollbar">
-      <div className="w-full p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <Typography.Title heading={5} className="!mb-1">
-              {I18n.t('evaluation')}
-            </Typography.Title>
-            <Typography.Text type="secondary">
-              {I18n.t(
-                'prompt_evaluation_area_desc',
-                {},
-                '查看当前 Prompt 相关的评测实验与效果得分。',
-              )}
-            </Typography.Text>
-          </div>
-        </div>
-
-        <Spin spinning={service.loading}>
-          {experiments.length === 0 ? (
-            <Empty
-              description={I18n.t('no_data', {}, '暂无评测实验')}
-              image={<IconCozIllusEmpty width="160" height="160" />}
-            />
-          ) : (
-            <div className="flex flex-col gap-3">
-              {experiments.map(expt => {
-                const statusInfo = EXPT_STATUS_MAP[
-                  expt.status ?? ExptStatus.Unknown
-                ] ?? {
-                  label: '-',
-                  color: 'primary',
-                };
-                return (
-                  <div
-                    key={expt.id}
-                    className="flex items-center justify-between rounded-lg border border-solid coz-stroke-primary bg-white p-4"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Typography.Text strong className="!max-w-[300px]">
-                          {expt.name || '-'}
-                        </Typography.Text>
-                        <Tag size="mini" color={statusInfo.color}>
-                          {statusInfo.label}
-                        </Tag>
-                      </div>
-                      <div className="mt-1 flex items-center gap-4">
-                        <Typography.Text type="secondary" size="small">
-                          {I18n.t('version')}:{' '}
-                          {expt.eval_target?.eval_target_version
-                            ?.source_target_version || '-'}
-                        </Typography.Text>
-                        <Typography.Text type="secondary" size="small">
-                          {I18n.t('score')}: {formatScore(getAvgScore(expt))}
-                        </Typography.Text>
-                        <Typography.Text type="secondary" size="small">
-                          {I18n.t('time', {}, '创建时间')}:{' '}
-                          {formatTime(expt.create_time)}
-                        </Typography.Text>
-                      </div>
-                    </div>
-                    <Button
-                      size="small"
-                      color="primary"
-                      onClick={() =>
-                        window.open(
-                          `/evaluation/experiments/${expt.id}`,
-                          '_blank',
-                        )
-                      }
-                    >
-                      {I18n.t('view_detail', {}, '查看详情')}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Spin>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="w-full h-full p-6">
+        <TableWithPagination<Experiment>
+          service={service}
+          heightFull
+          header={tableHeader}
+          showSizeChanger={false}
+          pageSizeStorageKey="prompt_evaluation_area_page_size"
+          tableProps={{
+            rowKey: 'id',
+            columns,
+            onRow: (record: Experiment) => ({
+              onClick: () => tableOnRowClick(record),
+            }),
+            onChange: tableOnChange,
+            empty: (
+              <ExperimentListEmptyState
+                hasFilterCondition={hasFilterCondition}
+              />
+            ),
+          }}
+        />
       </div>
     </div>
   );
-}
-
-function formatScore(score?: number): string {
-  if (score === undefined || score === null) {
-    return '-';
-  }
-  return (Math.round(score * 100) / 100).toString();
-}
-
-/** 取实验平均得分 */
-function getAvgScore(expt: {
-  expt_stats?: {
-    evaluator_aggregate_results?: Array<{
-      aggregator_results?: Array<{
-        aggregator_type: AggregatorType;
-        data?: { value?: number };
-      }>;
-    }>;
-  };
-}): number | undefined {
-  const aggResults = expt.expt_stats?.evaluator_aggregate_results ?? [];
-  const values = aggResults
-    .flatMap(
-      agg =>
-        agg.aggregator_results?.filter(
-          r => r.aggregator_type === AggregatorType.Average,
-        ) ?? [],
-    )
-    .map(r => r.data?.value)
-    .filter((v): v is number => v !== undefined && v !== null);
-  if (!values.length) {
-    return undefined;
-  }
-  const sum = values.reduce((acc, v) => acc + v, 0);
-  return sum / values.length;
 }

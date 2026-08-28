@@ -89,6 +89,7 @@ export interface BasePromptDevelopProps {
     traceHistoryButton?: ButtonConfigProps;
     traceLogButton?: ButtonConfigProps;
     compareButton?: ButtonConfigProps;
+    optimizeButton?: ButtonConfigProps;
     snippetJumpButton?: ButtonConfigProps;
     promptJumpButton?: ButtonConfigProps;
   };

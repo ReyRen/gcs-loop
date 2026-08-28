@@ -59,6 +59,8 @@ export const EVENT_NAMES = {
   prompt_tool_delete: 'prompt_tool_delete',
   /** 进入自由对比模式 */
   pe_mode_compare: 'pe_mode_compare',
+  /** 进入智能优化模式 */
+  pe_mode_optimize: 'pe_mode_optimize',
   /** 查看版本切换 */
   cozeloop_pe_version: 'cozeloop_pe_version',
   cozeloop_pe_column_collapse: 'cozeloop_pe_column_collapse',

@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { I18n } from '@cozeloop/i18n-adapter';
 import type { PromptOptimizeTask } from '@cozeloop/api-schema/evaluation';
 import {
-  IconCozAiFill,
   IconCozCheckMarkCircleFill,
   IconCozCross,
   IconCozLoading,
@@ -18,6 +17,7 @@ import {
   Typography,
 } from '@coze-arch/coze-design';
 
+import { ReactComponent as OptimizeIcon } from '../../assets/optimize.svg';
 import { formatScore, renderMessages } from './helpers';
 
 type StepStatus = 'completed' | 'processing' | 'waiting';
@@ -53,7 +53,7 @@ const OPTIMIZATION_STEPS: OptimizationStep[] = [
     id: 2,
     title: '确定评分标准',
     description: '评分标准用于大模型自动优化 Prompt',
-    stages: ['Optimizing', 'Evaluating'],
+    stages: ['Optimizing'],
   },
   {
     id: 3,
@@ -61,7 +61,7 @@ const OPTIMIZATION_STEPS: OptimizationStep[] = [
     extra: '实时优化结果',
     description:
       '大模型优化生成新的 Prompt，根据测试数据生成新的回答并自动评分',
-    stages: ['Finalizing'],
+    stages: ['Evaluating', 'Finalizing'],
   },
   {
     id: 4,
@@ -147,8 +147,8 @@ function RealtimeResultPanel({
   const metrics = buildRealtimeMetrics(task);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+    <div className=" w-full h-full flex-1 p-4">
+      <div className="flex items-center justify-between mb-5">
         <Typography.Title heading={5} className="!mb-0">
           实时优化结果
         </Typography.Title>
@@ -159,33 +159,33 @@ function RealtimeResultPanel({
           />
         ) : null}
       </div>
-
-      {/* Prompt 块 */}
-      <section>
-        <Typography.Title heading={6} className="!mb-2">
-          Prompt
-        </Typography.Title>
-        {renderMessages(messages)}
-      </section>
-
-      <Divider className="!my-0" />
-
-      {/* 指标块 */}
-      <section className="grid grid-cols-2 gap-3">
-        {metrics.map(item => (
-          <div
-            key={item.label}
-            className="flex flex-col items-center gap-1 rounded-lg coz-mg-secondary py-4"
-          >
-            <Typography.Text type="secondary" className="text-xs">
-              {item.label}
-            </Typography.Text>
-            <Typography.Text strong className="text-sm">
-              {item.value}
-            </Typography.Text>
-          </div>
-        ))}
-      </section>
+      <div className="flex flex-col gap-4 h-[calc(100%-45px)] mt-4 p-4 bg-[#fff] rounded-[4px]">
+        {/* Prompt 块 */}
+        <section>
+          <Typography.Title heading={6} className="!mb-2">
+            Prompt
+          </Typography.Title>
+          <Divider className="!my-0 !mb-2" />
+          {renderMessages(messages)}
+        </section>
+        <Divider className="!my-0 !mb-2" />
+        {/* 指标块 */}
+        <section className="grid grid-cols-2 gap-3">
+          {metrics.map(item => (
+            <div
+              key={item.label}
+              className="flex flex-col items-center gap-1 rounded-lg coz-mg-secondary py-4"
+            >
+              <Typography.Text type="secondary" className="text-xs">
+                {item.label}
+              </Typography.Text>
+              <Typography.Text strong className="text-sm">
+                {item.value}
+              </Typography.Text>
+            </div>
+          ))}
+        </section>
+      </div>
     </div>
   );
 }
@@ -209,9 +209,11 @@ function StepIcon({ status, index }: { status: StepStatus; index: number }) {
 
 export function RunningStatus({
   task,
+  terminating,
   onTerminate,
 }: {
   task: PromptOptimizeTask;
+  terminating?: boolean;
   onTerminate?: () => void;
 }) {
   /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- 进度值限定在 0-100 之间 */
@@ -223,12 +225,12 @@ export function RunningStatus({
   );
 
   return (
-    <div className="mx-auto flex max-w-[1200px] gap-8 pt-12 pb-12">
+    <div className="mx-auto flex gap-8 pt-12 pb-12">
       {/* 左侧：实时优化结果 */}
       <div className="flex flex-1 flex-col items-center">
         {/* 顶部 AI 优化图标 */}
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl coz-mg-hglt-secondary">
-          <IconCozAiFill className="text-[32px] coz-fg-hglt" />
+          <OptimizeIcon className="text-[32px] coz-fg-hglt" />
         </div>
 
         {/* 主标题 */}
@@ -312,6 +314,7 @@ export function RunningStatus({
         <Button
           type="tertiary"
           className="mt-8 !px-6"
+          loading={terminating}
           onClick={() => setTerminateVisible(true)}
         >
           {I18n.t('prompt_optimization_cancel')}
@@ -336,7 +339,7 @@ export function RunningStatus({
       </div>
       {/* 右侧：优化流程内容 */}
       {resultVisible ? (
-        <div className="w-[400px] shrink-0">
+        <div className=" shrink-0 flex-1 bg-[rgba(90,108,167,.04)]">
           <RealtimeResultPanel
             task={task}
             onClose={() => setResultVisible(false)}

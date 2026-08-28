@@ -13,6 +13,7 @@ export { ExprGroupItemRunStatusSelect } from './selectors/experiment-group-item-
 export { default as ExperimentRunDataSummary } from './experiment-run-data-summary';
 export { default as ExperimentSelectModal } from './experiment-select-modal';
 export { default as CreateContrastExperiment } from './create-contrast-experiment';
+export { default as SmartOptimizationModal } from './smart-optimization-modal';
 
 export { default as RetryButton } from './retry-button';
 export { default as KillButton } from './kill-button';

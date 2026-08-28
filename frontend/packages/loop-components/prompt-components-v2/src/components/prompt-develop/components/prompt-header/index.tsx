@@ -33,6 +33,7 @@ import {
   IconCozPlug,
   IconCozLongArrowTopRight,
   IconCozLongArrowUp,
+  IconCozAiFill,
 } from '@coze-arch/coze-design/icons';
 import {
   Button,
@@ -462,6 +463,37 @@ export function PromptHeader() {
     autoSaving,
   ]);
 
+  const optimizeBtn =
+    isSnippet ||
+    getButtonHiddenFromConfig(
+      buttonConfig?.optimizeButton,
+      promptInfo,
+    ) ? null : (
+      <Button
+        color="primary"
+        icon={<IconCozAiFill />}
+        onClick={() => {
+          if (buttonConfig?.optimizeButton?.onClick) {
+            buttonConfig.optimizeButton.onClick({ prompt: promptInfo });
+          }
+          sendEvent?.(EVENT_NAMES.pe_mode_optimize, {
+            prompt_id: `${promptInfo?.id || 'playground'}`,
+          });
+        }}
+        disabled={
+          streaming ||
+          versionChangeLoading ||
+          readonly ||
+          globalReadonly ||
+          getButtonDisabledFromConfig(buttonConfig?.optimizeButton, promptInfo)
+        }
+        data-btm="d94786"
+        data-btm-title={I18n.t('smart_optimization')}
+      >
+        {I18n.t('smart_optimization')}
+      </Button>
+    );
+
   // const [, setPortalLeft] = useState<HTMLElement | null>(null);
   const [portalRight, setPortalRight] = useState<HTMLElement | null>(null);
   const [portalBack, setPortalBack] = useState<HTMLElement | null>(null);
@@ -680,14 +712,15 @@ export function PromptHeader() {
           {renderHeaderButtons ? (
             renderHeaderButtons(
               isPlayground
-                ? [compareBtn, quickCreateBtn]
-                : [compareBtn, versionListBtn, submitBtn],
+                ? [compareBtn, optimizeBtn, quickCreateBtn]
+                : [compareBtn, optimizeBtn, versionListBtn, submitBtn],
               promptInfo,
             )
           ) : (
             <>
               {compareBtn}
               {versionListBtn}
+              {optimizeBtn}
               {quickCreateBtn}
               {submitBtn}
             </>
