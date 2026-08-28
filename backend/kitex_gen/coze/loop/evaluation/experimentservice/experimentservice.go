@@ -140,6 +140,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"TerminatePromptOptimizeTask": kitex.NewMethodInfo(
+		terminatePromptOptimizeTaskHandler,
+		newExperimentServiceTerminatePromptOptimizeTaskArgs,
+		newExperimentServiceTerminatePromptOptimizeTaskResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"ListPromptOptimizeTasks": kitex.NewMethodInfo(
 		listPromptOptimizeTasksHandler,
 		newExperimentServiceListPromptOptimizeTasksArgs,
@@ -730,6 +737,25 @@ func newExperimentServiceGetPromptOptimizeTaskArgs() interface{} {
 
 func newExperimentServiceGetPromptOptimizeTaskResult() interface{} {
 	return expt.NewExperimentServiceGetPromptOptimizeTaskResult()
+}
+
+func terminatePromptOptimizeTaskHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*expt.ExperimentServiceTerminatePromptOptimizeTaskArgs)
+	realResult := result.(*expt.ExperimentServiceTerminatePromptOptimizeTaskResult)
+	success, err := handler.(expt.ExperimentService).TerminatePromptOptimizeTask(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newExperimentServiceTerminatePromptOptimizeTaskArgs() interface{} {
+	return expt.NewExperimentServiceTerminatePromptOptimizeTaskArgs()
+}
+
+func newExperimentServiceTerminatePromptOptimizeTaskResult() interface{} {
+	return expt.NewExperimentServiceTerminatePromptOptimizeTaskResult()
 }
 
 func listPromptOptimizeTasksHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -1508,6 +1534,16 @@ func (p *kClient) GetPromptOptimizeTask(ctx context.Context, req *expt.GetPrompt
 	_args.Req = req
 	var _result expt.ExperimentServiceGetPromptOptimizeTaskResult
 	if err = p.c.Call(ctx, "GetPromptOptimizeTask", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) TerminatePromptOptimizeTask(ctx context.Context, req *expt.TerminatePromptOptimizeTaskRequest) (r *expt.TerminatePromptOptimizeTaskResponse, err error) {
+	var _args expt.ExperimentServiceTerminatePromptOptimizeTaskArgs
+	_args.Req = req
+	var _result expt.ExperimentServiceTerminatePromptOptimizeTaskResult
+	if err = p.c.Call(ctx, "TerminatePromptOptimizeTask", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

@@ -1179,6 +1179,17 @@ struct GetPromptOptimizeTaskResponse {
     255: base.BaseResp BaseResp
 }
 
+struct TerminatePromptOptimizeTaskRequest {
+    1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
+    2: required i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"', vt.gt='0')
+    3: required i64 task_id (api.path='task_id', api.js_conv='true', go.tag='json:"task_id"', vt.gt='0')
+}
+
+struct TerminatePromptOptimizeTaskResponse {
+    1: optional PromptOptimizeTask optimize_task
+    255: base.BaseResp BaseResp
+}
+
 struct ListPromptOptimizeTasksRequest {
     1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
     2: required i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"', vt.gt='0')
@@ -1193,16 +1204,6 @@ struct ListPromptOptimizeTasksRequest {
 struct ListPromptOptimizeTasksResponse {
     1: optional list<PromptOptimizeTask> optimize_tasks
     2: optional i64 total (api.js_conv='true', go.tag='json:"total"')
-    255: base.BaseResp BaseResp
-}
-
-struct TerminatePromptOptimizeTaskRequest {
-    1: required i64 workspace_id (api.body='workspace_id', api.js_conv='true', go.tag='json:"workspace_id"', vt.gt='0')
-    2: required i64 prompt_id (api.path='prompt_id', api.js_conv='true', go.tag='json:"prompt_id"', vt.gt='0')
-    3: required i64 task_id (api.path='task_id', api.js_conv='true', go.tag='json:"task_id"', vt.gt='0')
-}
-
-struct TerminatePromptOptimizeTaskResponse {
     255: base.BaseResp BaseResp
 }
 
@@ -1279,11 +1280,11 @@ service ExperimentService {
     GetPromptOptimizeTaskResponse GetPromptOptimizeTask(1: GetPromptOptimizeTaskRequest req) (
         api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/:task_id", api.op_type = 'query', api.tag = 'open', api.category = 'prompt'
     )
-    ListPromptOptimizeTasksResponse ListPromptOptimizeTasks(1: ListPromptOptimizeTasksRequest req) (
-        api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/list", api.op_type = 'list', api.tag = 'open', api.category = 'prompt'
-    )
     TerminatePromptOptimizeTaskResponse TerminatePromptOptimizeTask(1: TerminatePromptOptimizeTaskRequest req) (
         api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/:task_id/terminate", api.op_type = 'update', api.tag = 'open', api.category = 'prompt'
+    )
+    ListPromptOptimizeTasksResponse ListPromptOptimizeTasks(1: ListPromptOptimizeTasksRequest req) (
+        api.post = "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/list", api.op_type = 'list', api.tag = 'open', api.category = 'prompt'
     )
 
     MGetExperimentStandardEvalOutputsResponse MGetExperimentStandardEvalOutputs(1: MGetExperimentStandardEvalOutputsRequest req)

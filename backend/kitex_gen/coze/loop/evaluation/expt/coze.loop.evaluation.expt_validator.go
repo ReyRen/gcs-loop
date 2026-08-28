@@ -1375,6 +1375,31 @@ func (p *GetPromptOptimizeTaskResponse) IsValid() error {
 	}
 	return nil
 }
+func (p *TerminatePromptOptimizeTaskRequest) IsValid() error {
+	if p.WorkspaceID <= int64(0) {
+		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)
+	}
+	if p.PromptID <= int64(0) {
+		return fmt.Errorf("field PromptID gt rule failed, current value: %v", p.PromptID)
+	}
+	if p.TaskID <= int64(0) {
+		return fmt.Errorf("field TaskID gt rule failed, current value: %v", p.TaskID)
+	}
+	return nil
+}
+func (p *TerminatePromptOptimizeTaskResponse) IsValid() error {
+	if p.OptimizeTask != nil {
+		if err := p.OptimizeTask.IsValid(); err != nil {
+			return fmt.Errorf("field OptimizeTask not valid, %w", err)
+		}
+	}
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}
 func (p *ListPromptOptimizeTasksRequest) IsValid() error {
 	if p.WorkspaceID <= int64(0) {
 		return fmt.Errorf("field WorkspaceID gt rule failed, current value: %v", p.WorkspaceID)

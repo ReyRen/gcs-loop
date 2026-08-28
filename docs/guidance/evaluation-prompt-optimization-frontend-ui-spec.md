@@ -29,11 +29,12 @@
 | 参数配置 | `POST .../optimize_tasks/evaluate` | 样本 20～500；映射全部 Prompt 变量；不能全选满分样本 |
 | 启动任务 | `POST .../optimize_tasks` | 请求参数与预估保持一致，并带回资源预估值 |
 | 运行/结果 | `POST .../optimize_tasks/{task_id}` | `Created`/`Running` 每 2 秒轮询，终态停止 |
+| 终止任务 | `POST .../optimize_tasks/{task_id}/terminate` | 仅运行中或等待中的任务显示；成功后按 `Terminated` 终态展示 |
 | Prompt 的“优化”标签 | `POST .../optimize_tasks/list` | 使用 Prompt 级任务列表，显示正在运行和历史任务 |
 | 应用结果 | `POST .../drafts/save` | 用户明确点击后才把优化消息保存为草稿，不自动发布 |
 | 正式发布 | `POST .../drafts/commit` | 继续使用已有版本提交弹窗和冲突处理 |
 
-四个优化接口的共同前缀：
+五个优化接口的共同前缀：
 
 ```text
 /api/prompt/v1/prompts/{prompt_id}/optimize_tasks
@@ -72,7 +73,7 @@
 | `Failed` | 优化任务失败 |
 | `Terminated` | 优化已终止 |
 
-运行时展示 `progress`、`stage`、当前最佳指标和 Token。页面隐藏时暂停轮询；网络失败使用退避重试，不能重复创建任务。
+运行时展示 `progress`、`stage`，并使用详情接口在 `Running` 状态返回的部分 `optimize_result` 实时刷新当前最佳 Prompt、指标、已完成迭代和 Token。任务刚启动且 `optimize_result` 为空时继续轮询。页面隐藏时暂停轮询；网络失败使用退避重试，不能重复创建任务。
 
 ## 5. 结果页
 
@@ -112,11 +113,12 @@ POST /api/prompt/v1/prompts/{prompt_id}/optimize_tasks/list
 
 ## 7. 联调验收
 
-- [ ] Swagger 只显示四个 `optimize_tasks` 接口，无旧 `prompt_optimizations` 路由。
+- [ ] Swagger 只显示五个 `optimize_tasks` 接口，无旧 `prompt_optimizations` 路由。
 - [ ] 选择少于 20 条或超过 500 条不能创建任务。
 - [ ] 参数映射缺失时保留页面输入并展示后端错误。
 - [ ] 创建后能立即进入任务页，刷新后仍能恢复状态。
 - [ ] `Created`/`Running` 正确轮询，终态停止。
+- [ ] `Created`/`Running` 可终止，接口返回后立即展示 `Terminated` 并停止轮询。
 - [ ] Prompt “优化”标签能看到当前 Prompt 的运行中与历史任务。
 - [ ] 优化完成不会自动修改草稿或版本。
 - [ ] 点击“提交新版本”先保存草稿，再由用户通过已有版本接口发布。

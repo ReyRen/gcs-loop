@@ -378,3 +378,9 @@ func CreatePromptOptimizeTask(ctx context.Context, c *app.RequestContext) {
 func GetPromptOptimizeTask(ctx context.Context, c *app.RequestContext) {
 	invokeAndRender(ctx, c, localExptSvc.GetPromptOptimizeTask)
 }
+
+// TerminatePromptOptimizeTask .
+// @router /api/prompt/v1/prompts/:prompt_id/optimize_tasks/:task_id/terminate [POST]
+func TerminatePromptOptimizeTask(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.TerminatePromptOptimizeTask)
+}

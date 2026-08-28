@@ -29,6 +29,7 @@ type Client interface {
 	EstimatePromptOptimizeTaskResourceUsage(ctx context.Context, req *expt.EstimatePromptOptimizeTaskRequest, callOptions ...callopt.Option) (r *expt.EstimatePromptOptimizeTaskResponse, err error)
 	CreatePromptOptimizeTask(ctx context.Context, req *expt.CreatePromptOptimizeTaskRequest, callOptions ...callopt.Option) (r *expt.CreatePromptOptimizeTaskResponse, err error)
 	GetPromptOptimizeTask(ctx context.Context, req *expt.GetPromptOptimizeTaskRequest, callOptions ...callopt.Option) (r *expt.GetPromptOptimizeTaskResponse, err error)
+	TerminatePromptOptimizeTask(ctx context.Context, req *expt.TerminatePromptOptimizeTaskRequest, callOptions ...callopt.Option) (r *expt.TerminatePromptOptimizeTaskResponse, err error)
 	ListPromptOptimizeTasks(ctx context.Context, req *expt.ListPromptOptimizeTasksRequest, callOptions ...callopt.Option) (r *expt.ListPromptOptimizeTasksResponse, err error)
 	MGetExperimentStandardEvalOutputs(ctx context.Context, req *expt.MGetExperimentStandardEvalOutputsRequest, callOptions ...callopt.Option) (r *expt.MGetExperimentStandardEvalOutputsResponse, err error)
 	ListExperimentStandardEvalOutputs(ctx context.Context, req *expt.ListExperimentStandardEvalOutputsRequest, callOptions ...callopt.Option) (r *expt.ListExperimentStandardEvalOutputsResponse, err error)
@@ -179,6 +180,11 @@ func (p *kExperimentServiceClient) CreatePromptOptimizeTask(ctx context.Context,
 func (p *kExperimentServiceClient) GetPromptOptimizeTask(ctx context.Context, req *expt.GetPromptOptimizeTaskRequest, callOptions ...callopt.Option) (r *expt.GetPromptOptimizeTaskResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetPromptOptimizeTask(ctx, req)
+}
+
+func (p *kExperimentServiceClient) TerminatePromptOptimizeTask(ctx context.Context, req *expt.TerminatePromptOptimizeTaskRequest, callOptions ...callopt.Option) (r *expt.TerminatePromptOptimizeTaskResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.TerminatePromptOptimizeTask(ctx, req)
 }
 
 func (p *kExperimentServiceClient) ListPromptOptimizeTasks(ctx context.Context, req *expt.ListPromptOptimizeTasksRequest, callOptions ...callopt.Option) (r *expt.ListPromptOptimizeTasksResponse, err error) {

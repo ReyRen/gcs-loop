@@ -56087,6 +56087,555 @@ func (p *GetPromptOptimizeTaskResponse) Field255DeepEqual(src *base.BaseResp) bo
 	return true
 }
 
+type TerminatePromptOptimizeTaskRequest struct {
+	WorkspaceID int64 `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
+	PromptID    int64 `thrift:"prompt_id,2,required" frugal:"2,required,i64" json:"prompt_id" path:"prompt_id,required" `
+	TaskID      int64 `thrift:"task_id,3,required" frugal:"3,required,i64" json:"task_id" path:"task_id,required" `
+}
+
+func NewTerminatePromptOptimizeTaskRequest() *TerminatePromptOptimizeTaskRequest {
+	return &TerminatePromptOptimizeTaskRequest{}
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) InitDefault() {
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) GetWorkspaceID() (v int64) {
+	if p != nil {
+		return p.WorkspaceID
+	}
+	return
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) GetPromptID() (v int64) {
+	if p != nil {
+		return p.PromptID
+	}
+	return
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) GetTaskID() (v int64) {
+	if p != nil {
+		return p.TaskID
+	}
+	return
+}
+func (p *TerminatePromptOptimizeTaskRequest) SetWorkspaceID(val int64) {
+	p.WorkspaceID = val
+}
+func (p *TerminatePromptOptimizeTaskRequest) SetPromptID(val int64) {
+	p.PromptID = val
+}
+func (p *TerminatePromptOptimizeTaskRequest) SetTaskID(val int64) {
+	p.TaskID = val
+}
+
+var fieldIDToName_TerminatePromptOptimizeTaskRequest = map[int16]string{
+	1: "workspace_id",
+	2: "prompt_id",
+	3: "task_id",
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetWorkspaceID bool = false
+	var issetPromptID bool = false
+	var issetTaskID bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetWorkspaceID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetPromptID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetTaskID = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetWorkspaceID {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetPromptID {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetTaskID {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_TerminatePromptOptimizeTaskRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_TerminatePromptOptimizeTaskRequest[fieldId]))
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.WorkspaceID = _field
+	return nil
+}
+func (p *TerminatePromptOptimizeTaskRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.PromptID = _field
+	return nil
+}
+func (p *TerminatePromptOptimizeTaskRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.TaskID = _field
+	return nil
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("TerminatePromptOptimizeTaskRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("workspace_id", thrift.I64, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.WorkspaceID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *TerminatePromptOptimizeTaskRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("prompt_id", thrift.I64, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.PromptID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *TerminatePromptOptimizeTaskRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("task_id", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.TaskID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("TerminatePromptOptimizeTaskRequest(%+v)", *p)
+
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) DeepEqual(ano *TerminatePromptOptimizeTaskRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.WorkspaceID) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.PromptID) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.TaskID) {
+		return false
+	}
+	return true
+}
+
+func (p *TerminatePromptOptimizeTaskRequest) Field1DeepEqual(src int64) bool {
+
+	if p.WorkspaceID != src {
+		return false
+	}
+	return true
+}
+func (p *TerminatePromptOptimizeTaskRequest) Field2DeepEqual(src int64) bool {
+
+	if p.PromptID != src {
+		return false
+	}
+	return true
+}
+func (p *TerminatePromptOptimizeTaskRequest) Field3DeepEqual(src int64) bool {
+
+	if p.TaskID != src {
+		return false
+	}
+	return true
+}
+
+type TerminatePromptOptimizeTaskResponse struct {
+	OptimizeTask *PromptOptimizeTask `thrift:"optimize_task,1,optional" frugal:"1,optional,PromptOptimizeTask" form:"optimize_task" json:"optimize_task,omitempty" query:"optimize_task"`
+	BaseResp     *base.BaseResp      `thrift:"BaseResp,255" frugal:"255,default,base.BaseResp" form:"BaseResp" json:"BaseResp" query:"BaseResp"`
+}
+
+func NewTerminatePromptOptimizeTaskResponse() *TerminatePromptOptimizeTaskResponse {
+	return &TerminatePromptOptimizeTaskResponse{}
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) InitDefault() {
+}
+
+var TerminatePromptOptimizeTaskResponse_OptimizeTask_DEFAULT *PromptOptimizeTask
+
+func (p *TerminatePromptOptimizeTaskResponse) GetOptimizeTask() (v *PromptOptimizeTask) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetOptimizeTask() {
+		return TerminatePromptOptimizeTaskResponse_OptimizeTask_DEFAULT
+	}
+	return p.OptimizeTask
+}
+
+var TerminatePromptOptimizeTaskResponse_BaseResp_DEFAULT *base.BaseResp
+
+func (p *TerminatePromptOptimizeTaskResponse) GetBaseResp() (v *base.BaseResp) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBaseResp() {
+		return TerminatePromptOptimizeTaskResponse_BaseResp_DEFAULT
+	}
+	return p.BaseResp
+}
+func (p *TerminatePromptOptimizeTaskResponse) SetOptimizeTask(val *PromptOptimizeTask) {
+	p.OptimizeTask = val
+}
+func (p *TerminatePromptOptimizeTaskResponse) SetBaseResp(val *base.BaseResp) {
+	p.BaseResp = val
+}
+
+var fieldIDToName_TerminatePromptOptimizeTaskResponse = map[int16]string{
+	1:   "optimize_task",
+	255: "BaseResp",
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) IsSetOptimizeTask() bool {
+	return p.OptimizeTask != nil
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) IsSetBaseResp() bool {
+	return p.BaseResp != nil
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_TerminatePromptOptimizeTaskResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewPromptOptimizeTask()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.OptimizeTask = _field
+	return nil
+}
+func (p *TerminatePromptOptimizeTaskResponse) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.BaseResp = _field
+	return nil
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("TerminatePromptOptimizeTaskResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOptimizeTask() {
+		if err = oprot.WriteFieldBegin("optimize_task", thrift.STRUCT, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.OptimizeTask.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *TerminatePromptOptimizeTaskResponse) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("BaseResp", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.BaseResp.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("TerminatePromptOptimizeTaskResponse(%+v)", *p)
+
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) DeepEqual(ano *TerminatePromptOptimizeTaskResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.OptimizeTask) {
+		return false
+	}
+	if !p.Field255DeepEqual(ano.BaseResp) {
+		return false
+	}
+	return true
+}
+
+func (p *TerminatePromptOptimizeTaskResponse) Field1DeepEqual(src *PromptOptimizeTask) bool {
+
+	if !p.OptimizeTask.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *TerminatePromptOptimizeTaskResponse) Field255DeepEqual(src *base.BaseResp) bool {
+
+	if !p.BaseResp.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
 type ListPromptOptimizeTasksRequest struct {
 	WorkspaceID  int64         `thrift:"workspace_id,1,required" frugal:"1,required,i64" json:"workspace_id" form:"workspace_id,required" `
 	PromptID     int64         `thrift:"prompt_id,2,required" frugal:"2,required,i64" json:"prompt_id" path:"prompt_id,required" `
@@ -57186,6 +57735,8 @@ type ExperimentService interface {
 
 	GetPromptOptimizeTask(ctx context.Context, req *GetPromptOptimizeTaskRequest) (r *GetPromptOptimizeTaskResponse, err error)
 
+	TerminatePromptOptimizeTask(ctx context.Context, req *TerminatePromptOptimizeTaskRequest) (r *TerminatePromptOptimizeTaskResponse, err error)
+
 	ListPromptOptimizeTasks(ctx context.Context, req *ListPromptOptimizeTasksRequest) (r *ListPromptOptimizeTasksResponse, err error)
 
 	MGetExperimentStandardEvalOutputs(ctx context.Context, req *MGetExperimentStandardEvalOutputsRequest) (r *MGetExperimentStandardEvalOutputsResponse, err error)
@@ -57433,6 +57984,15 @@ func (p *ExperimentServiceClient) GetPromptOptimizeTask(ctx context.Context, req
 	_args.Req = req
 	var _result ExperimentServiceGetPromptOptimizeTaskResult
 	if err = p.Client_().Call(ctx, "GetPromptOptimizeTask", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+func (p *ExperimentServiceClient) TerminatePromptOptimizeTask(ctx context.Context, req *TerminatePromptOptimizeTaskRequest) (r *TerminatePromptOptimizeTaskResponse, err error) {
+	var _args ExperimentServiceTerminatePromptOptimizeTaskArgs
+	_args.Req = req
+	var _result ExperimentServiceTerminatePromptOptimizeTaskResult
+	if err = p.Client_().Call(ctx, "TerminatePromptOptimizeTask", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
@@ -57755,6 +58315,7 @@ func NewExperimentServiceProcessor(handler ExperimentService) *ExperimentService
 	self.AddToProcessorMap("EstimatePromptOptimizeTaskResourceUsage", &experimentServiceProcessorEstimatePromptOptimizeTaskResourceUsage{handler: handler})
 	self.AddToProcessorMap("CreatePromptOptimizeTask", &experimentServiceProcessorCreatePromptOptimizeTask{handler: handler})
 	self.AddToProcessorMap("GetPromptOptimizeTask", &experimentServiceProcessorGetPromptOptimizeTask{handler: handler})
+	self.AddToProcessorMap("TerminatePromptOptimizeTask", &experimentServiceProcessorTerminatePromptOptimizeTask{handler: handler})
 	self.AddToProcessorMap("ListPromptOptimizeTasks", &experimentServiceProcessorListPromptOptimizeTasks{handler: handler})
 	self.AddToProcessorMap("MGetExperimentStandardEvalOutputs", &experimentServiceProcessorMGetExperimentStandardEvalOutputs{handler: handler})
 	self.AddToProcessorMap("ListExperimentStandardEvalOutputs", &experimentServiceProcessorListExperimentStandardEvalOutputs{handler: handler})
@@ -58653,6 +59214,54 @@ func (p *experimentServiceProcessorGetPromptOptimizeTask) Process(ctx context.Co
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("GetPromptOptimizeTask", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type experimentServiceProcessorTerminatePromptOptimizeTask struct {
+	handler ExperimentService
+}
+
+func (p *experimentServiceProcessorTerminatePromptOptimizeTask) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ExperimentServiceTerminatePromptOptimizeTaskArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("TerminatePromptOptimizeTask", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ExperimentServiceTerminatePromptOptimizeTaskResult{}
+	var retval *TerminatePromptOptimizeTaskResponse
+	if retval, err2 = p.handler.TerminatePromptOptimizeTask(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing TerminatePromptOptimizeTask: "+err2.Error())
+		oprot.WriteMessageBegin("TerminatePromptOptimizeTask", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("TerminatePromptOptimizeTask", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -66343,6 +66952,350 @@ func (p *ExperimentServiceGetPromptOptimizeTaskResult) DeepEqual(ano *Experiment
 }
 
 func (p *ExperimentServiceGetPromptOptimizeTaskResult) Field0DeepEqual(src *GetPromptOptimizeTaskResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceTerminatePromptOptimizeTaskArgs struct {
+	Req *TerminatePromptOptimizeTaskRequest `thrift:"req,1" frugal:"1,default,TerminatePromptOptimizeTaskRequest"`
+}
+
+func NewExperimentServiceTerminatePromptOptimizeTaskArgs() *ExperimentServiceTerminatePromptOptimizeTaskArgs {
+	return &ExperimentServiceTerminatePromptOptimizeTaskArgs{}
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) InitDefault() {
+}
+
+var ExperimentServiceTerminatePromptOptimizeTaskArgs_Req_DEFAULT *TerminatePromptOptimizeTaskRequest
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) GetReq() (v *TerminatePromptOptimizeTaskRequest) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetReq() {
+		return ExperimentServiceTerminatePromptOptimizeTaskArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) SetReq(val *TerminatePromptOptimizeTaskRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_ExperimentServiceTerminatePromptOptimizeTaskArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceTerminatePromptOptimizeTaskArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewTerminatePromptOptimizeTaskRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("TerminatePromptOptimizeTask_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceTerminatePromptOptimizeTaskArgs(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) DeepEqual(ano *ExperimentServiceTerminatePromptOptimizeTaskArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskArgs) Field1DeepEqual(src *TerminatePromptOptimizeTaskRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type ExperimentServiceTerminatePromptOptimizeTaskResult struct {
+	Success *TerminatePromptOptimizeTaskResponse `thrift:"success,0,optional" frugal:"0,optional,TerminatePromptOptimizeTaskResponse"`
+}
+
+func NewExperimentServiceTerminatePromptOptimizeTaskResult() *ExperimentServiceTerminatePromptOptimizeTaskResult {
+	return &ExperimentServiceTerminatePromptOptimizeTaskResult{}
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) InitDefault() {
+}
+
+var ExperimentServiceTerminatePromptOptimizeTaskResult_Success_DEFAULT *TerminatePromptOptimizeTaskResponse
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) GetSuccess() (v *TerminatePromptOptimizeTaskResponse) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSuccess() {
+		return ExperimentServiceTerminatePromptOptimizeTaskResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) SetSuccess(x interface{}) {
+	p.Success = x.(*TerminatePromptOptimizeTaskResponse)
+}
+
+var fieldIDToName_ExperimentServiceTerminatePromptOptimizeTaskResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ExperimentServiceTerminatePromptOptimizeTaskResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewTerminatePromptOptimizeTaskResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("TerminatePromptOptimizeTask_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ExperimentServiceTerminatePromptOptimizeTaskResult(%+v)", *p)
+
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) DeepEqual(ano *ExperimentServiceTerminatePromptOptimizeTaskResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *ExperimentServiceTerminatePromptOptimizeTaskResult) Field0DeepEqual(src *TerminatePromptOptimizeTaskResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

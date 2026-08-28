@@ -237,6 +237,8 @@ evaluator_prompt_suffix:
     </输出要求>
 
 evaluator_prompt_mapping:
+  # DeepSeek scoring uses its supported tool-calling output, not reasoning text.
+  "1": function_call
 
 evaluator_template_conf:
   prompt:

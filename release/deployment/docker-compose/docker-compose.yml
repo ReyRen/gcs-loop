@@ -45,6 +45,8 @@ services:
       COZE_LOOP_PROMPT_OPTIMIZER_MODEL_ID: "${COZE_LOOP_PROMPT_OPTIMIZER_MODEL_ID:-}"
       # maximum number of Prompt optimization tasks executed concurrently
       COZE_LOOP_PROMPT_OPTIMIZATION_WORKERS: "${COZE_LOOP_PROMPT_OPTIMIZATION_WORKERS:-2}"
+      # samples evaluated concurrently inside each optimization task (1-32)
+      COZE_LOOP_PROMPT_OPTIMIZATION_SAMPLE_CONCURRENCY: "${COZE_LOOP_PROMPT_OPTIMIZATION_SAMPLE_CONCURRENCY:-4}"
       # redis
       COZE_LOOP_REDIS_DOMAIN: "${COZE_LOOP_REDIS_DOMAIN}"
       COZE_LOOP_REDIS_PORT: "${COZE_LOOP_REDIS_PORT}"

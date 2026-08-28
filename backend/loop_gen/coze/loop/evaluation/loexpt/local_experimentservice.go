@@ -412,6 +412,27 @@ func (l *LocalExperimentService) GetPromptOptimizeTask(ctx context.Context, req 
 	return result.GetSuccess(), nil
 }
 
+func (l *LocalExperimentService) TerminatePromptOptimizeTask(ctx context.Context, req *expt.TerminatePromptOptimizeTaskRequest, callOptions ...callopt.Option) (*expt.TerminatePromptOptimizeTaskResponse, error) {
+	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
+		arg := in.(*expt.ExperimentServiceTerminatePromptOptimizeTaskArgs)
+		result := out.(*expt.ExperimentServiceTerminatePromptOptimizeTaskResult)
+		resp, err := l.impl.TerminatePromptOptimizeTask(ctx, arg.Req)
+		if err != nil {
+			return err
+		}
+		result.SetSuccess(resp)
+		return nil
+	})
+
+	arg := &expt.ExperimentServiceTerminatePromptOptimizeTaskArgs{Req: req}
+	result := &expt.ExperimentServiceTerminatePromptOptimizeTaskResult{}
+	ctx = l.injectRPCInfo(ctx, "TerminatePromptOptimizeTask")
+	if err := chain(ctx, arg, result); err != nil {
+		return nil, err
+	}
+	return result.GetSuccess(), nil
+}
+
 func (l *LocalExperimentService) ListPromptOptimizeTasks(ctx context.Context, req *expt.ListPromptOptimizeTasksRequest, callOptions ...callopt.Option) (*expt.ListPromptOptimizeTasksResponse, error) {
 	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
 		arg := in.(*expt.ExperimentServiceListPromptOptimizeTasksArgs)

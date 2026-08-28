@@ -21,7 +21,7 @@ models:
   protocol_config: &gpt_gateway # Required. Shared by models served through the same OpenAI-compatible gateway.
     base_url: "https://api.gpt.ge/v1" # Optional. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
     api_key: "" # Configure the real key only in the deployment environment. Never commit credentials.
-    model: "DeepSeek-V4-Flash" # Required. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
+    model: "deepseek-v4-flash" # Required. Provider model IDs are case-sensitive.
     protocol_config_deepseek: #Optional
       response_format_type: "" # Optional. See Details in https://github.com/cloudwego/eino-ext/blob/main/components/model/deepseek/deepseek.go
   scenario_configs: # Optional. This is a map. Key is entity.Scenario, value is entity.ScenarioConfig.The scenario configuration has two functions: 1. Determine whether the model is available in the scenario; 2. Determine the qpm and tpm limits of the model in the scenario.

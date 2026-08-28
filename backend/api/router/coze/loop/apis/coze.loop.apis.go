@@ -503,7 +503,9 @@ func Register(r *server.Hertz, handler *apis.APIHandler) {
 						_prompt_id1.POST("/optimize_tasks", append(_optimize_tasksMw(handler), apis.CreatePromptOptimizeTask)...)
 						_optimize_tasks := _prompt_id1.Group("/optimize_tasks", _optimize_tasksMw(handler)...)
 						_optimize_tasks.POST("/list", append(_listpromptoptimizetasksMw(handler), apis.ListPromptOptimizeTasks)...)
-						_optimize_tasks.POST("/:task_id", append(_getpromptoptimizetaskMw(handler), apis.GetPromptOptimizeTask)...)
+						_optimize_tasks.POST("/:task_id", append(_task_idMw(handler), apis.GetPromptOptimizeTask)...)
+						_task_id := _optimize_tasks.Group("/:task_id", _task_idMw(handler)...)
+						_task_id.POST("/terminate", append(_terminatepromptoptimizetaskMw(handler), apis.TerminatePromptOptimizeTask)...)
 						{
 							_optimize_tasks0 := _prompt_id1.Group("/optimize_tasks", _optimize_tasks0Mw(handler)...)
 							_optimize_tasks0.POST("/evaluate", append(_estimatepromptoptimizetaskresourceusageMw(handler), apis.EstimatePromptOptimizeTaskResourceUsage)...)

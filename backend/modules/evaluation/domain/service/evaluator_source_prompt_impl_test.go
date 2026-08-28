@@ -802,7 +802,7 @@ func Test_parseContentOutput(t *testing.T) {
 		assert.Equal(t, "This is a good reason.", output.EvaluatorResult.Reasoning)
 	})
 
-	t.Run("场景1.1: content为空时从reasoning_content解析", func(t *testing.T) {
+	t.Run("场景1.1: content为空时不得从reasoning_content解析", func(t *testing.T) {
 		content := ""
 		reasoningContent := `先分析评分依据。{"reason":"模型回答与参考答案一致。","score":1}`
 		replyItem := &entity.ReplyItem{Content: &content, ReasoningContent: &reasoningContent}
@@ -812,10 +812,8 @@ func Test_parseContentOutput(t *testing.T) {
 
 		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, output.EvaluatorResult.Score)
-		assert.InDelta(t, 1, *output.EvaluatorResult.Score, 0.0001)
-		assert.Equal(t, "模型回答与参考答案一致。", output.EvaluatorResult.Reasoning)
+		assert.Error(t, err)
+		assert.Nil(t, output.EvaluatorResult.Score)
 	})
 
 	t.Run("场景2: JSON被包裹在Markdown代码块中", func(t *testing.T) {
@@ -956,7 +954,7 @@ func Test_parseContentOutput(t *testing.T) {
 
 		// Assert: 所有策略都失败，函数返回错误（Run方法的defer会处理错误并设置EvaluatorRunError）
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "All parsing strategies failed")
+		assert.Contains(t, err.Error(), "no final content")
 	})
 
 	t.Run("场景9: JSON的reason字段中包含转义字符", func(t *testing.T) {
@@ -1029,17 +1027,9 @@ func Test_parseContentOutput(t *testing.T) {
 		// Act: 调用被测函数
 		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
 
-		// Assert: 这个内容包含未转义引号，可能导致JSON解析失败
-		// 成功情况1：如果jsonrepair能修复并解析成功，策略2会成功，但reason可能被转义修改
-		// 成功情况2：如果策略1-3都失败，策略4能通过正则表达式提取score值
-		// 策略4的修复：通过定位 "reason": " 和 ", "score": 的位置，然后向前查找最后一个双引号
-		// 这样能正确处理reason中包含未转义双引号的情况，提取完整的reason值
-		assert.NoError(t, err)
-		assert.NotNil(t, output.EvaluatorResult.Score)
-		assert.InDelta(t, 0.7, *output.EvaluatorResult.Score, 0.0001)
-		// 策略4能够正确处理未转义双引号，提取完整的reason值（而不是只提取到冒号）
-		assert.Contains(t, output.EvaluatorResult.Reasoning, "麦肯锡")
-		assert.Contains(t, output.EvaluatorResult.Reasoning, "咨询公司")
+		// 无法可靠修复的 JSON 必须报错，不能从其他文字猜测分数或理由。
+		assert.Error(t, err)
+		assert.Nil(t, output.EvaluatorResult.Score)
 	})
 
 	// 基于 CSV 失败记录添加的新测试场景
@@ -1374,13 +1364,10 @@ func Test_parseContentOutput(t *testing.T) {
 		// Act: 调用被测函数
 		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
 
-		// Assert: reason为空时，策略1-3会失败（因为检查reason != ""），但策略4能提取score
-		// 策略4：parseScoreWithRegex能够通过正则表达式提取score值
-		// reasonRegex无法匹配空字符串，所以使用完整内容作为reason
+		// 显式存在的空 reason 是合法 JSON，不需要猜测字段。
 		assert.NoError(t, err)
 		assert.NotNil(t, output.EvaluatorResult.Score)
 		assert.InDelta(t, 1.0, *output.EvaluatorResult.Score, 0.0001)
-		// 策略4应该使用完整内容作为reason，因为reason为空字符串无法匹配reasonRegex
 		assert.Equal(t, "", output.EvaluatorResult.Reasoning)
 		assert.Nil(t, output.EvaluatorRunError)
 	})
@@ -1420,7 +1407,7 @@ func Test_parseContentOutput(t *testing.T) {
 				name:          "正数字符串",
 				content:       `{"score": "+0.8", "reason": "Positive score"}`,
 				expectedScore: 0.8,
-				shouldSuccess: true,
+				shouldSuccess: false,
 			},
 			{
 				name:          "负数字符串",
@@ -1529,89 +1516,17 @@ func Test_parseContentOutput(t *testing.T) {
 
 		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
 
-		// Assert: 科学计数法格式的字符串可能无法被json2.Number直接解析，但策略4可能提取到数字部分
-		// 这里主要测试解析器不会崩溃，能够优雅处理
+		// 科学计数法必须解析整个数字，而不是截取其中的整数部分。
 		assert.NoError(t, err)
-		// 如果策略1-3失败，策略4可能通过正则提取到"1"作为score
-		if output.EvaluatorResult.Score != nil {
-			assert.GreaterOrEqual(t, *output.EvaluatorResult.Score, 0.0)
-		}
+		assert.Equal(t, 1.0, gptr.Indirect(output.EvaluatorResult.Score))
 	})
 
-	t.Run("场景34: 通过传统方式提取reason（覆盖551-559行）", func(t *testing.T) {
-		// 测试场景：reason字段格式特殊，无法通过定位字段的方式提取，但可以通过传统方式（reasonRegex）提取
-		// 要触发551-559行，需要：
-		// 1. 策略1-3都失败（让策略4执行）
-		// 2. reasonFieldRegex找不到reason字段的开始位置，或者找到了但无法确定结束位置
-		// 3. 但传统方式（reasonRegex）能够成功提取reason
-		// 使用一个格式特殊的JSON，其中reason字段没有标准的双引号格式，但可以通过reasonRegex匹配
-		// 注意：由于reasonRegex需要匹配 "reason" 和双引号，我们需要确保reason字段格式特殊但仍能被匹配
-		// 例如：reason字段前后有特殊字符，导致无法匹配 "reason": "，但可以匹配 reason[^"]*"([^"]+)"
-		content := `score: 0.85, reason: "This is extracted by traditional regex method"`
-		replyItem := &entity.ReplyItem{Content: &content}
-		output := &entity.EvaluatorOutputData{
-			EvaluatorResult: &entity.EvaluatorResult{},
-		}
-
-		// Act: 调用被测函数（策略1-3会失败，因为不是标准JSON格式）
-		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
-
-		// Assert: 策略4应该能够通过传统方式（reasonRegex）提取reason
-		// reasonFieldRegex找不到 "reason": " 格式（因为格式是 "reason: "），所以会走到551行
-		// 但reasonRegex可以匹配 reason: "([^"]+)"，所以会走到551-559行的代码路径
-		assert.NoError(t, err)
-		assert.NotNil(t, output.EvaluatorResult.Score)
-		assert.InDelta(t, 0.85, *output.EvaluatorResult.Score, 0.0001)
-		assert.Equal(t, "This is extracted by traditional regex method", output.EvaluatorResult.Reasoning)
-		assert.Nil(t, output.EvaluatorRunError)
-	})
-
-	t.Run("场景35: 只有score没有reason字段（覆盖560-564行）", func(t *testing.T) {
-		// 测试场景：内容中只有score字段，没有reason字段
-		// 这种情况会走到560-564行的代码路径：无法提取reason字段，使用完整输出作为reason
+	t.Run("场景34: 缺少reason字段不得猜测评分理由", func(t *testing.T) {
 		content := `{"score": 0.9}`
-		replyItem := &entity.ReplyItem{Content: &content}
-		output := &entity.EvaluatorOutputData{
-			EvaluatorResult: &entity.EvaluatorResult{},
-		}
-
-		// Act: 调用被测函数
-		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
-
-		// Assert: 策略4能够提取score，但无法提取reason，因此使用完整内容作为reason
-		// 这种情况会走到560-564行的代码路径
-		assert.NoError(t, err)
-		assert.NotNil(t, output.EvaluatorResult.Score)
-		assert.InDelta(t, 0.9, *output.EvaluatorResult.Score, 0.0001)
-		assert.Equal(t, content, output.EvaluatorResult.Reasoning) // 使用完整输出作为reason
-		assert.Nil(t, output.EvaluatorRunError)
-	})
-
-	t.Run("场景36: score存在但reason字段格式无法匹配（覆盖560-564行）", func(t *testing.T) {
-		// 测试场景：score存在，但reason字段格式特殊，无法通过任何方式提取
-		// 要覆盖560-564行，需要确保：
-		// 1. reasonFieldRegex找不到 "reason": " 格式（或找到了但无法确定结束位置）
-		// 2. 传统方式reasonRegex也找不到有效的reason字段
-		// 3. 因此使用完整内容作为reason
-		// 使用一个完全没有reason字段的内容，或者reason字段格式完全无法匹配
-		content := `{"score": 0.75}`
-		replyItem := &entity.ReplyItem{Content: &content}
-		output := &entity.EvaluatorOutputData{
-			EvaluatorResult: &entity.EvaluatorResult{},
-		}
-
-		// Act: 调用被测函数
-		err := parseContentOutput(ctx, evaluatorVersion, replyItem, output)
-
-		// Assert: 策略4能够提取score，但无法提取reason（因为完全没有reason字段），因此使用完整内容作为reason
-		// reasonFieldRegex找不到 "reason": " 格式（因为根本没有reason字段）
-		// 传统方式reasonRegex也找不到reason字段（因为根本没有reason字段）
-		// 因此会走到560-564行的代码路径：使用完整输出作为reason
-		assert.NoError(t, err)
-		assert.NotNil(t, output.EvaluatorResult.Score)
-		assert.InDelta(t, 0.75, *output.EvaluatorResult.Score, 0.0001)
-		assert.Equal(t, content, output.EvaluatorResult.Reasoning) // 使用完整输出作为reason
-		assert.Nil(t, output.EvaluatorRunError)
+		output := &entity.EvaluatorOutputData{EvaluatorResult: &entity.EvaluatorResult{}}
+		err := parseContentOutput(ctx, evaluatorVersion, &entity.ReplyItem{Content: &content}, output)
+		assert.Error(t, err)
+		assert.Nil(t, output.EvaluatorResult.Score)
 	})
 }
 

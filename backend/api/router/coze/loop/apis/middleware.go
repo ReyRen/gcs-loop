@@ -2592,3 +2592,13 @@ func _estimatepromptoptimizetaskresourceusageMw(handler *apis.APIHandler) []app.
 	// your code...
 	return nil
 }
+
+func _task_idMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _terminatepromptoptimizetaskMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}

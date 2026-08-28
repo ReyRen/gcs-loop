@@ -252,3 +252,21 @@ func TestPromptOptimizationTaskListFields(t *testing.T) {
 	assert.Equal(t, "0.0.1", evalSets[0].GetVersion())
 	assert.Equal(t, int64(8), evalSets[0].GetItemCount())
 }
+
+func TestPromptOptimizationRunningTaskReturnsPartialResult(t *testing.T) {
+	executor := &promptOptimizationExecutor{}
+	task := executor.taskPOToDTO(context.Background(), &promptOptimizationTaskPO{
+		Status:                  string(expt.PromptOptimizationStatusRunning),
+		OptimizedPromptTemplate: []byte(`{"messages":[{"role":"system","content":"optimized prompt"}]}`),
+		BaselineMetrics:         []byte(`{"sample_count":20,"average_score":0.3,"full_score_count":3}`),
+		BestMetrics:             []byte(`{"sample_count":20,"average_score":0.7,"full_score_count":8,"improved_count":6,"regressed_count":1}`),
+	}, false, false)
+
+	require.NotNil(t, task.OptimizeResult_)
+	require.Len(t, task.OptimizeResult_.GetOptimizedPromptMessageList(), 1)
+	assert.Equal(t, "optimized prompt", task.OptimizeResult_.GetOptimizedPromptMessageList()[0].GetContent())
+	assert.InDelta(t, 0.3, task.OptimizeResult_.GetBaselineMetrics().GetAverageScore(), 1e-9)
+	assert.InDelta(t, 0.7, task.OptimizeResult_.GetBestMetrics().GetAverageScore(), 1e-9)
+	assert.Equal(t, int32(6), task.OptimizeResult_.GetBestMetrics().GetImprovedCount())
+	assert.Equal(t, int32(1), task.OptimizeResult_.GetBestMetrics().GetRegressedCount())
+}

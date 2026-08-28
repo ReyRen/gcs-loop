@@ -53,3 +53,43 @@ func TestListPromptOptimizationTasksByPrompt(t *testing.T) {
 	assert.Equal(t, int64(101), rows[0].ID)
 	require.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestTryCancelPromptOptimizationTask(t *testing.T) {
+	sqlDB, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = sqlDB.Close() })
+	gormDB, err := gorm.Open(mysql.New(mysql.Config{Conn: sqlDB, SkipInitializeWithVersion: true}), &gorm.Config{})
+	require.NoError(t, err)
+	store := newPromptOptimizationStore(&promptOptimizationStoreTestDB{db: gormDB})
+
+	updateSQL := "UPDATE `prompt_optimization_task` SET `ended_at`=?,`status`=?,`updated_at`=? WHERE id = ? AND status IN (?,?) AND deleted_at = 0"
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(updateSQL)).
+		WithArgs(sqlmock.AnyArg(), "canceled", sqlmock.AnyArg(), int64(101), "queued", "running").
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectCommit()
+
+	terminated, err := store.tryCancelTask(context.Background(), 101)
+	require.NoError(t, err)
+	assert.True(t, terminated)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestPromptOptimizationProgressOnlyUpdatesRunningTask(t *testing.T) {
+	sqlDB, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = sqlDB.Close() })
+	gormDB, err := gorm.Open(mysql.New(mysql.Config{Conn: sqlDB, SkipInitializeWithVersion: true}), &gorm.Config{})
+	require.NoError(t, err)
+	executor := &promptOptimizationExecutor{store: newPromptOptimizationStore(&promptOptimizationStoreTestDB{db: gormDB})}
+	updateSQL := "UPDATE `prompt_optimization_task` SET `progress`=?,`stage`=?,`updated_at`=? WHERE id = ? AND status = ? AND deleted_at = 0"
+	for completed := 1; completed <= 4; completed++ {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(updateSQL)).
+			WithArgs(int32(10+completed*5), "evaluating", sqlmock.AnyArg(), int64(101), "running").
+			WillReturnResult(sqlmock.NewResult(0, 1))
+		mock.ExpectCommit()
+		executor.updateEvaluationProgress(context.Background(), 101, 1, 4, completed, 4)
+	}
+	require.NoError(t, mock.ExpectationsWereMet())
+}

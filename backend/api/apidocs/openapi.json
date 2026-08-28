@@ -14025,6 +14025,33 @@
         ],
         "type": "object"
       },
+      "coze.loop.evaluation.expt.TerminatePromptOptimizeTaskResponse": {
+        "properties": {
+          "code": {
+            "description": "0 means success; non-zero means a business error.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Structured context returned for selected business errors. It is omitted on success and when an error has no public context.",
+            "type": "object"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "optimize_task": {
+            "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizeTask"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
       "coze.loop.evaluation.expt.UpdateAnnotateRecordResp": {
         "properties": {},
         "type": "object"
@@ -40650,6 +40677,71 @@
         ]
       }
     },
+    "/api/prompt/v1/prompts/{prompt_id}/optimize_tasks/{task_id}/terminate": {
+      "post": {
+        "operationId": "TerminatePromptOptimizeTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prompt_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "workspace_id": {
+                    "pattern": "^-?\\d+$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workspace_id"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coze.loop.evaluation.expt.TerminatePromptOptimizeTaskResponse"
+                }
+              }
+            },
+            "description": "Success, or business error when `code` is non-zero"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "TerminatePromptOptimizeTask",
+        "tags": [
+          "prompt"
+        ]
+      }
+    },
     "/api/prompt/v1/tools": {
       "post": {
         "operationId": "CreateTool",
@@ -46680,5 +46772,5 @@
       "name": "prompt"
     }
   ],
-  "x-generated-endpoint-count": 310
+  "x-generated-endpoint-count": 311
 }
