@@ -30,10 +30,9 @@ import {
   FieldType,
   FilterLogicOp,
   FilterOperatorType,
-  PromptOptimizationMode,
   type Experiment,
   type Filters,
-  type PreparePromptOptimizationResponse,
+  type OptimizeTaskParams,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi, StonePromptApi } from '@cozeloop/api-schema';
 import { IconCozLightbulb } from '@coze-arch/coze-design/icons';
@@ -41,10 +40,8 @@ import {
   Button,
   Form,
   type FormApi,
-  InputNumber,
   Modal,
   Select,
-  Slider,
   Tag,
   Toast,
   Tooltip,
@@ -95,25 +92,18 @@ export default function SmartOptimizationModal({
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [promptDetail, setPromptDetail] = useState<Prompt | undefined>();
   const [promptDetailLoading, setPromptDetailLoading] = useState(false);
-  const [optimizeMode, setOptimizeMode] = useState(50);
+  const [optimizeMode] = useState(50);
   const [referenceAnswerField, setReferenceAnswerField] =
     useState('reference_output');
   const [selectedRows, setSelectedRows] = useState<ExperimentItem[]>([]);
   const [createTaskLoading, setCreateTaskLoading] = useState(false);
-  const [prepareData, setPrepareData] = useState<
-    PreparePromptOptimizationResponse | undefined
-  >();
   // 用户可编辑的问题变量 → 评测集字段映射
   const [variableMappings, setVariableMappings] = useState<
     Record<string, string>
   >({});
-  const idempotencyKeyRef = useRef('');
-  const lastConfigFingerprintRef = useRef('');
-  // 创建任务最多支持的样本数（后端上限，prepare 返回）
-  const DEFAULT_MAX_SAMPLE_COUNT = 20;
-  const maxSampleCount =
-    prepareData?.max_sample_count ?? DEFAULT_MAX_SAMPLE_COUNT;
-  // 为保证优化效果最少选择的数据条数
+  // 创建任务最多支持的样本数（官网接口上限 500）
+  const maxSampleCount = 500;
+  // 为保证优化效果最少选择的数据条数（官网接口下限 20）
   const minSelectedSamples = 20;
 
   // 选择数据时限制数量不超过上限
@@ -135,43 +125,6 @@ export default function SmartOptimizationModal({
     setSelectedRows(rows);
   };
 
-  // 拉取优化资格与建议映射；suggested_variable_mappings 仅基于 Prompt 变量生成，
-  // 不会包含 builtin_prompt_user_query 等内置输入字段
-  useEffect(() => {
-    const exptId = selectedExperiment?.id;
-    if (!exptId || !spaceID) {
-      setPrepareData(undefined);
-      return;
-    }
-    let canceled = false;
-    StoneEvaluationApi.PreparePromptOptimization({
-      workspace_id: spaceID,
-      expt_id: exptId,
-    })
-      .then(res => {
-        if (!canceled) {
-          setPrepareData(res);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!canceled) {
-          console.error('Prepare prompt optimization failed:', err);
-          setPrepareData(undefined);
-        }
-      });
-    return () => {
-      canceled = true;
-    };
-  }, [selectedExperiment, spaceID]);
-
-  // prepare 建议的参考回答字段作为默认值
-  useEffect(() => {
-    const suggested = prepareData?.suggested_reference_answer_field;
-    if (suggested) {
-      setReferenceAnswerField(suggested);
-    }
-  }, [prepareData]);
-
   // 从 selectedExperiment 中提取评测集字段选项
   const evalSetFieldSchemas = useMemo(
     () =>
@@ -180,35 +133,43 @@ export default function SmartOptimizationModal({
     [selectedExperiment],
   );
 
-  // 评测集字段选项，补充 prepare 返回的实验结果字段
+  // 评测集字段选项（官网接口无 prepare 步骤，字段选项仅来自评测集 schema）
   const evalSetFieldOptions = useMemo(() => {
     const options = evalSetFieldSchemas.map(f => ({
       value: f.key ?? '',
       label: f.name ?? f.key ?? '',
     }));
+    // 补充 output/actual_output 等实验结果字段，保证模型输出映射可选
     const existingKeys = new Set(options.map(o => o.value));
-    for (const field of prepareData?.dataset_fields ?? []) {
-      if (field && !existingKeys.has(field)) {
+    for (const field of ['actual_output', 'output', 'reference_output']) {
+      if (!existingKeys.has(field)) {
         options.push({ value: field, label: field });
         existingKeys.add(field);
       }
     }
     return options;
-  }, [evalSetFieldSchemas, prepareData]);
+  }, [evalSetFieldSchemas]);
 
-  // 用建议映射初始化问题变量映射；未命中建议的变量默认映射到评测集第一个字段
+  // 从 prompt_commit / prompt_draft 中提取 Prompt 变量
+  const promptTemplate =
+    promptDetail?.prompt_commit?.detail?.prompt_template ||
+    promptDetail?.prompt_draft?.detail?.prompt_template;
+  const variableDefs = promptTemplate?.variable_defs ?? [];
+
+  // 用启发式建议映射初始化问题变量映射：变量名与评测集字段名相等时自动匹配，
+  // 否则默认映射到评测集第一个字段
   useEffect(() => {
-    const suggested = prepareData?.suggested_variable_mappings ?? {};
     const defaultField = evalSetFieldOptions[0]?.value ?? '';
+    const optionKeys = new Set(evalSetFieldOptions.map(o => o.value));
     setVariableMappings(prev => {
       let changed = false;
       const next = { ...prev };
-      for (const variable of prepareData?.prompt_variables ?? []) {
+      for (const variable of variableDefs) {
         const key = variable?.key;
         if (!key) {
           continue;
         }
-        const target = suggested[key] ?? defaultField;
+        const target = optionKeys.has(key) ? key : defaultField;
         if (next[key] === undefined && target) {
           next[key] = target;
           changed = true;
@@ -216,37 +177,23 @@ export default function SmartOptimizationModal({
       }
       return changed ? next : prev;
     });
-  }, [prepareData, evalSetFieldOptions]);
+  }, [variableDefs, evalSetFieldOptions]);
 
-  // 问题变量映射：以 prompt_variables 为准展示全部 Prompt 变量，
-  // 映射值来自 variableMappings state（suggested 优先，未命中默认第一个评测集字段）
-  const problemVariableMappings = useMemo(() => {
-    const suggested = prepareData?.suggested_variable_mappings ?? {};
-    const variables = prepareData?.prompt_variables;
-    const baseMappings =
-      variables && variables.length > 0
-        ? variables
-            .filter(variable => !!variable?.key)
-            .map(variable => ({
-              field_name: variable.key,
-              from_field_name:
-                variableMappings[variable.key] ?? suggested[variable.key] ?? '',
-            }))
-        : Object.keys(suggested)
-            .filter(fieldName => !!fieldName)
-            .map(fieldName => ({
-              field_name: fieldName,
-              from_field_name:
-                variableMappings[fieldName] ?? suggested[fieldName] ?? '',
-            }));
-    return baseMappings;
-  }, [prepareData, variableMappings]);
+  // 问题变量映射：以 Prompt 变量为准展示全部变量，
+  // 映射值来自 variableMappings state
+  const problemVariableMappings = useMemo(
+    () =>
+      variableDefs
+        .filter((variable): variable is { key: string } => !!variable?.key)
+        .map(variable => ({
+          field_name: variable.key,
+          from_field_name: variableMappings[variable.key] ?? '',
+        })),
+    [variableDefs, variableMappings],
+  );
 
-  // 优先使用 prepare 建议的模型回答字段，回退到 output_schemas 提取
+  // 模型输出字段：从 output_schemas 提取 actual_output
   const modelAnswerFieldName = useMemo(() => {
-    if (prepareData?.suggested_model_answer_field) {
-      return prepareData.suggested_model_answer_field;
-    }
     const outputSchemas =
       selectedExperiment?.eval_target?.eval_target_version?.eval_target_content
         ?.output_schemas ?? [];
@@ -254,7 +201,7 @@ export default function SmartOptimizationModal({
       s => s.key === 'actual_output' || s.key?.includes('output'),
     );
     return actualOutput?.key ?? 'actual_output';
-  }, [selectedExperiment, prepareData]);
+  }, [selectedExperiment]);
 
   // 从 ExperimentTable 选择的第一条数据提取示例值
   const exampleData = useMemo(() => {
@@ -385,85 +332,94 @@ export default function SmartOptimizationModal({
     }
   };
 
-  // 配置变更时重置幂等键（含问题变量映射）
-  const configFingerprint = `${optimizeMode}_${referenceAnswerField}_${selectedRowKeys.join(',')}_${JSON.stringify(
-    Object.entries(variableMappings).sort(([a], [b]) => a.localeCompare(b)),
-  )}`;
-  if (lastConfigFingerprintRef.current !== configFingerprint) {
-    lastConfigFingerprintRef.current = configFingerprint;
-    idempotencyKeyRef.current = '';
-  }
-
   const handleCreateTask = async () => {
     const exptId = selectedExperiment?.id;
-    if (!exptId || !spaceID || selectedRows.length === 0) {
+    if (!exptId || !spaceID || !promptId) {
       return;
     }
-    if (selectedRows.length > maxSampleCount) {
+    if (
+      selectedRows.length < minSelectedSamples ||
+      selectedRows.length > maxSampleCount
+    ) {
       Toast.warning({
-        content: I18n.t('smart_optimization_max_selection_tip'),
+        content: I18n.t('smart_optimization_min_selection_tip'),
+        top: 80,
+      });
+      return;
+    }
+    // 所有问题变量必须配置评测集字段映射，后端会强制校验
+    const unmapped = problemVariableMappings.filter(
+      mapping => !mapping.from_field_name,
+    );
+    if (unmapped.length > 0) {
+      Toast.error({
+        content: I18n.t('smart_optimization_problem_variables_required'),
         top: 80,
       });
       return;
     }
     setCreateTaskLoading(true);
     try {
-      // 所有问题变量必须配置评测集字段映射，后端会强制校验
-      const unmapped = problemVariableMappings.filter(
-        mapping => !mapping.from_field_name,
-      );
-      if (unmapped.length > 0) {
-        Toast.error({
-          content: I18n.t('smart_optimization_problem_variables_required'),
-          top: 80,
-        });
-        return;
-      }
-      // 首次点击或配置变更后生成新的幂等键
-      if (!idempotencyKeyRef.current) {
-        idempotencyKeyRef.current = crypto.randomUUID();
-      }
-      const samples = selectedRows.map(row => ({
-        item_id: String(row.groupID),
-        turn_id: String(row.turnID),
+      // 实验 item_id 列表
+      const selectedItemIdList = selectedRows.map(row => String(row.groupID));
+      // eval_set_to_target 完整覆盖 Prompt 全部变量
+      const evalSetToTarget = problemVariableMappings.map(mapping => ({
+        from_field_name: mapping.from_field_name,
+        field_name: mapping.field_name,
       }));
-      const variableMappingsPayload: Record<string, string> = {};
-      for (const [fieldName, fromFieldName] of Object.entries(
-        variableMappings,
-      )) {
-        if (fieldName && fromFieldName) {
-          variableMappingsPayload[fieldName] = fromFieldName;
-        }
-      }
-      const mode =
-        optimizeMode <= 50
-          ? PromptOptimizationMode.EffectFirst
-          : PromptOptimizationMode.CostEffective;
-      const experimentName = selectedExperiment?.name ?? '';
-      const resp = await StoneEvaluationApi.CreatePromptOptimization({
+      // 模型实际输出映射，field_name 固定为 actual_output
+      const evalSetToActualOutput = {
+        from_field_name: modelAnswerFieldName,
+        field_name: 'actual_output',
+      };
+      // 没有参考答案时省略 eval_set_to_reference
+      const evalSetToReference = referenceAnswerField
+        ? { from_field_name: referenceAnswerField, field_name: 'output' }
+        : undefined;
+      const commonParams: OptimizeTaskParams = {
         workspace_id: spaceID,
-        expt_id: exptId,
-        samples,
-        variable_mappings: variableMappingsPayload,
-        model_answer_field: modelAnswerFieldName,
-        reference_answer_field: referenceAnswerField,
-        mode,
-        max_iterations: 8,
-        name: `${experimentName}_${I18n.t('smart_optimization_optimize')}`,
-        idempotency_key: idempotencyKeyRef.current,
+        target_type: 'Prompt',
+        target_version: currentPromptVersion ?? '',
+        dataset_type: 'Experiment',
+        related_eval_set_id: selectedExperiment?.eval_set_id ?? '',
+        related_eval_set_version_id:
+          selectedExperiment?.eval_set_version_id ?? '',
+        related_expt_id: exptId,
+        selected_item_id_list: selectedItemIdList,
+        eval_set_to_reference: evalSetToReference,
+        eval_set_to_target: evalSetToTarget,
+        eval_set_to_actual_output: evalSetToActualOutput,
+        engine: 'Ark',
+        optimize_factor: optimizeMode / 100,
+        optimize_task_type: 'Score',
+      };
+      // 1. 先预估资源用量
+      const estimateRes =
+        await StoneEvaluationApi.EstimatePromptOptimizeTaskResourceUsage({
+          ...commonParams,
+          prompt_id: promptId,
+        });
+      // 2. 使用相同参数并带上预估结果创建异步任务
+      const resp = await StoneEvaluationApi.CreatePromptOptimizeTask({
+        ...commonParams,
+        prompt_id: promptId,
+        estimate_resource_usage: {
+          min_credit_usage: estimateRes.min_total_resource_usage,
+          max_credit_usage: estimateRes.max_total_resource_usage,
+        },
       });
-      const { task } = resp;
-      if (!task?.id || !task.prompt_id) {
+      const task = resp.optimize_task;
+      if (!task?.id || !task.optimize_target?.target_id) {
         throw new Error('missing task id in create response');
       }
-      const createdPromptId = task.prompt_id;
+      const createdPromptId = task.optimize_target.target_id;
       const taskId = task.id;
       handleClose();
       navigate(
         `pe/prompts/${createdPromptId}/optimization/${taskId}?expt_id=${exptId}`,
       );
     } catch (e: unknown) {
-      console.error('Create prompt optimization failed:', e);
+      console.error('Create prompt optimize task failed:', e);
     } finally {
       setCreateTaskLoading(false);
     }
@@ -474,16 +430,11 @@ export default function SmartOptimizationModal({
     setSelectedRowKeys([]);
     setSelectedRows([]);
     setPromptDetail(undefined);
-    idempotencyKeyRef.current = '';
     onClose?.();
   };
 
   // 从 prompt_commit 中提取数据
-  const promptTemplate =
-    promptDetail?.prompt_commit?.detail?.prompt_template ||
-    promptDetail?.prompt_draft?.detail?.prompt_template;
   const messages = promptTemplate?.messages ?? [];
-  const variableDefs = promptTemplate?.variable_defs ?? [];
   const modelConfig = promptDetail?.prompt_commit?.detail?.model_config;
   const templateType = promptTemplate?.template_type ?? TemplateType.Normal;
   // 查找模型名称
@@ -525,7 +476,7 @@ export default function SmartOptimizationModal({
             />
           ),
         }}
-        disabled
+        disabled={Boolean(baseExperiment)}
         placeholder={I18n.t('prompt_optimizable_experiment')}
         filters={promptExptFilters}
         loadOptionByIds={loadExptOptionByIds}
@@ -543,7 +494,7 @@ export default function SmartOptimizationModal({
         className="w-full"
         field="promptVersion"
         promptId={promptId}
-        disabled
+        disabled={Boolean(baseExperiment)}
         label={{
           text: I18n.t('prompt_version'),
           className: 'justify-between pr-0',
@@ -862,7 +813,7 @@ export default function SmartOptimizationModal({
       </div>
 
       {/* 优化设置 */}
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <div className="mb-2">
           <Typography.Text strong>
             {I18n.t('smart_optimization_settings')}
@@ -907,7 +858,7 @@ export default function SmartOptimizationModal({
             </Typography.Text>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 
@@ -950,11 +901,7 @@ export default function SmartOptimizationModal({
         ) : step === 'prompt_detail' ? (
           <div className="flex justify-end gap-2">
             <Button onClick={handleBackToTable}>{I18n.t('prev_step')}</Button>
-            <Button
-              type="primary"
-              loading={createTaskLoading}
-              onClick={handleCreateTask}
-            >
+            <Button loading={createTaskLoading} onClick={handleCreateTask}>
               {I18n.t('smart_optimization_create_task')}
             </Button>
           </div>

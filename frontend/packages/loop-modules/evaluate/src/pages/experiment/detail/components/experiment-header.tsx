@@ -1,6 +1,9 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
-import { type ReactNode, useState } from 'react';
+/* eslint-disable @coze-arch/max-line-per-function -- header 拆分为左右插槽内容，函数体较长 */
+/* eslint-disable complexity -- header 状态与统计分支较多 */
+import { createPortal } from 'react-dom';
+import { type ReactNode, useState, useEffect } from 'react';
 
 import { EVENT_NAMES, sendEvent } from '@cozeloop/tea-adapter';
 import { TypographyText } from '@cozeloop/shared-components';
@@ -42,6 +45,12 @@ export default function ExperimentHeader({
   renderExtraButtons?: (experiment?: Experiment) => ReactNode;
 }) {
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [portalSlot, setPortalSlot] = useState<HTMLElement | null>(null);
+  const [portalBack, setPortalBack] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPortalSlot(document.getElementById('page-header-slot'));
+    setPortalBack(document.getElementById('page-header-back-btn'));
+  }, []);
   const isTraceTarget = isTraceTargetExpr(experiment);
   const { name, status, expt_stats, id } = experiment ?? {};
   const {
@@ -57,99 +66,118 @@ export default function ExperimentHeader({
     Number(terminated_turn_cnt ?? 0) +
     Number(pending_turn_cnt ?? 0) +
     Number(processing_turn_cnt ?? 0);
+  const headerLeft = (
+    <div className="flex items-center h-6">
+      <div className="text-[16px] font-bold max-w-[240px]">
+        <TypographyText className="!coz-fg-plus !font-medium !text-[18px] !leading-[22px]">
+          {name}
+        </TypographyText>
+      </div>
+      <Guard point={GuardPoint['eval.experiment.edit_meta']}>
+        <EditIconButton
+          className="ml-1 mr-3"
+          onClick={() => setEditModalVisible(true)}
+        />
+      </Guard>
+
+      <ExperimentRunStatus
+        status={status}
+        size="small"
+        experiment={experiment}
+        enableOnClick={false}
+      />
+
+      <Tag color="primary" size="small" className="ml-2">
+        {I18n.t('total_number')} {totalCount || 0} ({I18n.t('success')}{' '}
+        {success_turn_cnt}
+        <Divider
+          layout="vertical"
+          style={{ marginLeft: 8, marginRight: 8, height: 12 }}
+        />
+        {I18n.t('failure')} {fail_turn_cnt}
+        <Divider
+          layout="vertical"
+          style={{ marginLeft: 8, marginRight: 8, height: 12 }}
+        />
+        {terminated_turn_cnt ? (
+          <>
+            {I18n.t('abort')} {terminated_turn_cnt}
+            <Divider
+              layout="vertical"
+              style={{ marginLeft: 8, marginRight: 8, height: 12 }}
+            />
+          </>
+        ) : null}
+        {processing_turn_cnt ? (
+          <>
+            {I18n.t('status_running')} {processing_turn_cnt}
+            <Divider
+              layout="vertical"
+              style={{ marginLeft: 8, marginRight: 8, height: 12 }}
+            />
+          </>
+        ) : null}
+        {I18n.t('to_be_executed')} {pending_turn_cnt})
+      </Tag>
+    </div>
+  );
+
+  const headerRight = (
+    <div className="flex items-center gap-2 ml-auto">
+      <RefreshButton onRefresh={onRefresh} />
+      <ExportMenu experiment={experiment} source="expt_detail" />
+      <RetryButton
+        spaceID={spaceID}
+        status={status}
+        expt_id={id}
+        onRefresh={onRefresh}
+      />
+
+      <KillButton
+        spaceID={spaceID}
+        status={status}
+        expt_id={id}
+        onRefresh={onRefresh}
+      />
+
+      <CreateContrastExperiment
+        baseExperiment={experiment}
+        disabled={isTraceTarget}
+        onClick={() => {
+          sendEvent(EVENT_NAMES.cozeloop_experimen_open_compare_modal, {
+            from: 'detail',
+          });
+        }}
+        onReportCompare={s => {
+          sendEvent(EVENT_NAMES.cozeloop_experiment_compare_count, {
+            from: 'expt_detail',
+            status: s ?? 'success',
+          });
+        }}
+        defaultContrastRoute={defaultContrastRoute}
+      />
+
+      {renderExtraButtons?.(experiment)}
+    </div>
+  );
+
   return (
-    <header className="flex items-center shrink-0 h-14 px-6 gap-2 text-xs py-3">
-      <RouteBackAction defaultModuleRoute={defaultModuleRoute} />
-      <div className="flex items-center h-6">
-        <div className="text-[16px] font-bold max-w-[240px]">
-          <TypographyText className="!coz-fg-plus !font-medium !text-[18px] !leading-[22px]">
-            {name}
-          </TypographyText>
-        </div>
-        <Guard point={GuardPoint['eval.experiment.edit_meta']}>
-          <EditIconButton
-            className="ml-1 mr-3"
-            onClick={() => setEditModalVisible(true)}
-          />
-        </Guard>
-
-        <ExperimentRunStatus
-          status={status}
-          size="small"
-          experiment={experiment}
-          enableOnClick={false}
-        />
-
-        <Tag color="primary" size="small" className="ml-2">
-          {I18n.t('total_number')} {totalCount || 0} ({I18n.t('success')}{' '}
-          {success_turn_cnt}
-          <Divider
-            layout="vertical"
-            style={{ marginLeft: 8, marginRight: 8, height: 12 }}
-          />
-          {I18n.t('failure')} {fail_turn_cnt}
-          <Divider
-            layout="vertical"
-            style={{ marginLeft: 8, marginRight: 8, height: 12 }}
-          />
-          {terminated_turn_cnt ? (
-            <>
-              {I18n.t('abort')} {terminated_turn_cnt}
-              <Divider
-                layout="vertical"
-                style={{ marginLeft: 8, marginRight: 8, height: 12 }}
-              />
-            </>
-          ) : null}
-          {processing_turn_cnt ? (
-            <>
-              {I18n.t('status_running')} {processing_turn_cnt}
-              <Divider
-                layout="vertical"
-                style={{ marginLeft: 8, marginRight: 8, height: 12 }}
-              />
-            </>
-          ) : null}
-          {I18n.t('to_be_executed')} {pending_turn_cnt})
-        </Tag>
-      </div>
-
-      <div className="flex items-center gap-2 ml-auto">
-        <RefreshButton onRefresh={onRefresh} />
-        <ExportMenu experiment={experiment} source="expt_detail" />
-        <RetryButton
-          spaceID={spaceID}
-          status={status}
-          expt_id={id}
-          onRefresh={onRefresh}
-        />
-
-        <KillButton
-          spaceID={spaceID}
-          status={status}
-          expt_id={id}
-          onRefresh={onRefresh}
-        />
-
-        <CreateContrastExperiment
-          baseExperiment={experiment}
-          disabled={isTraceTarget}
-          onClick={() => {
-            sendEvent(EVENT_NAMES.cozeloop_experimen_open_compare_modal, {
-              from: 'detail',
-            });
-          }}
-          onReportCompare={s => {
-            sendEvent(EVENT_NAMES.cozeloop_experiment_compare_count, {
-              from: 'expt_detail',
-              status: s ?? 'success',
-            });
-          }}
-          defaultContrastRoute={defaultContrastRoute}
-        />
-
-        {renderExtraButtons?.(experiment)}
-      </div>
+    <>
+      {portalBack
+        ? createPortal(
+            <RouteBackAction defaultModuleRoute={defaultModuleRoute} />,
+            portalBack,
+          )
+        : null}
+      {portalSlot
+        ? createPortal(
+            <div className="flex justify-between items-center w-full gap-2">
+              {headerLeft}
+              {headerRight}
+            </div>,
+            portalSlot,
+          )
+        : null}
       {editModalVisible ? (
         <ExperimentInfoEditFormModal
           visible={editModalVisible}
@@ -159,6 +187,6 @@ export default function ExperimentHeader({
           onSuccess={onRefreshExperiment}
         />
       ) : null}
-    </header>
+    </>
   );
 }

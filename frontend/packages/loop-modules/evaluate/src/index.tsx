@@ -24,3 +24,6 @@ export { default as ExperimentContrastPage } from './pages/experiment/contrast';
 export { default as ExperimentCreatePage } from './pages/experiment/create';
 
 export { useEvaluateConfigCommunityInit } from './hooks/evaluate-config-community';
+
+// 实验相关组件
+export { default as SmartOptimizationModal } from './components/experiment/smart-optimization-modal';

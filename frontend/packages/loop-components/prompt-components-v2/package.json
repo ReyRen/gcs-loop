@@ -23,7 +23,9 @@
     "@coze-editor/editor": "0.1.0-alpha.dac011",
     "@coze-editor/extension-regexp-decorator": "0.1.0-alpha.0fd19e",
     "@cozeloop/api-schema": "workspace:*",
+    "@cozeloop/biz-hooks-adapter": "workspace:*",
     "@cozeloop/components": "workspace:*",
+    "@cozeloop/evaluate-components": "workspace:*",
     "@cozeloop/hooks": "workspace:*",
     "@cozeloop/i18n-adapter": "workspace:*",
     "@cozeloop/toolkit": "workspace:*",
@@ -70,3 +72,4 @@
   },
   "peerDependencies": {}
 }
+

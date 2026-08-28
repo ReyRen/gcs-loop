@@ -695,17 +695,6 @@ export interface GetAnalysisRecordFeedbackVoteResponse {
  * the result to a draft and then use the existing Prompt version submission
  * flow.
 */
-export enum PromptOptimizationMode {
-  EffectFirst = "effect_first",
-  CostEffective = "cost_effective",
-}
-export enum PromptOptimizationStatus {
-  Queued = "queued",
-  Running = "running",
-  Succeeded = "succeeded",
-  Failed = "failed",
-  Canceled = "canceled",
-}
 export enum PromptOptimizationStage {
   Preparing = "preparing",
   Analyzing = "analyzing",
@@ -713,22 +702,6 @@ export enum PromptOptimizationStage {
   Evaluating = "evaluating",
   Finalizing = "finalizing",
   Completed = "completed",
-}
-export interface PromptOptimizationSampleRef {
-  item_id: string,
-  turn_id?: string,
-}
-export interface PromptOptimizationVariable {
-  key: string,
-  type?: string,
-  type_tags?: string[],
-  description?: string,
-}
-export interface PromptOptimizationModeOption {
-  mode: PromptOptimizationMode,
-  display_name: string,
-  description?: string,
-  default_max_iterations?: number,
 }
 export interface PromptOptimizationMetrics {
   sample_count?: number,
@@ -776,119 +749,130 @@ export interface PromptOptimizationIteration {
   sample_results?: PromptOptimizationSampleEvaluation[],
   created_at?: string,
 }
-export interface PromptOptimizationTask {
-  id?: string,
-  workspace_id?: string,
-  experiment_id?: string,
-  name?: string,
-  prompt_id?: string,
-  prompt_key?: string,
-  source_prompt_version?: string,
-  mode?: PromptOptimizationMode,
-  status?: PromptOptimizationStatus,
-  stage?: PromptOptimizationStage,
-  progress?: number,
+export interface PromptOptimizeFieldMapping {
+  from_field_name?: string,
+  field_name?: string,
+  const_value?: string,
+}
+export interface PromptOptimizeResourceUsage {
+  min_credit_usage?: string,
+  max_credit_usage?: string,
+}
+export interface PromptOptimizeTarget {
+  target_id?: string,
+  target_name?: string,
+  target_key?: string,
+  target_version?: string,
+  target_type?: string,
+}
+export interface PromptOptimizeTaskDataSet {
+  dataset_type?: string,
+  related_eval_set_id?: string,
+  related_eval_set_version_id?: string,
+  related_expt_id?: string,
+  related_expt_name?: string,
+  related_eval_set_name?: string,
+  related_eval_set_version?: string,
+  selected_item_id_list?: string[],
+  eval_set_to_target?: PromptOptimizeFieldMapping[],
+  eval_set_to_reference?: PromptOptimizeFieldMapping,
+  eval_set_to_actual_output?: PromptOptimizeFieldMapping,
+  estimate_resource_usage?: PromptOptimizeResourceUsage,
+}
+export interface PromptOptimizeEngineConfig {
+  engine?: string,
+  optimize_factor?: number,
+  balance_mode?: string,
+  optimize_task_type?: string,
+}
+export interface PromptOptimizeTaskResult {
+  optimized_prompt_message_list?: prompt_prompt.Message[],
+  optimized_tool_list?: prompt_prompt.Tool[],
+  ark_job_credit_usage?: string,
   baseline_metrics?: PromptOptimizationMetrics,
   best_metrics?: PromptOptimizationMetrics,
-  original_prompt_template?: prompt_prompt.PromptTemplate,
-  optimized_prompt_template?: prompt_prompt.PromptTemplate,
   iterations?: PromptOptimizationIteration[],
+}
+export interface PromptOptimizeTask {
+  id?: string,
+  task_name?: string,
+  status?: string,
+  stage?: string,
+  progress?: number,
   error_message?: string,
+  ark_task_id?: string,
+  optimize_target?: PromptOptimizeTarget,
+  optimize_task_data_set?: PromptOptimizeTaskDataSet,
+  optimize_engine_config?: PromptOptimizeEngineConfig,
+  optimize_result?: PromptOptimizeTaskResult,
   created_by?: string,
   created_at?: string,
   updated_at?: string,
   started_at?: string,
   ended_at?: string,
-  applied_to_draft?: boolean,
-  applied_at?: string,
 }
-export interface PreparePromptOptimizationRequest {
+export interface ListPromptOptimizeTasksRequest {
   workspace_id: string,
-  expt_id: string,
-}
-export interface PreparePromptOptimizationResponse {
-  eligible?: boolean,
-  ineligible_reason?: string,
-  experiment_id?: string,
-  experiment_name?: string,
-  prompt_id?: string,
-  prompt_key?: string,
-  prompt_name?: string,
-  source_prompt_version?: string,
-  prompt_variables?: PromptOptimizationVariable[],
-  dataset_fields?: string[],
-  target_output_fields?: string[],
-  evaluators?: evaluator.Evaluator[],
-  suggested_variable_mappings?: {
-    [key: string | number]: string
-  },
-  suggested_model_answer_field?: string,
-  suggested_reference_answer_field?: string,
-  mode_options?: PromptOptimizationModeOption[],
-  max_sample_count?: number,
-  default_sample_count?: number,
-}
-export interface CreatePromptOptimizationRequest {
-  workspace_id: string,
-  expt_id: string,
-  samples: PromptOptimizationSampleRef[],
-  variable_mappings: {
-    [key: string | number]: string
-  },
-  model_answer_field?: string,
-  reference_answer_field?: string,
-  mode?: PromptOptimizationMode,
-  max_iterations?: number,
+  prompt_id: string,
+  status?: string[],
   name?: string,
-  idempotency_key?: string,
-}
-export interface CreatePromptOptimizationResponse {
-  task?: PromptOptimizationTask
-}
-export interface GetPromptOptimizationRequest {
-  workspace_id: string,
-  expt_id: string,
-  optimization_id: string,
-  with_iterations?: boolean,
-  with_sample_results?: boolean,
-}
-export interface GetPromptOptimizationResponse {
-  task?: PromptOptimizationTask
-}
-export interface ListPromptOptimizationsRequest {
-  workspace_id: string,
-  expt_id: string,
-  page_number?: number,
+  relation_type?: string,
+  filters?: expt.ExptFilterOption,
+  page_num?: number,
   page_size?: number,
-  statuses?: PromptOptimizationStatus[],
 }
-export interface ListPromptOptimizationsResponse {
-  tasks?: PromptOptimizationTask[],
+export interface ListPromptOptimizeTasksResponse {
+  optimize_tasks?: PromptOptimizeTask[],
   total?: string,
 }
-export interface CancelPromptOptimizationRequest {
+export interface TerminatePromptOptimizeTaskRequest {
   workspace_id: string,
-  expt_id: string,
-  optimization_id: string,
+  prompt_id: string,
+  task_id: string,
 }
-export interface CancelPromptOptimizationResponse {
-  task?: PromptOptimizationTask
-}
-export interface ApplyPromptOptimizationToDraftRequest {
+export interface TerminatePromptOptimizeTaskResponse {}
+/** 预估与创建优化任务的公共参数 */
+export interface OptimizeTaskParams {
   workspace_id: string,
-  expt_id: string,
-  optimization_id: string,
-  /**
-   * Applying replaces the current user's editable draft. Require an explicit
-   * acknowledgement when a draft already exists to prevent silent data loss.
-  */
-  overwrite_existing_draft?: boolean,
+  /** 评测对象类型，固定为 Prompt */
+  target_type?: string,
+  /** 评测对象版本，即当前 Prompt 已提交版本 */
+  target_version: string,
+  /** 数据源类型，固定为 Experiment */
+  dataset_type: string,
+  related_eval_set_id: string,
+  related_eval_set_version_id: string,
+  related_expt_id: string,
+  /** 实验 item_id 列表，20～500 个 */
+  selected_item_id_list: string[],
+  eval_set_to_reference?: PromptOptimizeFieldMapping,
+  eval_set_to_target: PromptOptimizeFieldMapping[],
+  eval_set_to_actual_output: PromptOptimizeFieldMapping,
+  engine?: string,
+  optimize_factor?: number,
+  optimize_task_type?: string,
 }
-export interface ApplyPromptOptimizationToDraftResponse {
-  prompt_id?: string,
-  source_prompt_version?: string,
-  draft_base_version?: string,
-  next_action?: string,
+export interface EstimatePromptOptimizeTaskRequest extends OptimizeTaskParams {
+  prompt_id: string,
+}
+export interface EstimatePromptOptimizeTaskResponse {
+  min_total_resource_usage?: string,
+  max_total_resource_usage?: string,
+}
+export interface CreatePromptOptimizeTaskRequest extends OptimizeTaskParams {
+  prompt_id: string,
+  estimate_resource_usage?: PromptOptimizeResourceUsage,
+}
+export interface CreatePromptOptimizeTaskResponse {
+  optimize_task?: PromptOptimizeTask,
+}
+export interface GetPromptOptimizeTaskRequest {
+  workspace_id: string,
+  prompt_id: string,
+  task_id: string,
+}
+export interface GetPromptOptimizeTaskResponse {
+  optimize_task?: PromptOptimizeTask,
 }
 export const CheckExperimentName = /*#__PURE__*/createAPI<CheckExperimentNameRequest, CheckExperimentNameResponse>({
   "url": "/api/evaluation/v1/experiments/check_name",
@@ -1057,82 +1041,68 @@ export const BatchGetExperimentResult = /*#__PURE__*/createAPI<BatchGetExperimen
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });
-/** 智能优化：基于已完成的评测实验优化该实验所使用的 Prompt。 */
-export const PreparePromptOptimization = /*#__PURE__*/createAPI<PreparePromptOptimizationRequest, PreparePromptOptimizationResponse>({
-  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/prepare",
-  "method": "GET",
-  "name": "PreparePromptOptimization",
-  "reqType": "PreparePromptOptimizationRequest",
-  "reqMapping": {
-    "query": ["workspace_id"],
-    "path": ["expt_id"]
-  },
-  "resType": "PreparePromptOptimizationResponse",
-  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
-  "service": "evaluationExpt"
-});
-export const CreatePromptOptimization = /*#__PURE__*/createAPI<CreatePromptOptimizationRequest, CreatePromptOptimizationResponse>({
-  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations",
+export const EstimatePromptOptimizeTaskResourceUsage = /*#__PURE__*/createAPI<EstimatePromptOptimizeTaskRequest, EstimatePromptOptimizeTaskResponse>({
+  "url": "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/evaluate",
   "method": "POST",
-  "name": "CreatePromptOptimization",
-  "reqType": "CreatePromptOptimizationRequest",
+  "name": "EstimatePromptOptimizeTaskResourceUsage",
+  "reqType": "EstimatePromptOptimizeTaskRequest",
   "reqMapping": {
-    "body": ["workspace_id", "samples", "variable_mappings", "model_answer_field", "reference_answer_field", "mode", "max_iterations", "name", "idempotency_key"],
-    "path": ["expt_id"]
+    "body": ["workspace_id", "target_type", "target_version", "dataset_type", "related_eval_set_id", "related_eval_set_version_id", "related_expt_id", "selected_item_id_list", "eval_set_to_reference", "eval_set_to_target", "eval_set_to_actual_output", "engine", "optimize_factor", "optimize_task_type"],
+    "path": ["prompt_id"]
   },
-  "resType": "CreatePromptOptimizationResponse",
+  "resType": "EstimatePromptOptimizeTaskResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });
-export const GetPromptOptimization = /*#__PURE__*/createAPI<GetPromptOptimizationRequest, GetPromptOptimizationResponse>({
-  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id",
-  "method": "GET",
-  "name": "GetPromptOptimization",
-  "reqType": "GetPromptOptimizationRequest",
-  "reqMapping": {
-    "query": ["workspace_id", "with_iterations", "with_sample_results"],
-    "path": ["expt_id", "optimization_id"]
-  },
-  "resType": "GetPromptOptimizationResponse",
-  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
-  "service": "evaluationExpt"
-});
-export const ListPromptOptimizations = /*#__PURE__*/createAPI<ListPromptOptimizationsRequest, ListPromptOptimizationsResponse>({
-  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/list",
+export const CreatePromptOptimizeTask = /*#__PURE__*/createAPI<CreatePromptOptimizeTaskRequest, CreatePromptOptimizeTaskResponse>({
+  "url": "/api/prompt/v1/prompts/:prompt_id/optimize_tasks",
   "method": "POST",
-  "name": "ListPromptOptimizations",
-  "reqType": "ListPromptOptimizationsRequest",
+  "name": "CreatePromptOptimizeTask",
+  "reqType": "CreatePromptOptimizeTaskRequest",
   "reqMapping": {
-    "body": ["workspace_id", "page_number", "page_size", "statuses"],
-    "path": ["expt_id"]
+    "body": ["workspace_id", "target_type", "target_version", "dataset_type", "related_eval_set_id", "related_eval_set_version_id", "related_expt_id", "selected_item_id_list", "eval_set_to_reference", "eval_set_to_target", "eval_set_to_actual_output", "estimate_resource_usage", "engine", "optimize_factor", "optimize_task_type"],
+    "path": ["prompt_id"]
   },
-  "resType": "ListPromptOptimizationsResponse",
+  "resType": "CreatePromptOptimizeTaskResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });
-export const CancelPromptOptimization = /*#__PURE__*/createAPI<CancelPromptOptimizationRequest, CancelPromptOptimizationResponse>({
-  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/cancel",
+export const GetPromptOptimizeTask = /*#__PURE__*/createAPI<GetPromptOptimizeTaskRequest, GetPromptOptimizeTaskResponse>({
+  "url": "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/:task_id",
   "method": "POST",
-  "name": "CancelPromptOptimization",
-  "reqType": "CancelPromptOptimizationRequest",
+  "name": "GetPromptOptimizeTask",
+  "reqType": "GetPromptOptimizeTaskRequest",
   "reqMapping": {
     "body": ["workspace_id"],
-    "path": ["expt_id", "optimization_id"]
+    "path": ["prompt_id", "task_id"]
   },
-  "resType": "CancelPromptOptimizationResponse",
+  "resType": "GetPromptOptimizeTaskResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });
-export const ApplyPromptOptimizationToDraft = /*#__PURE__*/createAPI<ApplyPromptOptimizationToDraftRequest, ApplyPromptOptimizationToDraftResponse>({
-  "url": "/api/evaluation/v1/experiments/:expt_id/prompt_optimizations/:optimization_id/apply_to_draft",
+export const TerminatePromptOptimizeTask = /*#__PURE__*/createAPI<TerminatePromptOptimizeTaskRequest, TerminatePromptOptimizeTaskResponse>({
+  "url": "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/:task_id/terminate",
   "method": "POST",
-  "name": "ApplyPromptOptimizationToDraft",
-  "reqType": "ApplyPromptOptimizationToDraftRequest",
+  "name": "TerminatePromptOptimizeTask",
+  "reqType": "TerminatePromptOptimizeTaskRequest",
   "reqMapping": {
-    "body": ["workspace_id", "overwrite_existing_draft"],
-    "path": ["expt_id", "optimization_id"]
+    "body": ["workspace_id"],
+    "path": ["prompt_id", "task_id"]
   },
-  "resType": "ApplyPromptOptimizationToDraftResponse",
+  "resType": "TerminatePromptOptimizeTaskResponse",
+  "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
+  "service": "evaluationExpt"
+});
+export const ListPromptOptimizeTasks = /*#__PURE__*/createAPI<ListPromptOptimizeTasksRequest, ListPromptOptimizeTasksResponse>({
+  "url": "/api/prompt/v1/prompts/:prompt_id/optimize_tasks/list",
+  "method": "POST",
+  "name": "ListPromptOptimizeTasks",
+  "reqType": "ListPromptOptimizeTasksRequest",
+  "reqMapping": {
+    "body": ["workspace_id", "status", "name", "relation_type", "filters", "page_num", "page_size"],
+    "path": ["prompt_id"]
+  },
+  "resType": "ListPromptOptimizeTasksResponse",
   "schemaRoot": "api://schemas/evaluation_coze.loop.evaluation.expt",
   "service": "evaluationExpt"
 });

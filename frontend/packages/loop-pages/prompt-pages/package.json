@@ -11,11 +11,13 @@
     "test:cov": "exit 0"
   },
   "dependencies": {
+    "@bytedance/calypso": "0.1.0-beta.8",
     "@coze-arch/coze-design": "0.0.7-alpha.5f0418",
     "@cozeloop/api-schema": "workspace:*",
     "@cozeloop/biz-components-adapter": "workspace:*",
     "@cozeloop/biz-hooks-adapter": "workspace:*",
     "@cozeloop/components": "workspace:*",
+    "@cozeloop/evaluate": "workspace:*",
     "@cozeloop/hooks": "workspace:*",
     "@cozeloop/i18n-adapter": "workspace:*",
     "@cozeloop/observation-adapter": "workspace:*",
@@ -50,3 +52,4 @@
     "react-router-dom": "^6.22.0"
   }
 }
+
