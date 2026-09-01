@@ -2,11 +2,11 @@ services:
 
   app:
     profiles: [ "app", "nginx" ]
-    container_name: "coze-loop-app"
-    image: "${COZE_LOOP_APP_IMAGE_REGISTRY}/${COZE_LOOP_APP_IMAGE_REPOSITORY}/${COZE_LOOP_APP_IMAGE_NAME}:${COZE_LOOP_APP_IMAGE_TAG}"
+    container_name: "gcs-loop-app"
+    image: "${GCS_LOOP_APP_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     ports:
       - "${COZE_LOOP_APP_OPENAPI_PORT}:8888"
     volumes:
@@ -34,9 +34,9 @@ services:
         condition: service_healthy
       rocketmq-init:
         condition: service_completed_successfully
-      coze-loop-python-faas:
+      gcs-loop-python-faas:
         condition: service_healthy
-      coze-loop-js-faas:
+      gcs-loop-js-faas:
         condition: service_healthy
     environment:
       # externally reachable API origin used in Prompt curl examples
@@ -89,11 +89,11 @@ services:
 
   redis:
     profiles: [ "redis" ]
-    container_name: "coze-loop-redis"
-    image: "${COZE_LOOP_REDIS_IMAGE_REGISTRY}/${COZE_LOOP_REDIS_IMAGE_REPOSITORY}/${COZE_LOOP_REDIS_IMAGE_NAME}:${COZE_LOOP_REDIS_IMAGE_TAG}"
+    container_name: "gcs-loop-redis"
+    image: "${GCS_LOOP_REDIS_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - redis_data:/data # 挂载宿主机以持久化
       - ./bootstrap/redis:/coze-loop-redis/bootstrap
@@ -109,11 +109,11 @@ services:
 
   mysql:
     profiles: [ "mysql" ]
-    container_name: "coze-loop-mysql"
-    image: "${COZE_LOOP_MYSQL_IMAGE_REGISTRY}/${COZE_LOOP_MYSQL_IMAGE_REPOSITORY}/${COZE_LOOP_MYSQL_IMAGE_NAME}:${COZE_LOOP_MYSQL_IMAGE_TAG}"
+    container_name: "gcs-loop-mysql"
+    image: "${GCS_LOOP_MYSQL_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     ports:
       - "0.0.0.0:${COZE_LOOP_MYSQL_HOST_PORT}:3306"
     volumes:
@@ -133,11 +133,11 @@ services:
 
   mysql-init:
     profiles: [ "mysql" ]
-    container_name: "coze-loop-mysql-init"
-    image: "${COZE_LOOP_MYSQL_IMAGE_REGISTRY}/${COZE_LOOP_MYSQL_IMAGE_REPOSITORY}/${COZE_LOOP_MYSQL_IMAGE_NAME}:${COZE_LOOP_MYSQL_IMAGE_TAG}"
+    container_name: "gcs-loop-mysql-init"
+    image: "${GCS_LOOP_MYSQL_IMAGE}"
     restart: no
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - ./bootstrap/mysql-init:/coze-loop-mysql-init/bootstrap
     depends_on:
@@ -151,11 +151,11 @@ services:
 
   clickhouse:
     profiles: [ "clickhouse" ]
-    container_name: "coze-loop-clickhouse"
-    image: "${COZE_LOOP_CLICKHOUSE_IMAGE_REGISTRY}/${COZE_LOOP_CLICKHOUSE_IMAGE_REPOSITORY}/${COZE_LOOP_CLICKHOUSE_IMAGE_NAME}:${COZE_LOOP_CLICKHOUSE_IMAGE_TAG}"
+    container_name: "gcs-loop-clickhouse"
+    image: "${GCS_LOOP_CLICKHOUSE_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - clickhouse_data:/var/lib/clickhouse # 挂载宿主机以持久化
       - ./bootstrap/clickhouse:/coze-loop-clickhouse/bootstrap
@@ -173,11 +173,11 @@ services:
 
   clickhouse-init:
     profiles: [ "clickhouse" ]
-    container_name: "coze-loop-clickhouse-init"
-    image: "${COZE_LOOP_CLICKHOUSE_IMAGE_REGISTRY}/${COZE_LOOP_CLICKHOUSE_IMAGE_REPOSITORY}/${COZE_LOOP_CLICKHOUSE_IMAGE_NAME}:${COZE_LOOP_CLICKHOUSE_IMAGE_TAG}"
+    container_name: "gcs-loop-clickhouse-init"
+    image: "${GCS_LOOP_CLICKHOUSE_IMAGE}"
     restart: no
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - ./bootstrap/clickhouse-init:/coze-loop-clickhouse-init/bootstrap
     depends_on:
@@ -191,11 +191,11 @@ services:
 
   minio:
     profiles: [ "minio" ]
-    container_name: "coze-loop-minio"
-    image: "${COZE_LOOP_OSS_IMAGE_REGISTRY}/${COZE_LOOP_OSS_IMAGE_REPOSITORY}/${COZE_LOOP_OSS_IMAGE_NAME}:${COZE_LOOP_OSS_IMAGE_TAG}"
+    container_name: "gcs-loop-minio"
+    image: "${GCS_LOOP_MINIO_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - minio_data:/minio_data # 挂载宿主机以持久化
       - minio_config:/root/.minio # 挂载宿主机以持久化
@@ -213,11 +213,11 @@ services:
 
   minio-init:
     profiles: [ "minio" ]
-    container_name: "coze-loop-minio-init"
-    image: "${COZE_LOOP_OSS_IMAGE_REGISTRY}/${COZE_LOOP_OSS_IMAGE_REPOSITORY}/${COZE_LOOP_OSS_IMAGE_NAME}:${COZE_LOOP_OSS_IMAGE_TAG}"
+    container_name: "gcs-loop-minio-init"
+    image: "${GCS_LOOP_MINIO_IMAGE}"
     restart: no
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - ./bootstrap/minio-init:/coze-loop-minio-init/bootstrap
     depends_on:
@@ -231,11 +231,11 @@ services:
 
   rocketmq-namesrv:
     profiles: [ "rmq" ]
-    container_name: "coze-loop-rmq-namesrv"
-    image: "${COZE_LOOP_RMQ_IMAGE_REGISTRY}/${COZE_LOOP_RMQ_IMAGE_REPOSITORY}/${COZE_LOOP_RMQ_IMAGE_NAME}:${COZE_LOOP_RMQ_IMAGE_TAG}"
+    container_name: "gcs-loop-rmq-namesrv"
+    image: "${GCS_LOOP_ROCKETMQ_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - rmq_namesrv_data:/store # 挂载宿主机以持久化
       - ./bootstrap/rmq-namesrv:/coze-loop-rmq-namesrv/bootstrap
@@ -250,11 +250,11 @@ services:
 
   rocketmq-broker:
     profiles: [ "rmq" ]
-    container_name: "coze-loop-rmq-broker"
-    image: "${COZE_LOOP_RMQ_IMAGE_REGISTRY}/${COZE_LOOP_RMQ_IMAGE_REPOSITORY}/${COZE_LOOP_RMQ_IMAGE_NAME}:${COZE_LOOP_RMQ_IMAGE_TAG}"
+    container_name: "gcs-loop-rmq-broker"
+    image: "${GCS_LOOP_ROCKETMQ_IMAGE}"
     restart: no
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - rmq_broker_data:/store
       - ./bootstrap/rmq-broker:/coze-loop-rmq-broker/bootstrap
@@ -272,11 +272,11 @@ services:
 
   rocketmq-init:
     profiles: [ "rmq" ]
-    container_name: "coze-loop-rmq-init"
-    image: "${COZE_LOOP_RMQ_IMAGE_REGISTRY}/${COZE_LOOP_RMQ_IMAGE_REPOSITORY}/${COZE_LOOP_RMQ_IMAGE_NAME}:${COZE_LOOP_RMQ_IMAGE_TAG}"
+    container_name: "gcs-loop-rmq-init"
+    image: "${GCS_LOOP_ROCKETMQ_IMAGE}"
     restart: no
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - ./bootstrap/rmq-init:/coze-loop-rmq-init/bootstrap
     depends_on:
@@ -288,11 +288,11 @@ services:
 
   nginx:
     profiles: [ "nginx", "app" ]
-    container_name: "coze-loop-nginx"
-    image: "${COZE_LOOP_NGINX_IMAGE_REGISTRY}/${COZE_LOOP_NGINX_IMAGE_REPOSITORY}/${COZE_LOOP_NGINX_IMAGE_NAME}:${COZE_LOOP_NGINX_IMAGE_TAG}"
+    container_name: "gcs-loop-nginx"
+    image: "${GCS_LOOP_NGINX_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     ports:
       - "${COZE_LOOP_NGINX_PORT}:80"
     volumes:
@@ -315,13 +315,13 @@ services:
       start_period: 10s
 
   # Python FaaS服务 - 增强版系统Python执行
-  coze-loop-python-faas:
+  gcs-loop-python-faas:
     profiles: [ "faas", "app" ]
-    container_name: "coze-loop-python-faas"
-    image: "${COZE_LOOP_PYTHON_FAAS_IMAGE_REGISTRY}/${COZE_LOOP_PYTHON_FAAS_IMAGE_REPOSITORY}/${COZE_LOOP_PYTHON_FAAS_IMAGE_NAME}:${COZE_LOOP_PYTHON_FAAS_IMAGE_TAG}"
+    container_name: "gcs-loop-python-faas"
+    image: "${GCS_LOOP_PYTHON_FAAS_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - python_faas_workspace:/tmp/faas-workspace
       - ./bootstrap/python-faas:/coze-loop-python-faas/bootstrap:ro  # 只读挂载
@@ -360,13 +360,13 @@ services:
       start_period: 120s
 
   # JavaScript FaaS服务
-  coze-loop-js-faas:
+  gcs-loop-js-faas:
     profiles: [ "faas", "app" ]
-    container_name: "coze-loop-js-faas"
-    image: "denoland/deno:1.45.5"
+    container_name: "gcs-loop-js-faas"
+    image: "${GCS_LOOP_JS_FAAS_IMAGE}"
     restart: always
     networks:
-      - coze-loop-network
+      - gcs-loop-network
     volumes:
       - js_faas_workspace:/tmp/faas-workspace
       - ./bootstrap/js-faas:/coze-loop-js-faas/bootstrap
@@ -409,6 +409,6 @@ volumes:
     name: coze-loop_js_faas_workspace
 
 networks:
-  coze-loop-network:
-    name: coze-loop-network
+  gcs-loop-network:
+    name: gcs-loop-network
     driver: bridge

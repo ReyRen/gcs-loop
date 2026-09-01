@@ -20,7 +20,7 @@ print_banner "Starting..."
 
 for i in $(seq 1 60); do
   if curl \
-      -sf "http://coze-loop-minio:9000/minio/health/live" \
+      -sf "http://gcs-loop-minio:9000/minio/health/live" \
       > /dev/null; then
     break
   else
@@ -32,7 +32,7 @@ for i in $(seq 1 60); do
   fi
 done
 
-export MC_HOST_myminio="http://${COZE_LOOP_OSS_USER}:${COZE_LOOP_OSS_PASSWORD}@coze-loop-minio:9000"
+export MC_HOST_myminio="http://${COZE_LOOP_OSS_USER}:${COZE_LOOP_OSS_PASSWORD}@gcs-loop-minio:9000"
 
 echo "+ check bucket($COZE_LOOP_OSS_BUCKET) exists..."
 if mc ls myminio/"${COZE_LOOP_OSS_BUCKET}" >/dev/null 2>&1; then

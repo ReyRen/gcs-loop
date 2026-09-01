@@ -66,16 +66,62 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
    3. 修改 api_key 和 model 字段。以火山方舟为例：
       * api_key：火山方舟 API Key。中国境内用户参考[火山方舟文档](https://www.volcengine.com/docs/82379/1541594)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1361424?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
       * model：火山方舟模型接入点的 Endpoint ID。中国境内用户参考参考[火山方舟文档](https://www.volcengine.com/docs/82379/1099522)；非中国境内的用户可参考[BytePlus ModelArk 文档](https://docs.byteplus.com/en/docs/ModelArk/1099522?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source)。
-3. 启动服务。
+3. 配置当前主机。
+
+   ```Bash
+   cp release/deployment/docker-compose/.env.local.example \
+      release/deployment/docker-compose/.env.local
+   ```
+
+   编辑 `.env.local` 中的 `COZE_LOOP_PUBLIC_BASE_URL`。该文件仅存放当前服务器的 URL、端口或凭据覆盖，不会提交到 Git。
+
+4. 启动服务。
    执行以下命令，使用 Docker Compose 快速部署 Coze Loop 开源版。
 
    ```Bash
-   # 启动服务，默认为开发模式
+   # 构建并在后台启动服务
    # 在 coze-loop/目录下执行
-   make compose-up
+   make start
    ```
 
-4. 通过浏览器访问 Coze Loop 开源版 `http://localhost:8082`。
+5. 通过浏览器访问 Coze Loop 开源版 `http://localhost:8082`。
+
+### 服务运维命令
+
+在仓库根目录下执行以下命令。这些是面向部署和运维人员的统一入口，无需记忆底层的 Docker Compose 组合参数。
+
+| 操作 | 命令 | 说明 |
+| --- | --- | --- |
+| 后台启动 | `make start` | 生成 OpenAPI 文档、构建镜像并后台启动服务 |
+| 停止服务 | `make stop` | 停止服务，保留 MySQL、Redis、ClickHouse 和 MinIO 数据 |
+| 重启后端 | `make restart` | 重启已运行的后端应用，不重新构建镜像 |
+| 查看日志 | `make logs` | 显示最近 200 行日志并持续跟踪；按 `Ctrl+C` 退出查看，不会停止服务 |
+| 查看状态 | `make status` | 查看各容器的运行状态 |
+| 检查配置 | `make config` | 显示自动识别的架构并校验最终 Compose 配置 |
+
+> 修改了后端代码、依赖、Docker 配置或环境文件后，请再次执行 `make start` 以重新构建和应用配置。仅在代码和配置未变更时使用 `make restart`。
+
+#### AMD64 与 ARM64
+
+仓库中的业务代码、Compose 服务定义和构建流程只保留一份。`make start` 会通过 `uname -m` 自动选择：
+
+- `release/deployment/docker-compose/env/amd64.env`：`x86_64/amd64` 镜像配置。
+- `release/deployment/docker-compose/env/arm64.env`：`aarch64/arm64` 镜像配置。
+- `release/deployment/docker-compose/env/common.env`：两种架构共用的服务参数。
+- `release/deployment/docker-compose/.env.local`：当前服务器私有参数，最后加载并覆盖前面的配置。
+
+一般无需手动指定架构。仅在 CI 或交叉构建时使用：
+
+```Bash
+make start ARCH=amd64
+make start ARCH=arm64
+# 或使用快捷目标
+make start-amd64
+make start-arm64
+```
+
+> [!CAUTION]
+> `make compose-down-v-dev` 会删除 Docker 数据卷，可能清除数据库及对象存储数据，不应用于日常启停。
 
 > [!WARNING]
 > 如果要将 Coze Loop 部署到公网环境，建议在部署前评估整体评估安全风险，例如账号注册功能、Coze Server 监听地址配置、SSRF 和部分 API 水平越权的风险，并采取相应防护措施。详细信息可参考[快速开始](https://github.com/coze-dev/coze-loop/wiki/2.-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B#%E5%85%AC%E7%BD%91%E5%AE%89%E5%85%A8%E9%A3%8E%E9%99%A9)。

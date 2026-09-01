@@ -56,6 +56,8 @@ venv/
 CLAUDE.md
 backend/script/errorx/.env
 backend/bin/
+# Host-specific Docker Compose overrides (public URL, ports, credentials, etc.).
+release/deployment/docker-compose/.env.local
 .cursor/
 .specify/
 specs/

@@ -20,7 +20,7 @@ print_banner "Starting..."
 
 for i in $(seq 1 300); do
   if curl \
-      -s http://coze-loop-app:8888/ping \
+      -s http://gcs-loop-app:8888/ping \
       2>/dev/null \
       | grep -q pong; then
     break
@@ -75,7 +75,7 @@ http {
 
         # Backend API documentation
         location /api-docs {
-            proxy_pass         http://coze-loop-app:8888;
+            proxy_pass         http://gcs-loop-app:8888;
             proxy_http_version 1.1;
 
             proxy_set_header   Host \$http_host;
@@ -87,7 +87,7 @@ http {
 
         # app proxy
         location /api/ {
-            proxy_pass         http://coze-loop-app:8888;
+            proxy_pass         http://gcs-loop-app:8888;
             proxy_http_version 1.1;
 
             proxy_set_header   Host \$http_host;
@@ -110,7 +110,7 @@ http {
 
         # PAT-authenticated public APIs (SDK/OpenAPI)
         location /v1/ {
-            proxy_pass         http://coze-loop-app:8888;
+            proxy_pass         http://gcs-loop-app:8888;
             proxy_http_version 1.1;
 
             proxy_set_header   Host \$http_host;
@@ -133,7 +133,7 @@ http {
 
          # promptApi proxy（前端 API_SCHEMA_BASE_URL=/promptApi 时的入口）
         location /promptApi/ {
-            proxy_pass         http://coze-loop-app:8888/;
+            proxy_pass         http://gcs-loop-app:8888/;
             proxy_http_version 1.1;
 
             proxy_set_header   Host \$http_host;

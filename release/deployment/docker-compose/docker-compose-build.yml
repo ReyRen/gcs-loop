@@ -1,0 +1,15 @@
+services:
+
+  app:
+    platform: "${GCS_LOOP_PLATFORM}"
+    build:
+      context: ../../..
+      dockerfile: ./release/image/Dockerfile
+      network: host
+      args:
+        GO_BUILD_IMAGE: "${GCS_LOOP_GO_BUILD_IMAGE}"
+        NODE_BUILD_IMAGE: "${GCS_LOOP_NODE_BUILD_IMAGE}"
+        RUNTIME_IMAGE: "${GCS_LOOP_RUNTIME_IMAGE}"
+        ALPINE_MIRROR: "${GCS_LOOP_ALPINE_MIRROR}"
+        NPM_REGISTRY: "${GCS_LOOP_NPM_REGISTRY}"
+    image: "${GCS_LOOP_APP_IMAGE}"

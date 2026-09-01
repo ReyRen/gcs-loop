@@ -1,8 +1,0 @@
-services:
-
-  app:
-    build:
-      context: ../../..
-      dockerfile: ./release/image/Dockerfile
-      network: host
-    image: "coze-dev/coze-loop:dev"

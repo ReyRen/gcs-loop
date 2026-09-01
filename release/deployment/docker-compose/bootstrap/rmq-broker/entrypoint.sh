@@ -21,7 +21,7 @@ print_banner "Starting..."
 for i in $(seq 1 60); do
   if "${ROCKETMQ_HOME}/bin/mqadmin" \
       topicList \
-      -n coze-loop-rmq-namesrv:9876 \
+      -n gcs-loop-rmq-namesrv:9876 \
       > /dev/null 2>&1; then
     break
   else
@@ -46,4 +46,4 @@ mkdir -p /store/logs
   done
 )&
 
-exec "${ROCKETMQ_HOME}"/bin/mqbroker -n coze-loop-rmq-namesrv:9876
+exec "${ROCKETMQ_HOME}"/bin/mqbroker -n gcs-loop-rmq-namesrv:9876

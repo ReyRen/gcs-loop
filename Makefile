@@ -1,16 +1,78 @@
 IMAGE_REGISTRY := docker.io
 IMAGE_REPOSITORY := cozedev
-IMAGE_NAME := coze-loop
+IMAGE_NAME := gcs-loop-app
 PYTHON ?= python3
 NPX ?= npx
 
 # Python FaaS image config
-PYFAAS_IMAGE_NAME := coze-loop-python-faas
+PYFAAS_IMAGE_NAME := gcs-loop-python-faas
 PYFAAS_DOCKERFILE := ./release/image/python-faas.Dockerfile
 
 DOCKER_COMPOSE_DIR := ./release/deployment/docker-compose
+DOCKER_COMPOSE_BUILD_FILE := $(DOCKER_COMPOSE_DIR)/docker-compose-build.yml
+DOCKER_COMPOSE_COMMON_ENV := $(DOCKER_COMPOSE_DIR)/env/common.env
+DOCKER_COMPOSE_LOCAL_ENV := $(DOCKER_COMPOSE_DIR)/.env.local
 
-COZE_LOOP_NGINX_DATA_VOLUME_NAME := $(or $(COZE_LOOP_NGINX_DATA_VOLUME_NAME),coze-loop-nginx-data)
+ARCH ?= $(shell uname -m 2>/dev/null || echo unsupported)
+ifneq (,$(filter x86_64 amd64,$(ARCH)))
+DEPLOY_ARCH := amd64
+else ifneq (,$(filter aarch64 arm64,$(ARCH)))
+DEPLOY_ARCH := arm64
+else
+DEPLOY_ARCH := unsupported
+endif
+
+DOCKER_COMPOSE_ARCH_ENV := $(DOCKER_COMPOSE_DIR)/env/$(DEPLOY_ARCH).env
+COMPOSE_ENV_ARGS := --env-file $(DOCKER_COMPOSE_COMMON_ENV) --env-file $(DOCKER_COMPOSE_ARCH_ENV)
+ifneq (,$(wildcard $(DOCKER_COMPOSE_LOCAL_ENV)))
+COMPOSE_ENV_ARGS += --env-file $(DOCKER_COMPOSE_LOCAL_ENV)
+endif
+COMPOSE_BASE_ARGS := -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml $(COMPOSE_ENV_ARGS)
+COMPOSE_BUILD_ARGS := -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml -f $(DOCKER_COMPOSE_BUILD_FILE) $(COMPOSE_ENV_ARGS)
+
+COZE_LOOP_NGINX_DATA_VOLUME_NAME := $(or $(COZE_LOOP_NGINX_DATA_VOLUME_NAME),gcs-loop-nginx-data)
+
+# Operator-facing commands. The architecture is detected automatically; set
+# ARCH=amd64 or ARCH=arm64 only when an explicit override is required.
+.PHONY: check-deploy-arch start start-amd64 start-arm64 stop restart logs status config
+
+check-deploy-arch:
+	@test "$(DEPLOY_ARCH)" != "unsupported" || (echo "Unsupported architecture: $(ARCH). Use ARCH=amd64 or ARCH=arm64." >&2; exit 1)
+	@test -f "$(DOCKER_COMPOSE_ARCH_ENV)" || (echo "Missing architecture config: $(DOCKER_COMPOSE_ARCH_ENV)" >&2; exit 1)
+
+start: check-deploy-arch
+	$(PYTHON) backend/script/openapi/generate.py
+	@docker stop gcs-loop-nginx gcs-loop-app >/dev/null 2>&1 || true
+	@docker rm gcs-loop-nginx gcs-loop-app >/dev/null 2>&1 || true
+	@if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
+	  docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME); \
+	fi
+	docker compose $(COMPOSE_BUILD_ARGS) --profile "*" up --build --detach
+
+start-amd64:
+	@$(MAKE) --no-print-directory ARCH=amd64 start
+
+start-arm64:
+	@$(MAKE) --no-print-directory ARCH=arm64 start
+
+stop: check-deploy-arch
+	docker compose $(COMPOSE_BUILD_ARGS) --profile "*" down
+	@if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
+	  docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME); \
+	fi
+
+restart: check-deploy-arch
+	docker compose $(COMPOSE_BUILD_ARGS) restart app
+
+logs: check-deploy-arch
+	docker compose $(COMPOSE_BUILD_ARGS) --profile "*" logs --follow --tail=200
+
+status: check-deploy-arch
+	docker compose $(COMPOSE_BUILD_ARGS) ps
+
+config: check-deploy-arch
+	@echo "Detected deployment architecture: $(DEPLOY_ARCH)"
+	docker compose $(COMPOSE_BUILD_ARGS) --profile "*" config
 
 .PHONY: image openapi-gen openapi-check openapi-test openapi-lint
 
@@ -67,7 +129,7 @@ image%:
 	  -help|*) \
       	echo "Usage:"; \
 		echo "  make image--login                         # Login to the image registry ($(IMAGE_REGISTRY))"; \
-		echo "  make image-<version>                      # Build & push coze-loop image (<version>, latest)"; \
+		echo "  make image-<version>                      # Build & push gcs-loop image (<version>, latest)"; \
 		echo "  make image-python-faas-bpush-<version>    # Build & push python-faas image (<version>, latest)"; \
       	echo; \
       	echo "Examples:"; \
@@ -90,15 +152,15 @@ compose%:
 	    if [ "$*" = "-up-dev-d" ]; then \
 	      detach="--detach"; \
 	    fi; \
-	    docker stop coze-loop-nginx coze-loop-app >/dev/null 2>&1 || true; \
-	    docker rm coze-loop-nginx coze-loop-app >/dev/null 2>&1 || true; \
+	    docker stop gcs-loop-nginx gcs-loop-app >/dev/null 2>&1 || true; \
+	    docker rm gcs-loop-nginx gcs-loop-app >/dev/null 2>&1 || true; \
 	    if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
 	      docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) || exit $$?; \
 	    fi; \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
-	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
+	      $(COMPOSE_ENV_ARGS) \
 	      --profile "*" \
 	      up --build $$detach ;; \
 	  -restart-dev-*) \
@@ -106,21 +168,21 @@ compose%:
 		svc="$${svc#-restart-dev-}"; \
 		docker compose \
 		  -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
-		  --env-file $(DOCKER_COMPOSE_DIR)/.env \
+          -f $(DOCKER_COMPOSE_BUILD_FILE) \
+		  $(COMPOSE_ENV_ARGS) \
 		  restart "$$svc" ;; \
 	  -logs-dev) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
-	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
+	      $(COMPOSE_ENV_ARGS) \
 	      --profile "*" \
 	      logs --follow --tail=200 ;; \
 	  -down-dev) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
-	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
+	      $(COMPOSE_ENV_ARGS) \
 	      --profile "*" \
 	      down || exit $$?; \
 	    if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
@@ -129,8 +191,8 @@ compose%:
 	  -down-v-dev) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-dev.yml \
-	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
+	      $(COMPOSE_ENV_ARGS) \
 	      --profile "*" \
 	      down -v ;; \
 	  -up-debug) \
@@ -139,7 +201,7 @@ compose%:
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      $(COMPOSE_ENV_ARGS) \
 	      --profile "*" \
 	      up --build  ;; \
 	  -restart-debug-*) \
@@ -148,27 +210,27 @@ compose%:
 		docker compose \
 		  -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
 			-f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-		  --env-file $(DOCKER_COMPOSE_DIR)/.env \
+		  $(COMPOSE_ENV_ARGS) \
 		  restart "$$svc" ;; \
 	  -down-debug) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      $(COMPOSE_ENV_ARGS) \
 	      --profile "*" \
 	      down ;; \
 	  -down-v-debug) \
 	    docker compose \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
 	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-	      --env-file $(DOCKER_COMPOSE_DIR)/.env \
+	      $(COMPOSE_ENV_ARGS) \
 	      --profile "*" \
 	      down -v ;; \
 	  -up) \
         docker volume rm ${COZE_LOOP_NGINX_DATA_VOLUME_NAME} 2>/dev/null || true; \
         docker compose \
           -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          --env-file $(DOCKER_COMPOSE_DIR)/.env \
+          $(COMPOSE_ENV_ARGS) \
           --profile "*" \
           up ;; \
       -restart-*) \
@@ -176,18 +238,18 @@ compose%:
         svc="$${svc#-restart-}"; \
         docker compose \
           -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          --env-file $(DOCKER_COMPOSE_DIR)/.env \
+          $(COMPOSE_ENV_ARGS) \
           restart "$$svc" ;; \
       -down) \
         docker compose \
           -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          --env-file $(DOCKER_COMPOSE_DIR)/.env \
+          $(COMPOSE_ENV_ARGS) \
           --profile "*" \
           down ;; \
       -down-v) \
         docker compose \
           -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          --env-file $(DOCKER_COMPOSE_DIR)/.env \
+          $(COMPOSE_ENV_ARGS) \
           --profile "*" \
           down -v ;; \
 	  -help|*) \
@@ -198,13 +260,13 @@ compose%:
       	echo "  make compose-down                 # Stop base services"; \
       	echo "  make compose-down-v               # Stop base services and remove volumes"; \
       	echo; \
-	      echo "  # Dev profile"; \
-	      echo "  make compose-up-dev               # Rebuild dev app with a fresh frontend volume"; \
-	      echo "  make compose-up-dev-d             # Rebuild and start dev services in the background"; \
-	      echo "  make compose-restart-dev-<svc>    # Restart specific dev service"; \
-	      echo "  make compose-logs-dev             # Follow logs from all dev services (last 200 lines)"; \
-	      echo "  make compose-down-dev             # Stop dev services and remove only the frontend volume"; \
-      	echo "  make compose-down-v-dev           # Stop base + dev services and remove volumes"; \
+	      echo "  # Legacy source-build aliases"; \
+	      echo "  make compose-up-dev               # Build and start in the foreground"; \
+	      echo "  make compose-up-dev-d             # Same as make start"; \
+	      echo "  make compose-restart-dev-<svc>    # Restart a specific service"; \
+	      echo "  make compose-logs-dev             # Same as make logs"; \
+	      echo "  make compose-down-dev             # Same as make stop"; \
+	      echo "  make compose-down-v-dev           # Stop services and remove all volumes"; \
       	echo; \
       	echo "  # Debug profile"; \
       	echo "  make compose-up-debug             # Start base + debug services (build)"; \

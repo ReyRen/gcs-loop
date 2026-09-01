@@ -19,7 +19,7 @@ print_banner() {
 print_banner "Starting..."
 
 MQADMIN_CMD="${ROCKETMQ_HOME}/bin/mqadmin"
-MQNAMESRV_ADDR=coze-loop-rmq-namesrv:9876
+MQNAMESRV_ADDR=gcs-loop-rmq-namesrv:9876
 
 declare -A topics
 {

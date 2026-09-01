@@ -4,7 +4,7 @@ exec 2>&1
 set -e
 
 # Define common paths and configurations
-MYSQL_HOST="coze-loop-mysql"
+MYSQL_HOST="gcs-loop-mysql"
 MYSQL_USER="${COZE_LOOP_MYSQL_USER}"
 MYSQL_DATABASE="${COZE_LOOP_MYSQL_DATABASE}"
 BASE_INIT_PATH="/coze-loop-mysql-init/bootstrap/init-sql"

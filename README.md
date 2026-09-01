@@ -66,16 +66,62 @@ Procedure:
    3. Modify the api_key and model fields. Take Volcengine Ark as an example:
       * api_key: Volcengine Ark API Key. Users in China can refer to the [Volcengine Ark documentation](https://www.volcengine.com/docs/82379/1541594), while users outside China can refer to the [BytePlus ModelArk documentation](https://docs.byteplus.com/en/docs/ModelArk/1361424?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source).
       * model: The Endpoint ID of the Volcengine Ark model access point. Users within China can refer to [the Volcengine Ark documentation](https://www.volcengine.com/docs/82379/1099522); users outside China can refer to [the BytePlus ModelArk documentation](https://docs.byteplus.com/en/docs/ModelArk/1099522?utm_source=github&utm_medium=readme&utm_campaign=coze_open_source).
-3. Start the service.
+3. Configure the current host.
+
+   ```Bash
+   cp release/deployment/docker-compose/.env.local.example \
+      release/deployment/docker-compose/.env.local
+   ```
+
+   Set `COZE_LOOP_PUBLIC_BASE_URL` in `.env.local`. This file contains only host-specific URL, port, or credential overrides and is not committed to Git.
+
+4. Start the service.
    Run the following commands to quickly deploy the open-source version of Coze Loop using Docker Compose.
 
    ```Bash
-   # Start the service (default: development mode)
+   # Build and start the services in the background
    # Run in the coze-loop/ directory
-   make compose-up
+   make start
    ```
 
-4. Access the Coze Loop open-source version through your browser `http://localhost:8082`.
+5. Access the Coze Loop open-source version through your browser `http://localhost:8082`.
+
+### Service operations
+
+Run these commands from the repository root. They are the supported operator-facing entry points, so you do not need to remember the underlying Docker Compose file combinations.
+
+| Operation | Command | Description |
+| --- | --- | --- |
+| Start in the background | `make start` | Generate the OpenAPI document, build the images, and start the services in the background |
+| Stop | `make stop` | Stop the services while preserving MySQL, Redis, ClickHouse, and MinIO data |
+| Restart the backend | `make restart` | Restart the running backend application without rebuilding images |
+| Follow logs | `make logs` | Show the latest 200 log lines and continue following them; `Ctrl+C` exits log viewing without stopping services |
+| Show status | `make status` | Show the current state of all service containers |
+| Validate configuration | `make config` | Show the detected architecture and validate the final Compose configuration |
+
+> After changing backend code, dependencies, Docker configuration, or environment files, run `make start` again to rebuild and apply the changes. Use `make restart` only when code and configuration have not changed.
+
+#### AMD64 and ARM64
+
+The repository keeps one copy of the business code, Compose service definitions, and build flow. `make start` uses `uname -m` to select the appropriate configuration automatically:
+
+- `release/deployment/docker-compose/env/amd64.env` for `x86_64/amd64` images.
+- `release/deployment/docker-compose/env/arm64.env` for `aarch64/arm64` images.
+- `release/deployment/docker-compose/env/common.env` for settings shared by both architectures.
+- `release/deployment/docker-compose/.env.local` for host-specific settings, loaded last as an override.
+
+Normally no architecture argument is needed. Use an explicit override only in CI or cross-build workflows:
+
+```Bash
+make start ARCH=amd64
+make start ARCH=arm64
+# Or use the convenience targets
+make start-amd64
+make start-arm64
+```
+
+> [!CAUTION]
+> `make compose-down-v-dev` removes Docker volumes and may delete database and object-storage data. Do not use it for routine service operations.
 
 > [!WARNING]
 > If you want to deploy Coze Loop in a public network environment, it is recommended to assess security risks before you begin, and take corresponding protection measures. Possible security risks include account registration functions, Coze Server listening address configurations, SSRF (Server - Side Request Forgery), and some horizontal privilege escalations in APIs.  For more details, refer to [Quickstart](https://github.com/coze-dev/coze-loop/wiki/2.-Quickstart#security-risks-in-public-networks).
