@@ -286,8 +286,8 @@ export function OptimizationArea() {
   }, 300);
 
   return (
-    <div className="flex flex-1 flex-col overflow-auto">
-      <div className="flex items-center gap-3 p-4 pb-3">
+    <div className="flex flex-1 flex-col overflow-auto p-6">
+      <div className="flex items-center gap-3 pb-3">
         <div className="w-60">
           <Search
             className="box-border !w-full"
