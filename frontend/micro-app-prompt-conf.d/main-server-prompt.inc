@@ -1,7 +1,10 @@
 # CozeLoop prompt micro-app — same origin as main app, deployed under /prompt
 # Static root: /root/FrontendFiles/micro-app-prompt (frontend build output)
+# Also proxies /promptApi and /cozeloop-minio (object / image assets)
 
 location = /prompt {
+        # 相对跳转，避免绝对 Location 带上内网 listen 端口（如 :8443）
+        absolute_redirect off;
         return 301 /prompt/;
 }
 
@@ -19,7 +22,7 @@ location ^~ /prompt/ {
 # CozeLoop API：前端构建时 API_SCHEMA_BASE_URL=/promptApi。
 # proxy_pass 末尾的 / 会移除 /promptApi/ 前缀。
 location ^~ /promptApi/ {
-        proxy_pass http://172.18.127.43:8082/;
+        proxy_pass http://172.18.36.230:8082/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -29,4 +32,15 @@ location ^~ /promptApi/ {
         proxy_set_header Connection "";
         proxy_cookie_domain off;
         proxy_cookie_path / /;
+}
+
+# MinIO / 对象存储图片等资源（路径原样转发，勿加 proxy_pass 尾斜杠）
+location ^~ /cozeloop-minio/ {
+        proxy_pass http://172.18.36.230:8082;
+        proxy_http_version 1.1;
+        proxy_set_header Host 172.18.36.230:8082;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
 }
