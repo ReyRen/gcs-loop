@@ -34,6 +34,12 @@ backend/bin/
 
 # log files
 log/
+*.log
+
+# patch and editor leftovers
+*.rej
+*.orig
+*.bak
 
 # python files
 *.pyc

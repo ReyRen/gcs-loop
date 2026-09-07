@@ -5,6 +5,7 @@ services:
     build:
       context: ../../..
       dockerfile: ./release/image/Dockerfile
+      target: "${GCS_LOOP_APP_BUILD_TARGET:-full-runtime}"
       network: host
       args:
         GO_BUILD_IMAGE: "${GCS_LOOP_GO_BUILD_IMAGE}"

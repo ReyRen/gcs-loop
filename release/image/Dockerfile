@@ -42,6 +42,13 @@ RUN --mount=type=cache,id=gcs-loop-go-mod-${TARGETARCH},target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS="$target_os" GOARCH="$target_arch" \
       go -C /coze-loop/src/backend build -buildvcs=false -o /coze-loop/bin/main "./cmd"
 
+# Backend-only runtime. Selecting this target skips every frontend stage below.
+FROM ${RUNTIME_IMAGE} AS backend-runtime
+
+WORKDIR /coze-loop
+
+COPY --from=backend_builder /coze-loop/bin/main /coze-loop/bin/main
+
 # Minimal Node.js image (with Node.js + npm), additionally installs Rush to build frontend artifacts
 FROM --platform=$BUILDPLATFORM ${NODE_BUILD_IMAGE} AS frontend_builder
 
@@ -78,11 +85,7 @@ RUN --mount=type=cache,id=gcs-loop-pnpm-store-${TARGETARCH},target=/coze-loop/sr
     mkdir -p /coze-loop/resources && \
     sh /coze-loop/src/frontend/apps/cozeloop/build-artifact.sh /coze-loop/resources
 
-# Final minimal image (coze-loop)
-FROM ${RUNTIME_IMAGE}
+# Full runtime remains the default final target for UI deployments.
+FROM backend-runtime AS full-runtime
 
-WORKDIR /coze-loop
-
-# Extract build artifacts
-COPY --from=backend_builder /coze-loop/bin/main /coze-loop/bin/main
 COPY --from=frontend_builder /coze-loop/resources/ /coze-loop/resources/

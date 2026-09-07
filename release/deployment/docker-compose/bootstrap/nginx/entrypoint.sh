@@ -41,6 +41,31 @@ else
     OSS_ENDPOINT="${COZE_LOOP_OSS_PROTOCOL}://${COZE_LOOP_OSS_DOMAIN}:${COZE_LOOP_OSS_PORT}"
 fi
 
+if [ "${GCS_LOOP_BACKEND_ONLY:-false}" = "true" ]; then
+    FRONTEND_ROUTES='
+        # Backend-only mode: keep Nginx as the API/MinIO gateway, but serve no UI.
+        location / {
+            return 404;
+        }
+'
+else
+    FRONTEND_ROUTES='
+        location = /index.html {
+            etag on;
+            add_header Cache-Control "no-cache, must-revalidate";
+        }
+
+        # wujie child application: rewrite /prompt/static/ to /static/.
+        location /prompt/static/ {
+            rewrite ^/prompt/(.*)$ /$1 last;
+        }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+'
+fi
+
 cat > /etc/nginx/nginx.conf <<EOF
 events {}
 
@@ -58,20 +83,7 @@ http {
         root /usr/share/nginx/html;
         index index.html;
 
-        location = /index.html {
-            etag on;
-            add_header Cache-Control "no-cache, must-revalidate";
-        }
-
-        # wujie 子应用：/prompt/ 资源路径重写到根路径
-        # 独立运行时 HTML 引用 /prompt/static/js/xxx.js，重写为 /static/js/xxx.js
-        location /prompt/static/ {
-            rewrite ^/prompt/(.*)\$ /\$1 last;
-        }
-
-        location / {
-            try_files \$uri \$uri/ /index.html;
-        }
+${FRONTEND_ROUTES}
 
         # Backend API documentation
         location /api-docs {
