@@ -115,7 +115,7 @@ npm run dev:cn-release
 ### 构建部署
 
 ```bash
-# 构建生产版本
+# 构建生产版本，输出到 frontend/dist/micro-app-prompt/
 npm run build
 
 # 预览构建结果
@@ -124,6 +124,11 @@ npm run preview
 # 分析构建包大小
 npm run analyze
 ```
+
+生产环境将 `micro-app-prompt/` 发布到
+`/root/FrontendFiles/micro-app-prompt/`，并将
+`frontend/micro-app-prompt-conf.d/` 随主站 Nginx 配置部署。主应用通过同域
+`/prompt/` 加载静态资源，`/promptApi/` 代理 CozeLoop 后端。
 
 ## 🧪 测试与质量
 
