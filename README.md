@@ -121,18 +121,7 @@ The repository keeps one copy of the business code, Compose service definitions,
 - `release/deployment/docker-compose/env/common.env` for settings shared by both architectures.
 - `release/deployment/docker-compose/.env.local` for host-specific settings, loaded last as an override.
 
-Normally no architecture argument is needed. Use an explicit override only in CI or cross-build workflows:
-
-```Bash
-make start ARCH=amd64
-make start ARCH=arm64
-# Or use the convenience targets
-make start-amd64
-make start-arm64
-```
-
-> [!CAUTION]
-> `make compose-down-v-dev` removes Docker volumes and may delete database and object-storage data. Do not use it for routine service operations.
+AMD64 and ARM64 both use `make start` directly, with identical build, deployment, status, and log commands. `make stop` preserves the MySQL, Redis, ClickHouse, and MinIO volumes.
 
 > [!WARNING]
 > If you want to deploy Coze Loop in a public network environment, it is recommended to assess security risks before you begin, and take corresponding protection measures. Possible security risks include account registration functions, Coze Server listening address configurations, SSRF (Server - Side Request Forgery), and some horizontal privilege escalations in APIs.  For more details, refer to [Quickstart](https://github.com/coze-dev/coze-loop/wiki/2.-Quickstart#security-risks-in-public-networks).

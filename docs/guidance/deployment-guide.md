@@ -9,39 +9,30 @@
 
 ```
 release/deployment/docker-compose/
-├── .env                          # 环境变量（镜像版本、端口、密码等）
-├── docker-compose.yml            # 基础服务定义
-├── docker-compose-dev.yml        # 开发模式覆盖
-├── docker-compose-debug.yml      # 调试模式覆盖（含 Delve 远程调试）
+├── docker-compose.yml            # AMD64/ARM64 共用服务定义
+├── docker-compose-build.yml      # 本地源码构建覆盖
+├── env/
+│   ├── common.env                # 两种架构共用参数
+│   ├── amd64.env                 # AMD64 镜像选择
+│   └── arm64.env                 # ARM64 镜像选择
+├── .env.local                    # 当前服务器私有覆盖，不提交 Git
 ├── conf/
 │   └── model_config.yaml         # LLM 模型配置
 └── bootstrap/                    # 初始化脚本
 ```
 
-### 关键环境变量 (`.env`)
-
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `COZE_LOOP_APP_IMAGE_TAG` | `1.5.1` | 应用镜像版本 |
-| `COZE_LOOP_APP_OPENAPI_PORT` | `8888` | OpenAPI 端口 |
-| `COZE_LOOP_APP_DEBUG_PORT` | `40000` | 远程调试端口 |
-| `COZE_LOOP_PUBLIC_BASE_URL` | 空 | 返回给用户的公开 HTTP API Origin，例如 `https://gcs.example.com` |
-| `COZE_LOOP_REDIS_PORT` | `6379` | Redis 端口 |
-| `COZE_LOOP_REDIS_PASSWORD` | `cozeloop-redis` | Redis 密码 |
+首次部署先从 `.env.local.example` 复制本机覆盖文件，再填写本机地址和凭据。`make start` 通过 `uname -m` 自动加载 `common.env` 以及对应的 `amd64.env` 或 `arm64.env`，最后加载 `.env.local`。
 
 ### 常用 Makefile 命令
 
 | 命令 | 说明 |
 |------|------|
-| `make compose-up` | 启动基础服务 |
-| `make compose-down` | 停止基础服务 |
-| `make compose-down-v` | 停止并删除 volumes |
-| `make compose-up-dev` | 启动开发模式（含构建） |
-| `make compose-down-dev` | 停止开发模式 |
-| `make compose-up-debug` | 启动调试模式（含 Delve） |
-| `make compose-down-debug` | 停止调试模式 |
-| `make compose-restart-<svc>` | 重启指定基础服务 |
-| `make compose-restart-dev-<svc>` | 重启指定开发服务 |
+| `make start` | 自动识别 AMD64/ARM64，编译镜像并后台部署 |
+| `make stop` | 停止服务并保留数据卷 |
+| `make restart` | 重启后端应用容器 |
+| `make logs` | 查看最近 200 行并持续跟踪日志 |
+| `make status` | 查看全部容器状态 |
+| `make config` | 显示识别到的架构并校验最终 Compose 配置 |
 
 ### 访问地址
 
@@ -49,7 +40,7 @@ release/deployment/docker-compose/
 
 ### 公开 API Base URL
 
-生产环境应在 `.env` 中显式设置用户真正能够访问的地址：
+生产环境应在 `.env.local` 中显式设置用户真正能够访问的地址：
 
 ```dotenv
 COZE_LOOP_PUBLIC_BASE_URL=https://gcs.example.com

@@ -60,10 +60,8 @@ Thrift 中没有 HTTP 注解的内部 RPC 不会出现在 OpenAPI 文档中。�
 `backend/api/apidocs/openapi.json` 是生成产物，不应手工编辑。IDL 或生成后的
 Router 发生变化却没有同步文档时，GitHub Actions 会使检查失败。
 
-`make compose-up-dev`、`make compose-up-dev-d` 和 `make compose-up-debug` 会在
-构建调试镜像前自动重新生成 OpenAPI 文档。生成失败时 Compose 不会继续启动，
-避免 Swagger UI 提供过期接口。普通 `make compose-up` 使用发布镜像及镜像内已
-生成的文档，不在启动时重新生成。
+`make start` 会在构建镜像前自动重新生成 OpenAPI 文档。生成失败时 Compose
+不会继续启动，避免 Swagger UI 提供过期接口。AMD64 与 ARM64 使用同一入口。
 
 ## 前端联调注意事项
 

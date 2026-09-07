@@ -34,7 +34,7 @@ COZE_LOOP_NGINX_DATA_VOLUME_NAME := $(or $(COZE_LOOP_NGINX_DATA_VOLUME_NAME),gcs
 
 # Operator-facing commands. The architecture is detected automatically; set
 # ARCH=amd64 or ARCH=arm64 only when an explicit override is required.
-.PHONY: check-deploy-arch start start-amd64 start-arm64 stop restart logs status config
+.PHONY: check-deploy-arch start stop restart logs status config
 
 check-deploy-arch:
 	@test "$(DEPLOY_ARCH)" != "unsupported" || (echo "Unsupported architecture: $(ARCH). Use ARCH=amd64 or ARCH=arm64." >&2; exit 1)
@@ -48,12 +48,6 @@ start: check-deploy-arch
 	  docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME); \
 	fi
 	docker compose $(COMPOSE_BUILD_ARGS) --profile "*" up --build --detach
-
-start-amd64:
-	@$(MAKE) --no-print-directory ARCH=amd64 start
-
-start-arm64:
-	@$(MAKE) --no-print-directory ARCH=arm64 start
 
 stop: check-deploy-arch
 	docker compose $(COMPOSE_BUILD_ARGS) --profile "*" down
@@ -141,142 +135,5 @@ image%:
 	    echo "  - 'image--login' logs in using IMAGE_REPOSITORY as the username."; \
 	    echo "  - 'image-<version>' pushes to $(IMAGE_REGISTRY)/$(IMAGE_REPOSITORY)/$(IMAGE_NAME)"; \
 	    echo "  - 'image-python-faas-bpush-<version>' pushes to $(IMAGE_REGISTRY)/$(IMAGE_REPOSITORY)/$(PYFAAS_IMAGE_NAME)"; \
-      	exit 1 ;; \
-	esac
-
-compose%:
-	@case "$*" in \
-	  -up-dev|-up-dev-d) \
-	    $(PYTHON) backend/script/openapi/generate.py || exit $$?; \
-	    detach=""; \
-	    if [ "$*" = "-up-dev-d" ]; then \
-	      detach="--detach"; \
-	    fi; \
-	    docker stop gcs-loop-nginx gcs-loop-app >/dev/null 2>&1 || true; \
-	    docker rm gcs-loop-nginx gcs-loop-app >/dev/null 2>&1 || true; \
-	    if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
-	      docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) || exit $$?; \
-	    fi; \
-	    docker compose \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
-	      $(COMPOSE_ENV_ARGS) \
-	      --profile "*" \
-	      up --build $$detach ;; \
-	  -restart-dev-*) \
-		svc="$*"; \
-		svc="$${svc#-restart-dev-}"; \
-		docker compose \
-		  -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          -f $(DOCKER_COMPOSE_BUILD_FILE) \
-		  $(COMPOSE_ENV_ARGS) \
-		  restart "$$svc" ;; \
-	  -logs-dev) \
-	    docker compose \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
-	      $(COMPOSE_ENV_ARGS) \
-	      --profile "*" \
-	      logs --follow --tail=200 ;; \
-	  -down-dev) \
-	    docker compose \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
-	      $(COMPOSE_ENV_ARGS) \
-	      --profile "*" \
-	      down || exit $$?; \
-	    if docker volume inspect $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) >/dev/null 2>&1; then \
-	      docker volume rm $(COZE_LOOP_NGINX_DATA_VOLUME_NAME) || exit $$?; \
-	    fi ;; \
-	  -down-v-dev) \
-	    docker compose \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_BUILD_FILE) \
-	      $(COMPOSE_ENV_ARGS) \
-	      --profile "*" \
-	      down -v ;; \
-	  -up-debug) \
-	    $(PYTHON) backend/script/openapi/generate.py || exit $$?; \
-	    docker volume rm ${COZE_LOOP_NGINX_DATA_VOLUME_NAME} 2>/dev/null || true; \
-	    docker compose \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-	      $(COMPOSE_ENV_ARGS) \
-	      --profile "*" \
-	      up --build  ;; \
-	  -restart-debug-*) \
-		svc="$*"; \
-		svc="$${svc#-restart-debug-}"; \
-		docker compose \
-		  -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-			-f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-		  $(COMPOSE_ENV_ARGS) \
-		  restart "$$svc" ;; \
-	  -down-debug) \
-	    docker compose \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-	      $(COMPOSE_ENV_ARGS) \
-	      --profile "*" \
-	      down ;; \
-	  -down-v-debug) \
-	    docker compose \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-	      -f $(DOCKER_COMPOSE_DIR)/docker-compose-debug.yml \
-	      $(COMPOSE_ENV_ARGS) \
-	      --profile "*" \
-	      down -v ;; \
-	  -up) \
-        docker volume rm ${COZE_LOOP_NGINX_DATA_VOLUME_NAME} 2>/dev/null || true; \
-        docker compose \
-          -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          $(COMPOSE_ENV_ARGS) \
-          --profile "*" \
-          up ;; \
-      -restart-*) \
-        svc="$*"; \
-        svc="$${svc#-restart-}"; \
-        docker compose \
-          -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          $(COMPOSE_ENV_ARGS) \
-          restart "$$svc" ;; \
-      -down) \
-        docker compose \
-          -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          $(COMPOSE_ENV_ARGS) \
-          --profile "*" \
-          down ;; \
-      -down-v) \
-        docker compose \
-          -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml \
-          $(COMPOSE_ENV_ARGS) \
-          --profile "*" \
-          down -v ;; \
-	  -help|*) \
-      	echo "Usage:"; \
-      	echo "  # Stable profile"; \
-      	echo "  make compose-up                   # Start base services"; \
-      	echo "  make compose-restart-<svc>        # Restart specific base service"; \
-      	echo "  make compose-down                 # Stop base services"; \
-      	echo "  make compose-down-v               # Stop base services and remove volumes"; \
-      	echo; \
-	      echo "  # Legacy source-build aliases"; \
-	      echo "  make compose-up-dev               # Build and start in the foreground"; \
-	      echo "  make compose-up-dev-d             # Same as make start"; \
-	      echo "  make compose-restart-dev-<svc>    # Restart a specific service"; \
-	      echo "  make compose-logs-dev             # Same as make logs"; \
-	      echo "  make compose-down-dev             # Same as make stop"; \
-	      echo "  make compose-down-v-dev           # Stop services and remove all volumes"; \
-      	echo; \
-      	echo "  # Debug profile"; \
-      	echo "  make compose-up-debug             # Start base + debug services (build)"; \
-      	echo "  make compose-restart-debug-<svc>  # Restart specific debug service"; \
-      	echo "  make compose-down-debug           # Stop base + debug services"; \
-      	echo "  make compose-down-v-debug         # Stop base + debug services and remove volumes"; \
-      	echo; \
-      	echo "Notes:"; \
-      	echo "  - '<svc>' means the name of a service in docker-compose.yml"; \
-      	echo "  - '--profile \"*\"' is only needed for 'up', not for 'down' or 'restart'."; \
-      	echo "  - If you used multiple -f files for 'up', use the same -f set for 'down' or 'restart'."; \
       	exit 1 ;; \
 	esac

@@ -32,7 +32,7 @@ Coze Loop 是一个开源的 LLM 评测与可观测性平台，提供 Prompt 开
 | 修改 IDL 后生成代码 | `docs/guidance/idl-codegen-guide.md` |
 | 修改数据库表结构 | 本文件「开发流程」→ Step 3-4 |
 | 添加新的 API 接口 | 本文件「开发流程」→ Step 1-2 → Step 6 |
-| 运行本地开发环境 | `make compose-up-dev` |
+| 运行本地开发环境 | `make start` |
 | 了解错误码定义规范 | 本文件「开发流程」→ Step 7 |
 | 执行 lint 检查 | `cd backend && golangci-lint run --config ../.github/.golangci.yaml --fix` |
 
@@ -155,10 +155,12 @@ Step 1: IDL 定义 → Step 2: 代码生成 → Step 3: MySQL Schema → Step 4:
 
 | 操作 | 命令 |
 |------|------|
-| 本地 dev 部署 | `make compose-up-dev` |
-| 本地 debug 部署（含 Delve） | `make compose-up-debug` |
-| 停止 dev | `make compose-down-dev` |
-| 停止并清理 volumes | `make compose-down-v-dev` |
+| 编译并部署（自动识别 AMD64/ARM64） | `make start` |
+| 停止并保留数据 | `make stop` |
+| 重启后端 | `make restart` |
+| 查看日志 | `make logs` |
+| 查看状态 | `make status` |
+| 校验最终 Compose 配置 | `make config` |
 
 ### PR 标题格式
 
