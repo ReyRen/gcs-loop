@@ -115,10 +115,10 @@ Thrift IDL 定义，是前后端的共享契约。修改 IDL 后需分别运行:
 
 | 目录 | 内容 |
 |------|------|
-| `release/image/` | Dockerfile（主服务, debug, python-faas） |
+| `release/image/` | Dockerfile（主服务、Python FaaS） |
 | `release/deployment/docker-compose/` | Docker Compose 本地部署 |
 
-Makefile 提供 `image-*`、`compose-*` 等快捷目标。
+Makefile 的部署入口统一为 `start`、`stop`、`restart`、`logs`、`status` 和 `config`，并自动识别 AMD64/ARM64；`image-*` 仅用于发布镜像。
 
 ## 横切关注点
 

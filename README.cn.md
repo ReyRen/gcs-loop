@@ -121,18 +121,7 @@ GCS_LOOP_BACKEND_ONLY=true
 - `release/deployment/docker-compose/env/common.env`：两种架构共用的服务参数。
 - `release/deployment/docker-compose/.env.local`：当前服务器私有参数，最后加载并覆盖前面的配置。
 
-一般无需手动指定架构。仅在 CI 或交叉构建时使用：
-
-```Bash
-make start ARCH=amd64
-make start ARCH=arm64
-# 或使用快捷目标
-make start-amd64
-make start-arm64
-```
-
-> [!CAUTION]
-> `make compose-down-v-dev` 会删除 Docker 数据卷，可能清除数据库及对象存储数据，不应用于日常启停。
+AMD64 和 ARM64 都直接使用 `make start`，无需传架构参数；编译、部署、状态和日志入口完全一致。`make stop` 会保留 MySQL、Redis、ClickHouse 和 MinIO 数据卷。
 
 > [!WARNING]
 > 如果要将 Coze Loop 部署到公网环境，建议在部署前评估整体评估安全风险，例如账号注册功能、Coze Server 监听地址配置、SSRF 和部分 API 水平越权的风险，并采取相应防护措施。详细信息可参考[快速开始](https://github.com/coze-dev/coze-loop/wiki/2.-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B#%E5%85%AC%E7%BD%91%E5%AE%89%E5%85%A8%E9%A3%8E%E9%99%A9)。

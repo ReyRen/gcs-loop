@@ -295,7 +295,7 @@ Swagger 中应只出现本文件列出的五个 `optimize_tasks` 接口，不应
 
 ## 11. 执行并发与评分说明
 
-接口及轮询方式不变，前端不需要传并发参数。部署配置位于 `release/deployment/docker-compose/.env`：
+接口及轮询方式不变，前端不需要传并发参数。部署配置位于 `release/deployment/docker-compose/.env.local`：
 
 - `COZE_LOOP_PROMPT_OPTIMIZATION_WORKERS=6`：同时运行的优化任务数。
 - `COZE_LOOP_PROMPT_OPTIMIZATION_SAMPLE_CONCURRENCY=4`：每个任务每一轮同时评估的样本数，默认 4，范围 1–32；设置 1 即串行。修改后重新创建 app 容器生效。
