@@ -195,7 +195,10 @@ services:
     image: "${GCS_LOOP_MINIO_IMAGE}"
     restart: always
     networks:
-      - gcs-loop-network
+      gcs-loop-network:
+        aliases:
+          # Preserve the upstream hostname used by backend signed-URL logic.
+          - coze-loop-minio
     volumes:
       - minio_data:/minio_data # 挂载宿主机以持久化
       - minio_config:/root/.minio # 挂载宿主机以持久化
@@ -302,6 +305,7 @@ services:
       app:
         condition: service_healthy
     environment:
+      GCS_LOOP_BACKEND_ONLY: "${GCS_LOOP_BACKEND_ONLY:-false}"
       COZE_LOOP_OSS_PROTOCOL: "${COZE_LOOP_OSS_PROTOCOL}"
       COZE_LOOP_OSS_DOMAIN: "${COZE_LOOP_OSS_DOMAIN}"
       COZE_LOOP_OSS_PORT: "${COZE_LOOP_OSS_PORT}"

@@ -101,6 +101,17 @@ Run these commands from the repository root. They are the supported operator-fac
 
 > After changing backend code, dependencies, Docker configuration, or environment files, run `make start` again to rebuild and apply the changes. Use `make restart` only when code and configuration have not changed.
 
+#### Backend-only deployment
+
+For a host that only provides backend services, add the following settings to `release/deployment/docker-compose/.env.local`:
+
+```env
+GCS_LOOP_APP_BUILD_TARGET=backend-runtime
+GCS_LOOP_BACKEND_ONLY=true
+```
+
+Continue to use `make start`. This mode skips all Node/Rush frontend build stages and serves no UI. Nginx remains only as the `/api`, `/v1`, API documentation, and MinIO file gateway, so the existing service port and image URLs remain unchanged.
+
 #### AMD64 and ARM64
 
 The repository keeps one copy of the business code, Compose service definitions, and build flow. `make start` uses `uname -m` to select the appropriate configuration automatically:

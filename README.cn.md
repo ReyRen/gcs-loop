@@ -101,6 +101,17 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
 
 > 修改了后端代码、依赖、Docker 配置或环境文件后，请再次执行 `make start` 以重新构建和应用配置。仅在代码和配置未变更时使用 `make restart`。
 
+#### 仅后端部署
+
+如果当前机器只提供后端能力，在 `release/deployment/docker-compose/.env.local` 中增加：
+
+```env
+GCS_LOOP_APP_BUILD_TARGET=backend-runtime
+GCS_LOOP_BACKEND_ONLY=true
+```
+
+之后仍使用 `make start`。该模式不会构建 Node/Rush 前端产物，也不会提供 UI 页面；Nginx 仅作为 `/api`、`/v1`、API 文档和 MinIO 文件的网关，因此原有服务端口和图片访问地址保持不变。
+
 #### AMD64 与 ARM64
 
 仓库中的业务代码、Compose 服务定义和构建流程只保留一份。`make start` 会通过 `uname -m` 自动选择：
