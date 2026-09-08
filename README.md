@@ -88,6 +88,8 @@ Procedure:
 
 ### Service operations
 
+For an AMD64 or ARM64 air-gapped site, use [`offline/README.md`](offline/README.md) to build and install a complete bundle for that architecture. Offline startup loads only the packaged images, performs no build or online pull, and can optionally restore a source-server data snapshot.
+
 Run these commands from the repository root. They are the supported operator-facing entry points, so you do not need to remember the underlying Docker Compose file combinations.
 
 | Operation | Command | Description |
