@@ -23,7 +23,7 @@
 5. 如果要求携带全部数据，在一致性停机窗口内备份 Compose 使用的全部 named volume，包括 Redis、MySQL、ClickHouse、MinIO、RocketMQ、Nginx 资源及两个 FaaS 工作卷；完成后恢复源服务器服务并验证健康。如果不要求数据，只制作可初始化空白环境的包。
 6. 不复制 `/var/lib/docker`，不假设 Docker `data-root` 位于任何固定目录。现场数据必须由 Docker named volume 管理，备份和恢复通过 Docker volume 挂载完成。
 7. `offline` 复制到任意绝对路径都必须能启动。现场脚本只能根据自身目录使用 `offline/runtime/`，不能回头依赖源服务器外层源码，也不能写死 `/gcs-loop`、`/root`、`/opt` 或其他源服务器路径。
-8. 提供 `offline/site.env.example`，把现场必须填写的公开访问 URL、可选端口、外层反向代理、模型服务 Endpoint/API Key 等项目单独列出。不要把源服务器 `.env.local` 中的站点地址或私密覆盖直接复制到发布包。
+8. 提供 `offline/site.env.example`，以制作服务器当前已经验证的公开访问 URL 和端口作为例子，并说明现场地址不同时需要修改。`offline/runtime/` 中的模型配置默认完整沿用制作服务器的已验证配置；只有现场无法访问相同 Endpoint，或模型名称、API Key 不同时才由现场修改。不要在 README、清单或命令输出中展示凭据明文。
 9. 离线启动只能执行 `docker load` 和 `docker compose up --pull never`，不得触发源码构建、在线下载或镜像仓库访问。提供启动、停止、状态、日志和验收命令。
 10. 验收至少检查：所有镜像架构正确；10 个常驻容器健康；4 个初始化容器退出码为 0；Nginx 到后端 API 的网关链路正常；外部 Web/API 地址可访问；如携带数据，再抽查 MySQL、Redis、ClickHouse 和 MinIO 数据。
 11. 生成清单，记录源码提交、架构、镜像标签/Image ID/大小、是否包含数据和归档文件大小。不需要生成 SHA 校验文件。
