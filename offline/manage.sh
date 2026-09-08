@@ -2,7 +2,15 @@
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-PROJECT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+SOURCE_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+RUNTIME_ROOT="$SCRIPT_DIR/runtime"
+if [ -d "$SOURCE_ROOT/.git" ] && [ -f "$SOURCE_ROOT/release/deployment/docker-compose/docker-compose.yml" ]; then
+  PROJECT_ROOT="$SOURCE_ROOT"
+elif [ -f "$RUNTIME_ROOT/release/deployment/docker-compose/docker-compose.yml" ]; then
+  PROJECT_ROOT="$RUNTIME_ROOT"
+else
+  PROJECT_ROOT="$SOURCE_ROOT"
+fi
 COMPOSE_DIR="$PROJECT_ROOT/release/deployment/docker-compose"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 COMMON_ENV="$COMPOSE_DIR/env/common.env"
@@ -35,19 +43,8 @@ gcs-loop-minio-init
 gcs-loop-rmq-init
 "
 
-# Only persistent service state is backed up. The Nginx resource volume and
-# FaaS workspaces are generated again from the packaged images.
-DATA_VOLUMES="
-coze-loop_redis_data:redis
-coze-loop_mysql_data:mysql
-coze-loop_clickhouse_data:clickhouse
-coze-loop_minio_data:minio-data
-coze-loop_minio_config:minio-config
-coze-loop_rmqnamesrv_data:rocketmq-namesrv
-coze-loop_rocketmq_broker_data:rocketmq-broker
-"
-
 DEPLOY_ENV=""
+DATA_VOLUMES=""
 
 die() {
   echo "ERROR: $*" >&2
@@ -81,6 +78,25 @@ select_deploy_env() {
 select_helper_image() {
   HELPER_IMAGE=$(sed -n 's/^GCS_LOOP_APP_IMAGE=//p' "$ARCH_ENV" "$DEPLOY_ENV" | tail -n 1)
   [ -n "$HELPER_IMAGE" ] || die "GCS_LOOP_APP_IMAGE is not configured"
+}
+
+select_data_volumes() {
+  nginx_volume=$(sed -n 's/^COZE_LOOP_NGINX_DATA_VOLUME_NAME=//p' "$COMMON_ENV" "$DEPLOY_ENV" | tail -n 1)
+  [ -n "$nginx_volume" ] || die "COZE_LOOP_NGINX_DATA_VOLUME_NAME is not configured"
+  # Include every named volume used by the Compose stack, including generated
+  # resources and workspaces, so the offline copy can reproduce the full host.
+  DATA_VOLUMES="
+coze-loop_redis_data:redis
+coze-loop_mysql_data:mysql
+coze-loop_clickhouse_data:clickhouse
+coze-loop_minio_data:minio-data
+coze-loop_minio_config:minio-config
+coze-loop_rmqnamesrv_data:rocketmq-namesrv
+coze-loop_rocketmq_broker_data:rocketmq-broker
+$nginx_volume:nginx
+coze-loop_python_faas_workspace:python-faas
+coze-loop_js_faas_workspace:js-faas
+"
 }
 
 check_host() {
@@ -117,6 +133,7 @@ prepare_deployment() {
   check_host
   select_deploy_env
   select_helper_image
+  select_data_volumes
   check_site_url
   compose --profile '*' config --quiet
 }
@@ -246,7 +263,7 @@ backup_data() {
     restart_after_backup=1
   fi
 
-  echo "Backing up seven persistent named volumes..."
+  echo "Backing up all ten Compose named volumes..."
   run_data_container read 'cd /volumes && tar -czf - .' > "$tmp"
   gzip -t "$tmp" || die "generated data archive failed validation"
   mv "$tmp" "$DATA_ARCHIVE"
@@ -327,6 +344,8 @@ write_manifest() {
     echo "platform=linux/$DEPLOY_ARCH"
     echo "docker_server=$(docker version --format '{{.Server.Version}}')"
     echo "compose_version=$(docker compose version --short)"
+    echo "runtime_directory=runtime"
+    [ ! -d "$RUNTIME_ROOT" ] || echo "runtime_directory_size=$(du -sh "$RUNTIME_ROOT" | awk '{print $1}')"
     echo
     echo "runtime_images:"
     for image in $(image_list); do
@@ -336,49 +355,46 @@ write_manifest() {
     echo "archives:"
     [ ! -f "$IMAGE_ARCHIVE" ] || echo "  $(basename "$IMAGE_ARCHIVE") | $(wc -c < "$IMAGE_ARCHIVE" | tr -d ' ') bytes"
     [ ! -f "$DATA_ARCHIVE" ] || echo "  $(basename "$DATA_ARCHIVE") | $(wc -c < "$DATA_ARCHIVE" | tr -d ' ') bytes"
+    echo
+    echo "data_volumes:"
+    for spec in $DATA_VOLUMES; do
+      echo "  ${spec%%:*}"
+    done
   } > "$MANIFEST"
 }
 
 build_bundle() {
-  output_dir=${1:-}
-  include_data=${2:-}
-  [ -n "$output_dir" ] || die "usage: $0 bundle OUTPUT_DIRECTORY [--include-data]"
-  [ -d "$PROJECT_ROOT/.git" ] || die "bundle creation requires a Git checkout"
-  [ -z "$(git -C "$PROJECT_ROOT" status --porcelain --untracked-files=no)" ] || die "commit tracked changes before creating a bundle"
+  include_data=${1:-}
+  [ -z "$include_data" ] || [ "$include_data" = "--include-data" ] || die "usage: $0 bundle [--include-data]"
+  [ -d "$SOURCE_ROOT/.git" ] || die "bundle creation requires offline/ inside a Git checkout"
+  [ -z "$(git -C "$SOURCE_ROOT" status --porcelain --untracked-files=no)" ] || die "commit tracked changes before creating a bundle"
 
   export_images
   if [ "$include_data" = "--include-data" ]; then
     backup_data
-  elif [ -n "$include_data" ]; then
-    die "unknown bundle option: $include_data"
+    verify_services
+  else
+    rm -f "$DATA_ARCHIVE"
   fi
-  write_manifest
 
   require_command tar
-  mkdir -p "$output_dir"
   stage=$(mktemp -d)
   cleanup_bundle() {
     rm -rf "$stage"
   }
   trap cleanup_bundle EXIT HUP INT TERM
-  mkdir -p "$stage/gcs-loop"
-  git -C "$PROJECT_ROOT" archive --format=tar --output "$stage/source.tar" HEAD
-  tar -xf "$stage/source.tar" -C "$stage/gcs-loop"
+  mkdir -p "$stage/runtime"
+  git -C "$SOURCE_ROOT" archive --format=tar --output "$stage/source.tar" HEAD
+  tar -xf "$stage/source.tar" -C "$stage/runtime"
   rm -f "$stage/source.tar"
-  cp "$IMAGE_ARCHIVE" "$MANIFEST" "$stage/gcs-loop/offline/"
-  if [ "$include_data" = "--include-data" ]; then
-    cp "$DATA_ARCHIVE" "$stage/gcs-loop/offline/"
-  fi
-
-  name="gcs-loop-offline-$DEPLOY_ARCH-$(date '+%Y%m%d').tar.gz"
-  tmp="$output_dir/$name.tmp.$$"
-  final="$output_dir/$name"
-  tar -czf "$tmp" -C "$stage" gcs-loop
-  tar -tzf "$tmp" >/dev/null
-  mv "$tmp" "$final"
+  rm -rf "$stage/runtime/offline"
+  rm -rf "$RUNTIME_ROOT"
+  mv "$stage/runtime" "$RUNTIME_ROOT"
+  write_manifest
   trap - EXIT HUP INT TERM
   cleanup_bundle
-  echo "Created $final"
+  echo "Offline directory is self-contained: $SCRIPT_DIR"
+  echo "Copy the entire offline directory to the target site."
 }
 
 install_bundle() {
@@ -409,8 +425,7 @@ Site commands:
 Bundle-maintainer commands:
   export-images             Export the exact configured images for this host architecture
   backup-data               Briefly stop the stack and snapshot persistent named volumes
-  bundle DIR [--include-data]
-                            Create a portable outer archive in DIR
+  bundle [--include-data]   Populate this offline directory as a self-contained delivery
 EOF
 }
 
@@ -427,7 +442,7 @@ case "$command" in
   verify) verify_services ;;
   export-images) export_images ;;
   backup-data) backup_data ;;
-  bundle) build_bundle "${1:-}" "${2:-}" ;;
+  bundle) build_bundle "${1:-}" ;;
   help|-h|--help) usage ;;
   *) usage >&2; die "unknown command: $command" ;;
 esac
