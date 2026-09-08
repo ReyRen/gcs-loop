@@ -20,6 +20,8 @@ offline/
 
 镜像文件是一个 `docker save` gzip 归档，包含当前 Compose 实际需要的全部运行镜像。数据文件包含该栈使用的全部 10 个 Docker named volume：Redis、MySQL、ClickHouse、MinIO 数据与配置、RocketMQ NameServer 与 Broker、Nginx 资源，以及 Python/JavaScript FaaS 工作卷。
 
+镜像和数据是两套独立内容：`docker load` 只加载镜像，不会恢复 named volume。执行 `install --restore-data` 时，脚本会按 Compose 使用的固定卷名创建空卷，再把 `gcs-loop-data.tar.gz` 中备份的实际文件恢复到对应卷中。
+
 `runtime/` 来自当前 Git 提交，排除 `.git` 和嵌套的 `offline/`，包含运行所需的源码、Compose、配置和初始化脚本。现场的 `manage.sh` 只使用同目录下的 `runtime/`、镜像归档和数据归档，不依赖原服务器上的任何其他文件。
 
 Docker 负责选择 named volume 的实际存储位置。脚本不会读取、复制或写死 `/var/lib/docker`，所以 Docker 的 `data-root` 位于系统盘、`/data` 或其他挂载磁盘都可以。所有文件路径都根据 `manage.sh` 自身位置计算，整个 `offline` 放到任意绝对路径均可。
@@ -63,9 +65,9 @@ vi site.env
 
 现场人员需要处理：
 
-1. 将 `COZE_LOOP_PUBLIC_BASE_URL` 改为用户实际访问地址，例如 `https://gcs-loop.example.local`。
+1. 模板沿用 43 当前已经验证的 `COZE_LOOP_PUBLIC_BASE_URL=http://172.18.127.43:8082` 作为示例。现场地址不同才修改 IP、域名或协议。
 2. 默认端口冲突时，在 `site.env` 中启用相应端口覆盖。
-3. 根据现场模型服务编辑 `runtime/release/deployment/docker-compose/conf/model_config.yaml`，填写本地模型 Endpoint、模型名和 API Key。
+3. `runtime/release/deployment/docker-compose/conf/model_config.yaml` 默认完整沿用制作服务器已经验证的模型配置。本 ARM 包与 43 当前运行配置一致；现场无法访问其中的模型 Endpoint，或者模型名称、API Key 不同时才修改。
 4. 使用外层 Nginx/TLS 时，配置证书以及到本机 `8082` 的转发，确保 `/api`、`/v1` 和对象文件路径都转发到 GCS Loop Nginx。
 5. 确认现场时钟正确，避免 MinIO 签名 URL 因时间偏差失效。
 
@@ -82,7 +84,7 @@ vi site.env
 ./manage.sh install --restore-data
 ```
 
-安装过程只执行镜像加载、named volume 数据恢复和 `docker compose up --pull never`，不会构建或联网拉取。数据恢复只允许写入空的 named volume，避免覆盖现场已有数据。
+安装过程先用 `docker load` 加载镜像，再创建 Compose 使用的 named volume，并从 `gcs-loop-data.tar.gz` 恢复卷内数据，最后执行 `docker compose up --pull never`。它不会构建或联网拉取。数据恢复只允许写入空的 named volume，避免覆盖现场已有数据。
 
 安装结束时会验证：
 
