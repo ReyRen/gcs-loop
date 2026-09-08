@@ -29,6 +29,7 @@ COMPOSE_ENV_ARGS += --env-file $(DOCKER_COMPOSE_LOCAL_ENV)
 endif
 COMPOSE_BASE_ARGS := -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml $(COMPOSE_ENV_ARGS)
 COMPOSE_BUILD_ARGS := -f $(DOCKER_COMPOSE_DIR)/docker-compose.yml -f $(DOCKER_COMPOSE_BUILD_FILE) $(COMPOSE_ENV_ARGS)
+RUNTIME_SERVICES := app redis mysql clickhouse minio rocketmq-namesrv rocketmq-broker nginx gcs-loop-python-faas gcs-loop-js-faas
 
 COZE_LOOP_NGINX_DATA_VOLUME_NAME := $(or $(COZE_LOOP_NGINX_DATA_VOLUME_NAME),gcs-loop-nginx-data)
 
@@ -56,6 +57,7 @@ stop: check-deploy-arch
 	fi
 
 restart: check-deploy-arch
+	docker compose $(COMPOSE_BUILD_ARGS) --profile "*" up --detach --no-build --no-deps $(RUNTIME_SERVICES)
 	docker compose $(COMPOSE_BUILD_ARGS) restart app
 
 logs: check-deploy-arch

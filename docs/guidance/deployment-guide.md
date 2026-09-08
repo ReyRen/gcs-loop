@@ -29,7 +29,7 @@ release/deployment/docker-compose/
 |------|------|
 | `make start` | 自动识别 AMD64/ARM64，编译镜像并后台部署 |
 | `make stop` | 停止服务并保留数据卷 |
-| `make restart` | 重启后端应用容器 |
+| `make restart` | 无构建地协调常驻容器配置，并重启后端应用；不重复执行初始化容器 |
 | `make logs` | 查看最近 200 行并持续跟踪日志 |
 | `make status` | 查看全部容器状态 |
 | `make config` | 显示识别到的架构并校验最终 Compose 配置 |
