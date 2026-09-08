@@ -1,118 +1,114 @@
 # GCS Loop 离线发布与部署
 
-`offline/` 是 GCS Loop 在 AMD64 和 ARM64 服务器上共用的离线发布入口。230 上的 x86 源码作为主要功能更新和 x86 发布基线；43/44 上的 ARM 环境保存对应适配版本，GCS Loop 同时保留源码、Compose 和初始化文件。需要离线交付时，在目标架构已经验证的服务器上制作该架构的包。
+`offline/` 是完整交付单元。制作完成后只需要带走整个 `offline` 目录，不需要同时复制源服务器外层的 `gcs-loop` 目录。
 
-当前目录长期保留以下文件：
+230 上的 x86 源码是主要功能更新和 x86 发布基线；43/44 上的 ARM 环境保存对应适配版本。需要离线交付时，在已经完成部署和业务验证的目标架构服务器上执行打包。脚本不会重新编译代码，只收集当前已经验证的源码、镜像和数据。
 
-- `PROMPT.md`：交给后续执行人员或 Codex 的完整离线打包需求。
-- `manage.sh`：镜像导出、可选数据备份、离线安装、启动和验收入口。
-- `site.env.example`：现场必须复制并填写的配置模板。
-
-本次只建立离线目录与流程时，不需要编译、导出镜像或生成发布包。真正提出离线交付要求后，再在对应架构服务器执行打包命令。
-
-## 发布包结构
-
-脚本根据 `uname -m` 自动选择 `amd64.env` 或 `arm64.env`，发布包解压后保持以下结构：
+## 完成后的目录
 
 ```text
-gcs-loop/
-├── offline/
-│   ├── PROMPT.md
-│   ├── manage.sh
-│   ├── site.env.example
-│   ├── manifest.txt
-│   ├── gcs-loop-images-<amd64|arm64>.tar.gz
-│   └── gcs-loop-data.tar.gz             # 要求携带源服务器数据时存在
-├── release/deployment/docker-compose/
-└── ...                                  # 与镜像对应的完整源码和部署文件
+offline/
+├── runtime/                           # 与当前提交一致的完整可部署 GCS Loop 文件
+├── gcs-loop-images-<amd64|arm64>.tar.gz
+├── gcs-loop-data.tar.gz               # 要求携带数据时存在
+├── manifest.txt
+├── manage.sh
+├── site.env.example
+├── PROMPT.md
+└── README.md
 ```
 
-镜像文件是一个 `docker save` 压缩归档，包含当前 Compose 所需的全部运行镜像。数据文件包含 Redis、MySQL、ClickHouse、MinIO 和 RocketMQ 的 7 个持久化 named volume。Nginx 静态资源卷和两个 FaaS 临时工作卷由镜像重新生成。
+镜像文件是一个 `docker save` gzip 归档，包含当前 Compose 实际需要的全部运行镜像。数据文件包含该栈使用的全部 10 个 Docker named volume：Redis、MySQL、ClickHouse、MinIO 数据与配置、RocketMQ NameServer 与 Broker、Nginx 资源，以及 Python/JavaScript FaaS 工作卷。
 
-Docker 负责选择 named volume 的实际存储位置。脚本不会读取、复制或写死 `/var/lib/docker`，所以 Docker 把数据放在系统盘或其他挂载磁盘都可以。所有项目文件路径都根据 `manage.sh` 自身位置计算，`gcs-loop` 解压到 `/opt`、`/data` 或其他目录均可。
+`runtime/` 来自当前 Git 提交，排除 `.git` 和嵌套的 `offline/`，包含运行所需的源码、Compose、配置和初始化脚本。现场的 `manage.sh` 只使用同目录下的 `runtime/`、镜像归档和数据归档，不依赖原服务器上的任何其他文件。
+
+Docker 负责选择 named volume 的实际存储位置。脚本不会读取、复制或写死 `/var/lib/docker`，所以 Docker 的 `data-root` 位于系统盘、`/data` 或其他挂载磁盘都可以。所有文件路径都根据 `manage.sh` 自身位置计算，整个 `offline` 放到任意绝对路径均可。
+
+## 制作 ARM64 离线目录
+
+在已经验证的 ARM64 GCS Loop 源码根目录执行：
+
+```bash
+./offline/manage.sh bundle --include-data
+```
+
+执行过程：
+
+1. 根据 `uname -m` 选择 `arm64.env`。
+2. 将 Compose 需要的全部 ARM64 运行镜像导出成一个压缩文件。
+3. 短暂停止服务，完整备份 10 个 named volume，然后重新启动并验证源服务。
+4. 从当前 Git 提交生成自包含的 `offline/runtime/`。
+5. 写入镜像、数据、源码提交和架构清单。
+
+完成后直接复制整个 `offline/` 目录。
 
 ## 现场必须准备
 
-- Linux 架构必须与发布包一致：`x86_64/amd64` 使用 AMD64 包，`aarch64/arm64` 使用 ARM64 包。
+- Linux 架构必须与包一致：ARM64 包要求 `uname -m` 为 `aarch64` 或 `arm64`。
 - 已启动的 Docker Engine，以及 `docker compose` v2 插件。
-- 至少 15 GB 可用磁盘空间，用于压缩包、已加载镜像、容器可写层和业务数据增长。
+- 至少 15 GB 可用磁盘空间，用于离线目录、已加载镜像、容器可写层和数据增长。
 - 默认端口无冲突：Web/API `8082`、后端 OpenAPI `8888`、MySQL 宿主机端口 `13306`。
-- 浏览器与其他 GCS 服务可访问的 HTTP/HTTPS 地址。
+- 浏览器与其他 GCS 服务能够访问现场配置的 HTTP/HTTPS 地址。
 
 NPU、Ascend Runtime 和模型推理驱动不是 GCS Loop 基础栈的启动依赖。模型调用仍需要现场可访问的模型服务。
 
 ## 现场单独配置
 
-1. 复制站点配置：
-
-   ```bash
-   cp offline/site.env.example offline/site.env
-   vi offline/site.env
-   ```
-
-2. 将 `COZE_LOOP_PUBLIC_BASE_URL` 改为用户实际访问地址，例如 `https://gcs-loop.example.local`。如果使用外层 Nginx/TLS，也填写外层最终地址。
-3. 如默认端口冲突，在 `offline/site.env` 中启用相应端口覆盖。
-4. 根据现场模型服务编辑 `release/deployment/docker-compose/conf/model_config.yaml`，填写本地模型 Endpoint、模型名和 API Key。
-5. 如使用外层反向代理，由现场配置 TLS 证书及到本机 `8082` 的转发，并确保 `/api`、`/v1` 和对象文件路径均转发到 GCS Loop Nginx。
-
-公共环境文件中已经包含整套内部服务一致使用的数据库和对象存储凭据。携带源服务器数据恢复时不要只改单侧密码；如现场必须更换，应同时修改存储服务账号与应用连接配置。
-
-## 解压和安装
-
-压缩包可以解压到任意目录：
+进入复制后的 `offline` 目录：
 
 ```bash
-mkdir -p /data/apps
-tar -xzf gcs-loop-offline-<amd64|arm64>-YYYYMMDD.tar.gz -C /data/apps
-cd /data/apps/gcs-loop
-cp offline/site.env.example offline/site.env
-vi offline/site.env
+cp site.env.example site.env
+vi site.env
 ```
 
-恢复包内的源服务器数据并启动：
+现场人员需要处理：
+
+1. 将 `COZE_LOOP_PUBLIC_BASE_URL` 改为用户实际访问地址，例如 `https://gcs-loop.example.local`。
+2. 默认端口冲突时，在 `site.env` 中启用相应端口覆盖。
+3. 根据现场模型服务编辑 `runtime/release/deployment/docker-compose/conf/model_config.yaml`，填写本地模型 Endpoint、模型名和 API Key。
+4. 使用外层 Nginx/TLS 时，配置证书以及到本机 `8082` 的转发，确保 `/api`、`/v1` 和对象文件路径都转发到 GCS Loop Nginx。
+5. 确认现场时钟正确，避免 MinIO 签名 URL 因时间偏差失效。
+
+公共环境文件包含整套内部服务一致使用的数据库和对象存储凭据。恢复源服务器数据时不要只改单侧密码；如现场必须更换，应同时修改存储服务账号与应用连接配置。
+
+## 现场恢复和启动
+
+`offline` 可以放在任何目录，例如：
 
 ```bash
-./offline/manage.sh install --restore-data
+cd /data/apps/gcs-loop-offline
+cp site.env.example site.env
+vi site.env
+./manage.sh install --restore-data
 ```
 
-只初始化一套空白环境：
+安装过程只执行镜像加载、named volume 数据恢复和 `docker compose up --pull never`，不会构建或联网拉取。数据恢复只允许写入空的 named volume，避免覆盖现场已有数据。
 
-```bash
-./offline/manage.sh install
-```
+安装结束时会验证：
 
-数据恢复只允许写入空的 named volume，避免误覆盖现场已有数据。如果目标主机已有同名 GCS Loop 数据卷，应先备份并清理旧部署，或另行制定数据合并方案。
-
-安装结束时脚本会验证 10 个常驻容器健康、4 个初始化容器退出码为 0，并通过 Nginx 读取后端 OpenAPI 文档以检查网关链路。
+- 镜像架构与现场主机一致。
+- 10 个常驻容器全部健康。
+- 4 个初始化容器退出码为 0。
+- Nginx 到后端 API 的网关链路正常。
 
 ## 运维命令
 
 ```bash
-./offline/manage.sh status
-./offline/manage.sh logs
-./offline/manage.sh verify
-./offline/manage.sh stop
-./offline/manage.sh start
+./manage.sh status
+./manage.sh logs
+./manage.sh verify
+./manage.sh stop
+./manage.sh start
 ```
 
-`start` 永远使用包内镜像，带 `--pull never`，不会构建或联网拉取。`stop` 删除容器和网络但保留 named volume 数据。
+`start` 使用 `--pull never`，不会构建或联网拉取。`stop` 删除容器和网络，但保留全部 named volume 数据。
 
-## 制作发布包
+## x86 离线目录
 
-在已经完成对应架构编译、部署和业务验证的源服务器执行：
+在 230 的 x86 环境执行同一命令即可生成 AMD64 版本：
 
 ```bash
-# 只打包程序、部署文件和镜像
-./offline/manage.sh bundle /root/images
-
-# 同时携带当前服务器的持久化业务数据
-./offline/manage.sh bundle /root/images --include-data
+./offline/manage.sh bundle --include-data
 ```
 
-脚本不会编译代码。它导出当前 Compose 解析并已经存在的运行镜像；使用 `--include-data` 时会短暂停止服务以取得一致的数据快照，然后重新启动原服务。最终生成：
-
-```text
-/root/images/gcs-loop-offline-<amd64|arm64>-YYYYMMDD.tar.gz
-```
-
-镜像归档、可选数据归档和清单同时保留在当前源码的 `offline/` 目录，均被 Git 忽略，不会提交到源码仓库。
+脚本会自动改用 `amd64.env`，镜像文件名为 `gcs-loop-images-amd64.tar.gz`。AMD64 和 ARM64 的 `offline` 目录必须分别从对应架构服务器生成，不能混用。
