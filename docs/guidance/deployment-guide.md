@@ -34,6 +34,10 @@ release/deployment/docker-compose/
 | `make status` | 查看全部容器状态 |
 | `make config` | 显示识别到的架构并校验最终 Compose 配置 |
 
+### AMD64/ARM64 离线部署
+
+无互联网现场使用仓库根目录的 `offline/manage.sh`。脚本根据源服务器的 `x86_64/amd64` 或 `aarch64/arm64` 架构选择对应配置；发布包内含一个包含全部运行镜像的压缩归档，可选包含源服务器的持久化数据快照。脚本只通过 Docker API 操作 named volume，不依赖 `/var/lib/docker` 或其他固定 Docker `data-root`。制作、现场配置、恢复和验收步骤见 [`../../offline/README.md`](../../offline/README.md)。
+
 ### 访问地址
 
 - 应用: `http://localhost:8082`
