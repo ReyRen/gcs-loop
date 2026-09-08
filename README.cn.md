@@ -94,12 +94,12 @@ Coze Loop 通过提供全生命周期的管理能力，帮助开发者更高效�
 | --- | --- | --- |
 | 后台启动 | `make start` | 生成 OpenAPI 文档、构建镜像并后台启动服务 |
 | 停止服务 | `make stop` | 停止服务，保留 MySQL、Redis、ClickHouse 和 MinIO 数据 |
-| 重启后端 | `make restart` | 重启已运行的后端应用，不重新构建镜像 |
+| 应用配置并重启后端 | `make restart` | 无构建地协调常驻容器配置，然后重启后端应用 |
 | 查看日志 | `make logs` | 显示最近 200 行日志并持续跟踪；按 `Ctrl+C` 退出查看，不会停止服务 |
 | 查看状态 | `make status` | 查看各容器的运行状态 |
 | 检查配置 | `make config` | 显示自动识别的架构并校验最终 Compose 配置 |
 
-> 修改了后端代码、依赖、Docker 配置或环境文件后，请再次执行 `make start` 以重新构建和应用配置。仅在代码和配置未变更时使用 `make restart`。
+> 修改后端代码或依赖后，请执行 `make start` 重新构建。只修改 Docker 配置或环境文件时，执行 `make restart` 即可应用配置；该命令不会重新运行一次性初始化容器。
 
 #### 仅后端部署
 

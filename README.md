@@ -94,12 +94,12 @@ Run these commands from the repository root. They are the supported operator-fac
 | --- | --- | --- |
 | Start in the background | `make start` | Generate the OpenAPI document, build the images, and start the services in the background |
 | Stop | `make stop` | Stop the services while preserving MySQL, Redis, ClickHouse, and MinIO data |
-| Restart the backend | `make restart` | Restart the running backend application without rebuilding images |
+| Apply configuration and restart | `make restart` | Reconcile long-running containers without a build, then restart the backend |
 | Follow logs | `make logs` | Show the latest 200 log lines and continue following them; `Ctrl+C` exits log viewing without stopping services |
 | Show status | `make status` | Show the current state of all service containers |
 | Validate configuration | `make config` | Show the detected architecture and validate the final Compose configuration |
 
-> After changing backend code, dependencies, Docker configuration, or environment files, run `make start` again to rebuild and apply the changes. Use `make restart` only when code and configuration have not changed.
+> Run `make start` after backend code or dependency changes. When only Docker configuration or environment files change, run `make restart`; it applies the configuration without rerunning one-shot initialization containers.
 
 #### Backend-only deployment
 

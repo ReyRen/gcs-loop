@@ -157,7 +157,7 @@ Step 1: IDL 定义 → Step 2: 代码生成 → Step 3: MySQL Schema → Step 4:
 |------|------|
 | 编译并部署（自动识别 AMD64/ARM64） | `make start` |
 | 停止并保留数据 | `make stop` |
-| 重启后端 | `make restart` |
+| 应用常驻容器配置并重启后端 | `make restart` |
 | 查看日志 | `make logs` |
 | 查看状态 | `make status` |
 | 校验最终 Compose 配置 | `make config` |
