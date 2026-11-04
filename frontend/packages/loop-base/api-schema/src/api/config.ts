@@ -25,7 +25,7 @@ export interface ApiResponse {
   msg?: string;
 }
 
-function getBaseUrl() {
+export function getBaseUrl() {
   try {
     return process.env.API_SCHEMA_BASE_URL || '';
     // eslint-disable-next-line @coze-arch/use-error-in-catch -- no-catch

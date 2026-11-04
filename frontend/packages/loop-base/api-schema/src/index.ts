@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/naming-convention -- skip */
 export type { ApiOption, ApiResponse } from './api/config';
+export { getBaseUrl } from './api/config';
 export * from './api/idl';
 
 export { $notification, type ApiBizErrorEvent } from './notification';

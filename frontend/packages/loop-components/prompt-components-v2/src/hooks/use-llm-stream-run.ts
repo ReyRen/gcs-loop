@@ -12,7 +12,7 @@ import { type ParsedEvent } from 'eventsource-parser';
 import { I18n } from '@cozeloop/i18n-adapter';
 import { type ContentPartLoop } from '@cozeloop/components';
 import { ContentType, type DebugToolCall } from '@cozeloop/api-schema/prompt';
-import { promptDebug } from '@cozeloop/api-schema';
+import { getBaseUrl, promptDebug } from '@cozeloop/api-schema';
 import { fetchStream } from '@coze-arch/fetch-stream';
 import { Toast } from '@coze-arch/coze-design';
 import { useSmoothText } from '@bytedance/calypso';
@@ -200,10 +200,10 @@ export const useLLMStreamRun = (uid?: number, abortTeaSend?: () => void) => {
 
       return new Promise<LLMStreamResponse>((resolve, reject) => {
         fetchStream<ParsedEvent>(
-          promptDebug.DebugStreaming.meta.url.replace(
+          `${getBaseUrl()}${promptDebug.DebugStreaming.meta.url.replace(
             ':prompt_id',
             params.prompt?.id || 'playground',
-          ),
+          )}`,
           {
             method: 'POST',
             headers: {
