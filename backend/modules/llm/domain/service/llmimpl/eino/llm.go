@@ -43,7 +43,7 @@ func (l *LLM) Generate(ctx context.Context, input []*entity.Message, opts ...ent
 		}
 	}
 	// 请求模型
-	einoMsg, err := l.chatModel.Generate(ctx, entity.FromDOMessages(input), einoOpts...)
+	einoMsg, err := l.chatModel.Generate(ctx, entity.FromDOMessages(l.prepareMessages(input)), einoOpts...)
 	if err != nil {
 		return nil, errorx.NewByCode(llm_errorx.CallModelFailedCode, errorx.WithExtraMsg(err.Error()))
 	}
@@ -72,10 +72,28 @@ func (l *LLM) Stream(ctx context.Context, input []*entity.Message, opts ...entit
 		}
 	}
 	// 请求模型
-	einoSr, err := l.chatModel.Stream(ctx, entity.FromDOMessages(input), einoOpts...)
+	einoSr, err := l.chatModel.Stream(ctx, entity.FromDOMessages(l.prepareMessages(input)), einoOpts...)
 	if err != nil {
 		return nil, errorx.NewByCode(llm_errorx.CallModelFailedCode, errorx.WithExtraMsg(err.Error()))
 	}
 	// 解析模型返回结果
 	return entity.NewStreamReader(l.frame, einoSr), nil
+}
+
+func (l *LLM) prepareMessages(input []*entity.Message) []*entity.Message {
+	if l.protocol != entity.ProtocolOpenAI {
+		return input
+	}
+	messages := make([]*entity.Message, 0, len(input))
+	for _, msg := range input {
+		// The OpenAI SDK omits empty content strings. Ollama rejects these
+		// content-less template/history placeholders; keep media and tool turns.
+		if msg != nil && (msg.Role == entity.RoleSystem || msg.Role == entity.RoleUser || msg.Role == entity.RoleAssistant) &&
+			msg.Content == "" && msg.ReasoningContent == "" && len(msg.MultiModalContent) == 0 &&
+			len(msg.ToolCalls) == 0 && msg.ToolCallID == "" {
+			continue
+		}
+		messages = append(messages, msg)
+	}
+	return messages
 }
