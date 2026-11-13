@@ -50,24 +50,8 @@ import { SnippetUseageModal } from '../snippet-useage-modal';
 import { usePromptDevProviderContext } from '../prompt-develop/components/prompt-provider';
 import { PromptCreateModal } from '../prompt-create-modal';
 import VersionItem from './version-item';
-
-interface InvokeParam {
-  description?: string;
-  example?: string;
-  key?: string;
-  type?: string;
-  value_field?: string;
-}
-interface InvokeInfo {
-  curl?: string;
-  execute_endpoint?: string;
-  parameters?: InvokeParam[];
-  prompt_key?: string;
-  request_body?: string;
-  streaming_curl?: string;
-  streaming_execute_endpoint?: string;
-  version?: string;
-}
+import { OnlineTestPanel } from './online-test-panel';
+import { type InvokeInfo } from './invoke-types';
 
 export function VersionList() {
   const sendEvent = useReportEvent();
@@ -117,6 +101,7 @@ export function VersionList() {
   const [invokeVisible, setInvokeVisible] = useState(false);
   const [invokeData, setInvokeData] = useState<InvokeInfo>({});
   const [invokeLoading, setInvokeLoading] = useState(false);
+  const [invokeError, setInvokeError] = useState('');
   const [publicApiConfig, setPublicApiConfig] = useState<{
     host?: string;
     api_key?: string;
@@ -129,22 +114,36 @@ export function VersionList() {
     }
     setInvokeVisible(true);
     setInvokeData({});
+    setInvokeError('');
     setInvokeLoading(true);
     try {
       const baseUrl = process.env.API_SCHEMA_BASE_URL || '';
+      const promptId = encodeURIComponent(promptInfo.id);
       const version = encodeURIComponent(activeVersion);
       const wsId = encodeURIComponent(spaceID);
+      // 调用信息按已提交版本读取，使用登录态 Cookie
       const resp = await fetch(
-        `${baseUrl}/api/prompt/v1/prompts/${promptInfo.id}/commits/${version}/invoke_info?workspace_id=${wsId}`,
+        `${baseUrl}/api/prompt/v1/prompts/${promptId}/commits/${version}/invoke_info?workspace_id=${wsId}`,
         {
           headers: { 'Agw-Js-Conv': 'str' },
+          credentials: 'include',
         },
       );
-      const data: { invoke_info?: InvokeInfo } = await resp.json();
-      console.log(data, 1111);
-      setInvokeData(data.invoke_info ?? {});
+      const data: {
+        invoke_info?: InvokeInfo;
+        code?: number;
+        msg?: string;
+      } = await resp.json();
+      if (!resp.ok || data.code !== 0 || !data.invoke_info) {
+        setInvokeData({});
+        setInvokeError(
+          data.msg || I18n.t('prompt_online_test_invoke_info_failed'),
+        );
+        return;
+      }
+      setInvokeData(data.invoke_info);
 
-      // 调用 public_api_config 接口
+      // 调用 public_api_config 接口，用于兜底展示公开访问地址
       AuthApi.GetPublicApiConfig({
         workspace_id: spaceID,
       })
@@ -161,6 +160,7 @@ export function VersionList() {
       // eslint-disable-next-line @coze-arch/use-error-in-catch -- 异常时显示兜底文案
     } catch {
       setInvokeData({});
+      setInvokeError(I18n.t('prompt_online_test_invoke_info_failed'));
     } finally {
       setInvokeLoading(false);
     }
@@ -458,8 +458,12 @@ export function VersionList() {
         visible={invokeVisible}
         data={invokeData}
         loading={invokeLoading}
+        error={invokeError}
+        promptId={promptInfo?.id}
+        spaceID={spaceID}
         publicApiConfig={publicApiConfig}
         onClose={() => setInvokeVisible(false)}
+        onRetry={handleInvoke}
       />
     </div>
   );
@@ -469,22 +473,46 @@ interface InvokeModalProps {
   visible: boolean;
   data: InvokeInfo;
   loading: boolean;
+  error?: string;
+  promptId?: string;
+  spaceID?: string;
   publicApiConfig?: {
     host?: string;
     api_key?: string;
     base_url?: string;
   };
   onClose: () => void;
+  onRetry?: () => void;
 }
+
+type InvokeTab = 'sync' | 'stream' | 'body' | 'test';
 
 function InvokeModal({
   visible,
   data,
   loading,
+  error,
+  promptId,
+  spaceID,
   publicApiConfig,
   onClose,
+  onRetry,
 }: InvokeModalProps) {
-  const [tab, setTab] = useState<string>('sync');
+  const [tab, setTab] = useState<InvokeTab>('sync');
+  // 对外展示地址优先后端返回的 base_url
+  const baseUrl = data.base_url || publicApiConfig?.base_url;
+  const tabContents: Record<InvokeTab, string> = {
+    sync: data.curl || '',
+    stream: data.streaming_curl || '',
+    body: data.request_body || '',
+    test: '',
+  };
+  const tabs: { key: InvokeTab; label: string }[] = [
+    { key: 'sync', label: I18n.t('prompt_synchronous_call') },
+    { key: 'stream', label: I18n.t('prompt_streaming_call') },
+    { key: 'body', label: I18n.t('prompt_online_test_request_body') },
+    { key: 'test', label: I18n.t('prompt_online_test') },
+  ];
 
   return (
     <Modal
@@ -497,6 +525,13 @@ function InvokeModal({
       {loading ? (
         <div className="flex items-center justify-center h-[300px]">
           <Spin />
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center gap-3 py-10">
+          <Typography.Text type="danger">{error}</Typography.Text>
+          <Button onClick={onRetry}>
+            {I18n.t('prompt_online_test_retry')}
+          </Button>
         </div>
       ) : (
         <div
@@ -520,7 +555,7 @@ function InvokeModal({
             </Tooltip> */}
           </div>
 
-          {publicApiConfig?.base_url ? (
+          {baseUrl ? (
             <div>
               <Typography.Text strong>Base URL</Typography.Text>
               <div style={{ position: 'relative' }}>
@@ -533,7 +568,7 @@ function InvokeModal({
                       zIndex: 1,
                       cursor: 'pointer',
                     }}
-                    onClick={() => handleCopy(publicApiConfig.base_url || '')}
+                    onClick={() => handleCopy(baseUrl)}
                   />
                 </Tooltip>
                 <pre
@@ -547,7 +582,7 @@ function InvokeModal({
                     margin: '8px 0 0 0',
                   }}
                 >
-                  {publicApiConfig.base_url}
+                  {baseUrl}
                 </pre>
               </div>
             </div>
@@ -562,7 +597,13 @@ function InvokeModal({
                     <tr>
                       <th className="text-left p-2 font-medium">Key</th>
                       <th className="text-left p-2 font-medium">
+                        {I18n.t('prompt_online_test_description')}
+                      </th>
+                      <th className="text-left p-2 font-medium">
                         {I18n.t('type')}
+                      </th>
+                      <th className="text-left p-2 font-medium">
+                        {I18n.t('prompt_online_test_value_field')}
                       </th>
                       <th className="text-left p-2 font-medium">Example</th>
                     </tr>
@@ -571,8 +612,17 @@ function InvokeModal({
                     {data.parameters.map((p, i) => (
                       <tr key={i} className="border-t">
                         <td className="p-2 font-mono text-xs">{p.key}</td>
+                        <td className="p-2 text-xs">{p.description || '-'}</td>
                         <td className="p-2">
                           <Tag size="small">{p.type}</Tag>
+                        </td>
+                        <td className="p-2 text-xs">
+                          {p.value_field || 'value'}
+                          {p.type_tags?.length ? (
+                            <div className="coz-fg-secondary">
+                              {p.type_tags.join(', ')}
+                            </div>
+                          ) : null}
                         </td>
                         <td className="p-2 text-xs text-gray-500">
                           {p.example || '-'}
@@ -587,54 +637,56 @@ function InvokeModal({
 
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Button
-                size="small"
-                color={tab === 'sync' ? 'primary' : 'secondary'}
-                onClick={() => setTab('sync')}
-              >
-                {I18n.t('prompt_synchronous_call')}
-              </Button>
-              <Button
-                size="small"
-                color={tab === 'stream' ? 'primary' : 'secondary'}
-                onClick={() => setTab('stream')}
-              >
-                {I18n.t('prompt_streaming_call')}
-              </Button>
+              {tabs.map(item => (
+                <Button
+                  key={item.key}
+                  size="small"
+                  color={tab === item.key ? 'primary' : 'secondary'}
+                  onClick={() => setTab(item.key)}
+                >
+                  {item.label}
+                </Button>
+              ))}
             </div>
-            <div style={{ position: 'relative' }}>
-              <Tooltip content={I18n.t('copy')}>
-                <IconCozCopy
+            {tab === 'test' ? (
+              <OnlineTestPanel
+                invokeInfo={data}
+                visible={visible}
+                promptId={promptId}
+                spaceID={spaceID}
+              />
+            ) : (
+              <div style={{ position: 'relative' }}>
+                <Tooltip content={I18n.t('copy')}>
+                  <IconCozCopy
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      zIndex: 1,
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleCopy(tabContents[tab])}
+                  ></IconCozCopy>
+                </Tooltip>
+                <pre
                   style={{
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                    zIndex: 1,
+                    background: 'rgb(247, 247, 252)',
+                    borderRadius: 4,
+                    padding: '16px 60px 16px 16px',
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    overflow: 'auto',
+                    maxHeight: 300,
+                    margin: 0,
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all',
                   }}
-                  onClick={() =>
-                    handleCopy(
-                      tab === 'sync'
-                        ? data.curl || ''
-                        : data.streaming_curl || '',
-                    )
-                  }
-                ></IconCozCopy>
-              </Tooltip>
-              <pre
-                style={{
-                  background: 'rgb(247, 247, 252)',
-                  borderRadius: 4,
-                  padding: '16px 60px 16px 16px',
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                  overflow: 'auto',
-                  maxHeight: 300,
-                  margin: 0,
-                }}
-              >
-                {tab === 'sync' ? data.curl || '-' : data.streaming_curl || '-'}
-              </pre>
-            </div>
+                >
+                  {tabContents[tab] || '-'}
+                </pre>
+              </div>
+            )}
           </div>
         </div>
       )}
