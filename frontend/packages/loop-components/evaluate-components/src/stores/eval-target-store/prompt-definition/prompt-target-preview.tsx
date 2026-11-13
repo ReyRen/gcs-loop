@@ -41,7 +41,7 @@ export default function PromptTargetPreview(props: {
   const { name, version, prompt_id } =
     evalTarget?.eval_target_version?.eval_target_content?.prompt ?? {};
   const { getPromptDetailURL } = useResourcePageJump();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   return (
     <div className="flex">
       {showIcon ? PromptIcon : null}
@@ -53,7 +53,7 @@ export default function PromptTargetPreview(props: {
             return;
           }
           e.stopPropagation();
-          openBlank(getPromptDetailURL(prompt_id, version));
+          openSelf(getPromptDetailURL(prompt_id, version));
         }}
         enableLinkJump={enableLinkJump}
         jumpBtnClassName={jumpBtnClassName}

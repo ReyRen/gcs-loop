@@ -25,7 +25,7 @@ export function AnnotateItemCard({
   onDelete,
 }: Props) {
   const { getTagDetailURL } = useResourcePageJump();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   const removeTag = useRequest(
     (tagID: string) =>
       StoneEvaluationApi.DeleteAnnotationTag({
@@ -47,7 +47,7 @@ export function AnnotateItemCard({
               <Typography.Text
                 link
                 onClick={() => {
-                  openBlank(getTagDetailURL(data.tag_key_id || ''));
+                  openSelf(getTagDetailURL(data.tag_key_id || ''));
                 }}
               >
                 {I18n.t('detail')}

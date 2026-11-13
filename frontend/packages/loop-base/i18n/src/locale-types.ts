@@ -3494,6 +3494,51 @@ if __name__ == "__main__":
   (key: 'smart_optimization_example', fallbackText?: string): string;
   /** 创建任务 */
   (key: 'smart_optimization_create_task', fallbackText?: string): string;
+  /** 模型调用量预估 */
+  (key: 'smart_optimization_estimate_title', fallbackText?: string): string;
+  /** Prompt */
+  (key: 'smart_optimization_estimate_prompt', fallbackText?: string): string;
+  /** 源版本 */
+  (key: 'smart_optimization_estimate_source_version', fallbackText?: string): string;
+  /** 来源实验 */
+  (key: 'smart_optimization_estimate_source_expt', fallbackText?: string): string;
+  /** 已选样本 */
+  (key: 'smart_optimization_estimate_sample_count', fallbackText?: string): string;
+  /** {count} 条 */
+  (
+    key: 'smart_optimization_estimate_sample_value',
+    options?: {
+      /** string */ count: ReactNode;
+    },
+    fallbackText?: string,
+  ): string;
+  /** 基础调用量参考区间 */
+  (key: 'smart_optimization_estimate_range_title', fallbackText?: string): string;
+  /** {min}～{max} 次（参考） */
+  (
+    key: 'smart_optimization_estimate_range',
+    options?: {
+      /** string */ min: ReactNode;
+      /** string */ max: ReactNode;
+    },
+    fallbackText?: string,
+  ): string;
+  /** 当前为简化预估，不是调用上限。实际调用量可能更高；不代表 Token、费用或耗时。 */
+  (key: 'smart_optimization_estimate_desc', fallbackText?: string): string;
+  /** 返回修改 */
+  (key: 'smart_optimization_estimate_back', fallbackText?: string): string;
+  /** 确认并开始优化 */
+  (key: 'smart_optimization_estimate_confirm', fallbackText?: string): string;
+  /** 预估失败，请重试 */
+  (key: 'smart_optimization_estimate_failed', fallbackText?: string): string;
+  /** 预估结果异常，请重试 */
+  (key: 'smart_optimization_estimate_invalid', fallbackText?: string): string;
+  /** 创建结果尚未确认，请先查看该 Prompt 的优化任务列表 */
+  (key: 'smart_optimization_create_failed', fallbackText?: string): string;
+  /** 已完成（部分失败） */
+  (key: 'experiment_completed_with_partial_failure', fallbackText?: string): string;
+  /** 失败或部分失败 */
+  (key: 'failure_or_partial_failure', fallbackText?: string): string;
   (key: 'smart_optimization_optimize', fallbackText?: string): string;
   /** 实验对比发起失败 */
   (key: 'experiment_comparison_initiation_failure', fallbackText?: string): string;

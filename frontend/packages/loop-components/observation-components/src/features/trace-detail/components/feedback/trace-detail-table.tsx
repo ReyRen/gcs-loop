@@ -58,6 +58,7 @@ export const Source = ({
         }
         window.open(
           `${customParams?.baseURL}/${autoTaskRouterLink}/${annotation.auto_evaluate?.task_id}`,
+          '_self',
         );
       }}
     >

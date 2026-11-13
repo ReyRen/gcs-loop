@@ -186,7 +186,7 @@ export function LabelSelect(props: LabelSelectProps) {
               );
               window.open(
                 `${customParams?.baseURL ?? ''}/label-management/labels/create`,
-                '_blank',
+                '_self',
               );
             }}
           >

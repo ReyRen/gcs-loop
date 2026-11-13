@@ -36,7 +36,7 @@ export function AnnotationNameScoreTag({
   border = true,
 }: NameScoreTagProps) {
   const { getTagDetailURL } = useResourcePageJump();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   const borderClass = border
     ? 'border border-solid border-[var(--coz-stroke-primary)] cursor-pointer hover:bg-[var(--coz-mg-primary)] hover:border-[var(--coz-stroke-plus)]'
@@ -63,7 +63,7 @@ export function AnnotationNameScoreTag({
               <JumpIconButton
                 className={defaultShowAction ? '' : 'hidden group-hover:flex'}
                 onClick={() => {
-                  openBlank(getTagDetailURL(tagID || ''));
+                  openSelf(getTagDetailURL(tagID || ''));
                 }}
               />
             </div>

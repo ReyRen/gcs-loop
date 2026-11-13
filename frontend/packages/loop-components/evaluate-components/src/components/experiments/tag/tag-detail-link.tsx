@@ -9,12 +9,12 @@ import { IconCozLongArrowTopRight } from '@coze-arch/coze-design/icons';
 
 export function TagDetailLink({ tagKey }: { tagKey?: string }) {
   const { getTagDetailURL } = useResourcePageJump();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   return (
     <span
       className="cursor-pointer text-brand-7"
       onClick={() => {
-        openBlank(getTagDetailURL(tagKey || ''));
+        openSelf(getTagDetailURL(tagKey || ''));
       }}
     >
       {I18n.t('view_tag_details')}

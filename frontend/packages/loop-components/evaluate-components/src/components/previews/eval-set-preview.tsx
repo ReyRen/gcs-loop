@@ -21,7 +21,7 @@ export function EvaluationSetPreview({
   jumpBtnClassName?: string;
 }) {
   const { name, evaluation_set_version, id } = evalSet ?? {};
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   if (!evalSet) {
     return <>-</>;
@@ -36,7 +36,7 @@ export function EvaluationSetPreview({
       onClick={e => {
         if (enableLinkJump && id) {
           e.stopPropagation();
-          openBlank(`evaluation/datasets/${id}?version=${versionId}`);
+          openSelf(`evaluation/datasets/${id}?version=${versionId}`);
         }
       }}
     >

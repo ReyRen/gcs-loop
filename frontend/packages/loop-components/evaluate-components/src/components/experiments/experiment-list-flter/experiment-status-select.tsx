@@ -1,7 +1,7 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 import { I18n } from '@cozeloop/i18n-adapter';
-import { type ExptStatus } from '@cozeloop/api-schema/evaluation';
+import { ExptStatus } from '@cozeloop/api-schema/evaluation';
 import { Select, type SelectProps } from '@coze-arch/coze-design';
 
 import { ExperimentRunStatus } from '../previews/experiment-run-status';
@@ -17,7 +17,11 @@ interface OptionItem {
 const statusOptions = experimentRunStatusInfoList
   .filter(e => !e.hideInFilter)
   .map(item => ({
-    label: item.name,
+    // 失败筛选仍提交 status = 12，文案同时覆盖“部分失败”场景
+    label:
+      item.status === ExptStatus.Failed
+        ? I18n.t('failure_or_partial_failure')
+        : item.name,
     value: item.status,
   }));
 

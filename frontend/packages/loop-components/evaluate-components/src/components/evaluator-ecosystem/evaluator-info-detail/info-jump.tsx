@@ -21,7 +21,7 @@ export function InfoJump({ text, url, className }: InfoJumpProps) {
         icon={<IconCozLongArrowTopRight className="coz-fg-dim" />}
         onClick={e => {
           e.stopPropagation();
-          window.open(url);
+          window.open(url, '_self');
         }}
       />
     </div>

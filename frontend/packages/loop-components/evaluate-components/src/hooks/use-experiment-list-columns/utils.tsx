@@ -121,7 +121,7 @@ export function getExperimentColumns({
       title: I18n.t('status'),
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 140,
       render: (_, record: Experiment) => (
         <div onClick={e => e.stopPropagation()}>
           <ExperimentRunStatus
@@ -244,7 +244,7 @@ export function handleRetry({
       await StoneEvaluationApi.RetryExperiment({
         workspace_id: spaceID,
         expt_id: record.id ?? '',
-        retry_mode: ExptRetryMode.RetryAll,
+        retry_mode: ExptRetryMode.RetryFailure,
       });
       onRefresh?.();
     },

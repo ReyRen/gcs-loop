@@ -23,7 +23,11 @@ export default function RetryButton({
 }) {
   const [loading, setLoading] = useState(false);
   // 失败时展示重试
-  if (status === ExptStatus.Failed || status === ExptStatus.Terminated) {
+  if (
+    status === ExptStatus.Failed ||
+    status === ExptStatus.Terminated ||
+    status === ExptStatus.SystemTerminated
+  ) {
     const onClick = async () => {
       setLoading(true);
       Toast.info({
@@ -31,10 +35,11 @@ export default function RetryButton({
         icon: <></>,
         className: styles.toast,
       });
+      // 仅重试执行失败和未执行的样本，已成功的结果保留
       await StoneEvaluationApi.RetryExperiment({
         workspace_id: spaceID,
         expt_id,
-        retry_mode: ExptRetryMode.RetryAll,
+        retry_mode: ExptRetryMode.RetryFailure,
       });
       // TODO: 增加重试的时候语音PM没回复, 先给足够延时
       setTimeout(() => {

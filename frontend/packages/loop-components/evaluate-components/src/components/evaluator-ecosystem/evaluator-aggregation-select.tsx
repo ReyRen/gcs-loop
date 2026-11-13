@@ -34,7 +34,7 @@ import { getEvaluatorIcon } from '../../utils/evaluator';
 
 const genEvaluatorOption = (
   item: Evaluator,
-  openBlank: (url: string) => void,
+  openSelf: (url: string) => void,
 ) => ({
   value: item.evaluator_id,
   label: (
@@ -54,7 +54,7 @@ const genEvaluatorOption = (
               onClick={event => {
                 event.stopPropagation();
                 const url = getEvaluatorJumpUrlV2(item);
-                openBlank(url || '');
+                openSelf(url || '');
               }}
             >
               {I18n.t('view_detail')}
@@ -74,7 +74,7 @@ const genEvaluatorOption = (
 
 export function EvaluatorAggregationSelect(props: SelectProps) {
   const { spaceID } = useSpace();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   const { multiple } = props;
   const [activeTab, setActiveTab] = useState<'custom' | 'preset'>('custom');
 
@@ -91,7 +91,7 @@ export function EvaluatorAggregationSelect(props: SelectProps) {
       });
 
       const result =
-        res.evaluators?.map(item => genEvaluatorOption(item, openBlank)) || [];
+        res.evaluators?.map(item => genEvaluatorOption(item, openSelf)) || [];
 
       return result;
     },
@@ -114,7 +114,7 @@ export function EvaluatorAggregationSelect(props: SelectProps) {
         evaluator_ids: value as string[],
       });
       return (
-        res.evaluators?.map(item => genEvaluatorOption(item, openBlank)) || []
+        res.evaluators?.map(item => genEvaluatorOption(item, openSelf)) || []
       );
     },
     [spaceID],
@@ -211,7 +211,7 @@ export function EvaluatorAggregationSelect(props: SelectProps) {
                   <Menu.Item
                     className="min-w-[340px]"
                     onClick={() =>
-                      openBlank('/evaluation/evaluators/create/llm')
+                      openSelf('/evaluation/evaluators/create/llm')
                     }
                   >
                     <div className="flex flex-row items-center">
@@ -222,7 +222,7 @@ export function EvaluatorAggregationSelect(props: SelectProps) {
                   <Menu.Item
                     className="min-w-[340px]"
                     onClick={() =>
-                      openBlank(
+                      openSelf(
                         '/evaluation/evaluators/create/code?templateKey=custom&templateLang=Python',
                       )
                     }

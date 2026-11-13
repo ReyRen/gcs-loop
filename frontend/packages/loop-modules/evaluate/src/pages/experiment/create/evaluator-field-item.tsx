@@ -73,7 +73,7 @@ export function EvaluatorFieldItem(props: EvaluatorFieldItemProps) {
   const evaluatorPro = evaluatorProFieldState.value as EvaluatorPro;
   const evaluatorProApi = useFieldApi(arrayField.field);
 
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   const { evaluator } = evaluatorPro;
 
@@ -240,7 +240,7 @@ export function EvaluatorFieldItem(props: EvaluatorFieldItemProps) {
                           <OpenDetailText
                             className="absolute right-0 top-2.5"
                             url={jumpUrl}
-                            customOpen={() => openBlank(jumpUrl)}
+                            customOpen={() => openSelf(jumpUrl)}
                           />
                         ) : null}
                       </>

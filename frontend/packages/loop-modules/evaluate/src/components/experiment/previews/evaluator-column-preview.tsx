@@ -43,7 +43,7 @@ export default function EvaluatorColumnPreview({
     [evaluator, evaluator_version_id],
   );
 
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   if (!evaluator) {
     return <>-</>;
   }
@@ -55,7 +55,7 @@ export default function EvaluatorColumnPreview({
       onClick={e => {
         if (enableLinkJump && evaluator_id) {
           e.stopPropagation();
-          openBlank(jumpUrl);
+          openSelf(jumpUrl);
         }
       }}
     >

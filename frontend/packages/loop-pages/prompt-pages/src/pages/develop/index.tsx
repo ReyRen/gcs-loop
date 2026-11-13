@@ -34,7 +34,7 @@ export default function PromptDevelopPage() {
   const traceLogPannel = useModalData<string>();
   const smartOptimizationModal = useModalData();
   const navigate = useNavigateModule();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   useBreadcrumb({
     text: promptInfo?.prompt_basic?.display_name || '',
@@ -75,7 +75,7 @@ export default function PromptDevelopPage() {
             onClick: ({ debugId }) => traceLogPannel.open(debugId as string),
           },
           copyButton: {
-            onSuccess: ({ prompt }) => openBlank(`pe/prompts/${prompt?.id}`),
+            onSuccess: ({ prompt }) => openSelf(`pe/prompts/${prompt?.id}`),
           },
           deleteButton: {
             onSuccess: () => navigate('/pe/prompts'),

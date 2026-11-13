@@ -40,7 +40,7 @@ export function EvaluatorPreview({
 
   const jumpUrl = useMemo(() => getEvaluatorJumpUrlV2(evaluator), [evaluator]);
 
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   if (!evaluator) {
     return <>-</>;
   }
@@ -52,7 +52,7 @@ export function EvaluatorPreview({
       onClick={e => {
         if (enableLinkJump && evaluator_id) {
           e.stopPropagation();
-          openBlank(jumpUrl);
+          openSelf(jumpUrl);
         }
       }}
     >

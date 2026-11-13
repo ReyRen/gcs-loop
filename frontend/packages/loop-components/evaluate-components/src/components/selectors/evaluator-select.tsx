@@ -44,7 +44,7 @@ export function EvaluatorSelect(
 ) {
   const { spaceID } = useSpace();
   const { multiple, evaluatorTypes } = props;
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   const service = useRequest(async (text?: string) => {
     const res = await StoneEvaluationApi.ListEvaluators({
@@ -115,7 +115,7 @@ export function EvaluatorSelect(
               <Menu.SubMenu className="w-[174px]" mode="menu">
                 <Menu.Item
                   onClick={() => {
-                    openBlank('/evaluation/evaluators/create/llm');
+                    openSelf('/evaluation/evaluators/create/llm');
                   }}
                 >
                   <div className="flex flex-row items-center">
@@ -125,7 +125,7 @@ export function EvaluatorSelect(
                 </Menu.Item>
                 <Menu.Item
                   onClick={() => {
-                    openBlank(
+                    openSelf(
                       '/evaluation/evaluators/create/code?templateKey=custom&templateLang=Python',
                     );
                   }}
