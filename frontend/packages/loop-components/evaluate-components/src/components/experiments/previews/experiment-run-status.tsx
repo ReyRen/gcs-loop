@@ -1,18 +1,49 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
 import { I18n } from '@cozeloop/i18n-adapter';
-import { type Experiment, ExptStatus } from '@cozeloop/api-schema/evaluation';
+import {
+  type Experiment,
+  ExptStatus,
+  ExptType,
+} from '@cozeloop/api-schema/evaluation';
 import { Divider, Popover, Tag, type TagProps } from '@coze-arch/coze-design';
 
 import {
   type ExperimentRunStatusInfo,
   experimentRunStatusInfoList,
+  experimentPartialFailureStatusInfo,
 } from '../../../constants/experiment-status';
 
 const statusMap = experimentRunStatusInfoList.reduce(
   (prev, item) => ({ ...prev, [item.status]: item }),
   {} as unknown as Record<string | number, ExperimentRunStatusInfo>,
 );
+
+/**
+ * 已完成（部分失败）：任务已结束（status 仍为 Failed），
+ * 但同时存在成功样本与失败样本，且没有待执行、执行中或终止的样本。
+ */
+export function isPartialFailedExperiment(experiment?: Experiment): boolean {
+  const stats = experiment?.expt_stats;
+  const isOfflineFailed =
+    experiment?.status === ExptStatus.Failed &&
+    experiment.expt_type !== ExptType.Online;
+  if (!isOfflineFailed || !stats) {
+    return false;
+  }
+  const statCount = (value?: string) => Number(value ?? 0);
+  const success = statCount(stats.success_turn_cnt);
+  const failed = statCount(stats.fail_turn_cnt);
+  const total = statCount(experiment.total_item_count);
+  const unfinished =
+    statCount(stats.pending_turn_cnt) +
+    statCount(stats.processing_turn_cnt) +
+    statCount(stats.terminated_turn_cnt);
+  // total_item_count 可能缺省，此时只依赖五项计数判断
+  const countMatched = total <= 0 || success + failed === total;
+  return success > 0 && failed > 0 && unfinished === 0 && countMatched;
+}
+
 /** 实验运行状态标签 */
 // eslint-disable-next-line complexity
 export function ExperimentRunStatus({
@@ -29,8 +60,14 @@ export function ExperimentRunStatus({
   enableOnClick?: boolean; // 是否显示执行进度
   showProcess?: boolean;
 } & TagProps) {
-  const statusInfo = statusMap[status ?? ''];
   const processing = status === ExptStatus.Processing;
+  const partialFailure = isPartialFailedExperiment(experiment);
+  const baseStatusInfo = statusMap[status ?? ''];
+  const statusInfo =
+    partialFailure && baseStatusInfo
+      ? experimentPartialFailureStatusInfo
+      : baseStatusInfo;
+  const showProcessDetail = processing || partialFailure;
   if (statusInfo) {
     const tagContent = (
       <Tag
@@ -42,7 +79,7 @@ export function ExperimentRunStatus({
       >
         <span
           className={
-            showProcess && processing
+            showProcess && showProcessDetail
               ? 'underline decoration-dotted underline-offset-2 decoration-[var(rgb(var(--coze-blue-50)))]'
               : ''
           }
@@ -52,7 +89,7 @@ export function ExperimentRunStatus({
       </Tag>
     );
 
-    if (showProcess && processing && experiment) {
+    if (showProcess && showProcessDetail && experiment) {
       const {
         success_turn_cnt,
         fail_turn_cnt,

@@ -11,6 +11,7 @@ export {
 
 export {
   experimentRunStatusInfoList,
+  experimentPartialFailureStatusInfo,
   experimentItemRunStatusInfoList,
   exprGroupItemRunStatusInfoList,
   type ExperimentRunStatusInfo,

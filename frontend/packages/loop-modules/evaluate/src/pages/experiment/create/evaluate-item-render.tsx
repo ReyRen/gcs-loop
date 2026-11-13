@@ -26,7 +26,7 @@ export function EvaluateItemRender({
   const [open, setOpen] = useState(true);
   const { evaluator, evaluatorVersion } = evaluatorPro;
   const { evaluator_type, builtin } = evaluator ?? {};
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   const icon = useMemo(
     () =>
@@ -57,7 +57,7 @@ export function EvaluateItemRender({
 
           <OpenDetailButton
             url={jumpUrl}
-            customOpen={() => openBlank(jumpUrl)}
+            customOpen={() => openSelf(jumpUrl)}
           />
 
           <IconCozArrowRight

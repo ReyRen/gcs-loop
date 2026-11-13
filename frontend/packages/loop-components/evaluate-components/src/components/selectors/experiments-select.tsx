@@ -83,6 +83,7 @@ export function ExperimentsSelect(
             onClick={() => {
               window.open(
                 `${getBaseURL()}${props.createExperimentUrl || '/evaluation/experiments/create'}`,
+                '_self',
               );
             }}
             className="h-8 px-2 flex flex-row items-center cursor-pointer"

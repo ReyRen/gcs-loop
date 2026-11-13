@@ -243,7 +243,7 @@ export const CategoryLabel = ({
   ...selectProps
 }: CategoryLabelProps) => {
   const { getTagDetailURL } = useResourcePageJump();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   const optionList = useMemo(
     () =>
@@ -288,7 +288,7 @@ export const CategoryLabel = ({
                   className="ml-1 text-brand-9 shrink-0 cursor-pointer invisible group-hover:visible"
                   onClick={e => {
                     e.stopPropagation();
-                    openBlank(getTagDetailURL(annotation.tag_key_id || ''));
+                    openSelf(getTagDetailURL(annotation.tag_key_id || ''));
                   }}
                 />
               </div>

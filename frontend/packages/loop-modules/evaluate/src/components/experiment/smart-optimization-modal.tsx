@@ -30,12 +30,16 @@ import {
   FieldType,
   FilterLogicOp,
   FilterOperatorType,
+  type EstimatePromptOptimizeTaskRequest,
   type Experiment,
   type Filters,
   type OptimizeTaskParams,
 } from '@cozeloop/api-schema/evaluation';
 import { StoneEvaluationApi, StonePromptApi } from '@cozeloop/api-schema';
-import { IconCozLightbulb } from '@coze-arch/coze-design/icons';
+import {
+  IconCozInfoCircle,
+  IconCozLightbulb,
+} from '@coze-arch/coze-design/icons';
 import {
   Button,
   Form,
@@ -58,6 +62,44 @@ const FormPromptVersionSelect = withField(PromptEvalTargetVersionSelect);
 interface FormValues {
   expt?: { value?: string; label?: string; detail?: Experiment };
   promptVersion?: string;
+}
+
+type Step = 'form' | 'table' | 'prompt_detail' | 'resource_confirm';
+
+interface EstimateConfirmation {
+  /** 本次预估使用的请求快照，创建任务时必须原样复用 */
+  requestSnapshot: EstimatePromptOptimizeTaskRequest;
+  minUsage: string;
+  maxUsage: string;
+  sampleCount: number;
+}
+
+/** 请求层抛出的通用错误码，无用户可读信息 */
+const GENERIC_ERROR_MESSAGES = new Set([
+  'NetworkError',
+  'TimeoutError',
+  'InternalServerError',
+  'BadGateway',
+  'RateLimitError',
+  'Invalid JSON error',
+  'AuthenticationError',
+  'Unknown error',
+]);
+
+function resolveErrorMessage(error: unknown, fallback: string) {
+  const message = error instanceof Error ? error.message : '';
+  return message && !GENERIC_ERROR_MESSAGES.has(message) ? message : fallback;
+}
+
+/** 预估结果为非负整数字符串，且下限不大于上限 */
+function isValidResourceRange(min?: string, max?: string) {
+  if (!min || !max) {
+    return false;
+  }
+  if (!/^\d+$/.test(min) || !/^\d+$/.test(max)) {
+    return false;
+  }
+  return Number(min) <= Number(max);
 }
 
 /** 新建智能优化 Dialog */
@@ -87,7 +129,7 @@ export default function SmartOptimizationModal({
   const [selectedExperiment, setSelectedExperiment] = useState<
     Experiment | undefined
   >(baseExperiment);
-  const [step, setStep] = useState<'form' | 'table' | 'prompt_detail'>('form');
+  const [step, setStep] = useState<Step>('form');
   const [tableRefreshKey, setTableRefreshKey] = useState('');
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [promptDetail, setPromptDetail] = useState<Prompt | undefined>();
@@ -97,6 +139,13 @@ export default function SmartOptimizationModal({
     useState('reference_output');
   const [selectedRows, setSelectedRows] = useState<ExperimentItem[]>([]);
   const [createTaskLoading, setCreateTaskLoading] = useState(false);
+  const [estimateLoading, setEstimateLoading] = useState(false);
+  const [estimateError, setEstimateError] = useState('');
+  const [createTaskError, setCreateTaskError] = useState('');
+  const [estimateConfirmation, setEstimateConfirmation] =
+    useState<EstimateConfirmation>();
+  // 预估请求序号，用于忽略关闭弹窗或返回修改后到达的迟到响应
+  const estimateRequestIdRef = useRef(0);
   // 用户可编辑的问题变量 → 评测集字段映射
   const [variableMappings, setVariableMappings] = useState<
     Record<string, string>
@@ -114,6 +163,10 @@ export default function SmartOptimizationModal({
         top: 80,
       });
       return;
+    }
+    // 清空选择时同步清空缓存的数据行，保持勾选状态与数据一致
+    if (!keys.length) {
+      setSelectedRows([]);
     }
     setSelectedRowKeys(keys);
   };
@@ -286,6 +339,9 @@ export default function SmartOptimizationModal({
     const option = v as { detail?: Experiment };
     const experiment = option?.detail;
     setSelectedExperiment(experiment);
+    // 切换实验后，上一个实验的勾选数据不再适用
+    setSelectedRowKeys([]);
+    setSelectedRows([]);
     formRef.current?.setValue(
       'promptVersion',
       experiment?.eval_target?.eval_target_version?.source_target_version ?? '',
@@ -305,8 +361,9 @@ export default function SmartOptimizationModal({
   };
 
   const handleBackToTable = () => {
+    // 勾选状态由 selectedRowKeys 驱动，返回表格时不能清空 selectedRows，
+    // 否则会出现“界面仍勾选、提交时却提示不足”的不一致
     setStep('table');
-    setSelectedRows([]);
   };
 
   const handleTableRefreshPage = () => {
@@ -332,20 +389,32 @@ export default function SmartOptimizationModal({
     }
   };
 
-  const handleCreateTask = async () => {
+  /** 校验并构建创建/预估共用的业务参数 */
+  const buildCommonParams = (): OptimizeTaskParams | undefined => {
     const exptId = selectedExperiment?.id;
     if (!exptId || !spaceID || !promptId) {
-      return;
+      return undefined;
+    }
+    // 勾选数量与已缓存的数据行必须一致，避免用不完整的数据创建任务
+    if (selectedRows.length !== selectedRowKeys.length) {
+      Toast.error({
+        content: I18n.t('smart_optimization_selection_changed_tip'),
+        top: 80,
+      });
+      return undefined;
     }
     if (
       selectedRows.length < minSelectedSamples ||
       selectedRows.length > maxSampleCount
     ) {
       Toast.warning({
-        content: I18n.t('smart_optimization_min_selection_tip'),
+        content:
+          selectedRows.length > maxSampleCount
+            ? I18n.t('smart_optimization_max_selection_tip')
+            : I18n.t('smart_optimization_min_selection_tip'),
         top: 80,
       });
-      return;
+      return undefined;
     }
     // 所有问题变量必须配置评测集字段映射，后端会强制校验
     const unmapped = problemVariableMappings.filter(
@@ -356,56 +425,108 @@ export default function SmartOptimizationModal({
         content: I18n.t('smart_optimization_problem_variables_required'),
         top: 80,
       });
+      return undefined;
+    }
+    // 实验 item_id 列表
+    const selectedItemIdList = selectedRows.map(row => String(row.groupID));
+    // eval_set_to_target 完整覆盖 Prompt 全部变量
+    const evalSetToTarget = problemVariableMappings.map(mapping => ({
+      from_field_name: mapping.from_field_name,
+      field_name: mapping.field_name,
+    }));
+    // 模型实际输出映射，field_name 固定为 actual_output
+    const evalSetToActualOutput = {
+      from_field_name: modelAnswerFieldName,
+      field_name: 'actual_output',
+    };
+    // 没有参考答案时省略 eval_set_to_reference
+    const evalSetToReference = referenceAnswerField
+      ? { from_field_name: referenceAnswerField, field_name: 'output' }
+      : undefined;
+    return {
+      workspace_id: spaceID,
+      target_type: 'Prompt',
+      target_version: currentPromptVersion ?? '',
+      dataset_type: 'Experiment',
+      related_eval_set_id: selectedExperiment?.eval_set_id ?? '',
+      related_eval_set_version_id:
+        selectedExperiment?.eval_set_version_id ?? '',
+      related_expt_id: exptId,
+      selected_item_id_list: selectedItemIdList,
+      eval_set_to_reference: evalSetToReference,
+      eval_set_to_target: evalSetToTarget,
+      eval_set_to_actual_output: evalSetToActualOutput,
+      engine: 'Ark',
+      optimize_factor: optimizeMode / 100,
+      optimize_task_type: 'Score',
+    };
+  };
+
+  /** 第一步：只预估资源用量，成功后进入确认视图，此时不创建任务 */
+  const handleEstimate = async () => {
+    const commonParams = buildCommonParams();
+    if (!commonParams || !promptId || estimateLoading) {
       return;
     }
+    const requestId = ++estimateRequestIdRef.current;
+    // 冻结本次请求参数，创建任务时必须使用同一份快照
+    const requestSnapshot: EstimatePromptOptimizeTaskRequest = {
+      ...commonParams,
+      prompt_id: promptId,
+    };
+    setEstimateError('');
+    setCreateTaskError('');
+    setEstimateLoading(true);
+    try {
+      const estimateRes =
+        await StoneEvaluationApi.EstimatePromptOptimizeTaskResourceUsage(
+          requestSnapshot,
+        );
+      if (requestId !== estimateRequestIdRef.current) {
+        return;
+      }
+      const minUsage = estimateRes.min_total_resource_usage ?? '';
+      const maxUsage = estimateRes.max_total_resource_usage ?? '';
+      if (!isValidResourceRange(minUsage, maxUsage)) {
+        setEstimateError(I18n.t('smart_optimization_estimate_invalid'));
+        return;
+      }
+      setEstimateConfirmation({
+        requestSnapshot,
+        minUsage,
+        maxUsage,
+        sampleCount: requestSnapshot.selected_item_id_list?.length ?? 0,
+      });
+      setStep('resource_confirm');
+    } catch (e: unknown) {
+      if (requestId !== estimateRequestIdRef.current) {
+        return;
+      }
+      console.error('Estimate prompt optimize resource failed:', e);
+      setEstimateError(
+        resolveErrorMessage(e, I18n.t('smart_optimization_estimate_failed')),
+      );
+    } finally {
+      if (requestId === estimateRequestIdRef.current) {
+        setEstimateLoading(false);
+      }
+    }
+  };
+
+  /** 第二步：用户确认后，使用同一份请求快照创建任务 */
+  const handleConfirmCreate = async () => {
+    const confirmation = estimateConfirmation;
+    if (!confirmation || createTaskLoading) {
+      return;
+    }
+    setCreateTaskError('');
     setCreateTaskLoading(true);
     try {
-      // 实验 item_id 列表
-      const selectedItemIdList = selectedRows.map(row => String(row.groupID));
-      // eval_set_to_target 完整覆盖 Prompt 全部变量
-      const evalSetToTarget = problemVariableMappings.map(mapping => ({
-        from_field_name: mapping.from_field_name,
-        field_name: mapping.field_name,
-      }));
-      // 模型实际输出映射，field_name 固定为 actual_output
-      const evalSetToActualOutput = {
-        from_field_name: modelAnswerFieldName,
-        field_name: 'actual_output',
-      };
-      // 没有参考答案时省略 eval_set_to_reference
-      const evalSetToReference = referenceAnswerField
-        ? { from_field_name: referenceAnswerField, field_name: 'output' }
-        : undefined;
-      const commonParams: OptimizeTaskParams = {
-        workspace_id: spaceID,
-        target_type: 'Prompt',
-        target_version: currentPromptVersion ?? '',
-        dataset_type: 'Experiment',
-        related_eval_set_id: selectedExperiment?.eval_set_id ?? '',
-        related_eval_set_version_id:
-          selectedExperiment?.eval_set_version_id ?? '',
-        related_expt_id: exptId,
-        selected_item_id_list: selectedItemIdList,
-        eval_set_to_reference: evalSetToReference,
-        eval_set_to_target: evalSetToTarget,
-        eval_set_to_actual_output: evalSetToActualOutput,
-        engine: 'Ark',
-        optimize_factor: optimizeMode / 100,
-        optimize_task_type: 'Score',
-      };
-      // 1. 先预估资源用量
-      const estimateRes =
-        await StoneEvaluationApi.EstimatePromptOptimizeTaskResourceUsage({
-          ...commonParams,
-          prompt_id: promptId,
-        });
-      // 2. 使用相同参数并带上预估结果创建异步任务
       const resp = await StoneEvaluationApi.CreatePromptOptimizeTask({
-        ...commonParams,
-        prompt_id: promptId,
+        ...confirmation.requestSnapshot,
         estimate_resource_usage: {
-          min_credit_usage: estimateRes.min_total_resource_usage,
-          max_credit_usage: estimateRes.max_total_resource_usage,
+          min_credit_usage: confirmation.minUsage,
+          max_credit_usage: confirmation.maxUsage,
         },
       });
       const task = resp.optimize_task;
@@ -414,22 +535,44 @@ export default function SmartOptimizationModal({
       }
       const createdPromptId = task.optimize_target.target_id;
       const taskId = task.id;
+      const { related_expt_id: exptId } = confirmation.requestSnapshot;
       handleClose();
       navigate(
         `pe/prompts/${createdPromptId}/optimization/${taskId}?expt_id=${exptId}`,
       );
     } catch (e: unknown) {
       console.error('Create prompt optimize task failed:', e);
+      // 创建结果不确定时不自动重发，提示用户先确认任务是否已创建
+      setCreateTaskError(
+        resolveErrorMessage(e, I18n.t('smart_optimization_create_failed')),
+      );
     } finally {
       setCreateTaskLoading(false);
     }
   };
 
+  /** 从确认视图返回字段映射，保留样本与映射，清空本次预估结果 */
+  const handleBackToMapping = () => {
+    // 使进行中的预估请求失效，避免迟到响应重新打开确认视图
+    estimateRequestIdRef.current += 1;
+    setEstimateConfirmation(undefined);
+    setEstimateError('');
+    setEstimateLoading(false);
+    setCreateTaskError('');
+    setStep('prompt_detail');
+  };
+
   const handleClose = () => {
+    // 取消/忽略未完成的预估响应，避免关闭后仍创建任务
+    estimateRequestIdRef.current += 1;
     setStep('form');
     setSelectedRowKeys([]);
     setSelectedRows([]);
     setPromptDetail(undefined);
+    setEstimateConfirmation(undefined);
+    setEstimateLoading(false);
+    setEstimateError('');
+    setCreateTaskError('');
     onClose?.();
   };
 
@@ -787,6 +930,7 @@ export default function SmartOptimizationModal({
             <Select
               className="w-full"
               value={referenceAnswerField}
+              disabled={estimateLoading}
               onChange={v => setReferenceAnswerField(v as string)}
               prefix={I18n.t('smart_optimization_eval_set')}
               style={{ height: 32 }}
@@ -862,6 +1006,87 @@ export default function SmartOptimizationModal({
     </div>
   );
 
+  // 模型调用量预估确认视图
+  const resourceConfirmView = estimateConfirmation ? (
+    <div className="h-[60vh] overflow-auto pr-1 styled-scrollbar">
+      <Typography.Text strong className="text-[15px]">
+        {I18n.t('smart_optimization_estimate_title')}
+      </Typography.Text>
+
+      <div className="mt-4 flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm coz-fg-secondary w-[72px] flex-shrink-0">
+            {I18n.t('smart_optimization_estimate_prompt')}
+          </span>
+          <Typography.Text
+            className="!coz-fg-primary flex-1 min-w-0"
+            ellipsis={{ showTooltip: { opts: { theme: 'dark' } } }}
+          >
+            {promptDetail?.prompt_basic?.display_name || promptId}
+          </Typography.Text>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm coz-fg-secondary w-[72px] flex-shrink-0">
+            {I18n.t('smart_optimization_estimate_source_version')}
+          </span>
+          <Typography.Text
+            className="!coz-fg-primary flex-1 min-w-0"
+            ellipsis={{ showTooltip: { opts: { theme: 'dark' } } }}
+          >
+            {estimateConfirmation.requestSnapshot.target_version || '--'}
+          </Typography.Text>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm coz-fg-secondary w-[72px] flex-shrink-0">
+            {I18n.t('smart_optimization_estimate_source_expt')}
+          </span>
+          <Typography.Text
+            className="!coz-fg-primary flex-1 min-w-0"
+            ellipsis={{ showTooltip: { opts: { theme: 'dark' } } }}
+          >
+            {selectedExperiment?.name || '--'}
+          </Typography.Text>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm coz-fg-secondary w-[72px] flex-shrink-0">
+            {I18n.t('smart_optimization_estimate_sample_count')}
+          </span>
+          <Typography.Text className="!coz-fg-primary">
+            {I18n.t('smart_optimization_estimate_sample_value', {
+              count: estimateConfirmation.sampleCount,
+            })}
+          </Typography.Text>
+        </div>
+      </div>
+
+      <div className="mt-6 p-4 rounded-[8px] bg-[rgba(181,191,255,0.23)]">
+        <div className="text-sm coz-fg-secondary">
+          {I18n.t('smart_optimization_estimate_range_title')}
+        </div>
+        <div className="mt-1 text-[20px] font-medium leading-7 coz-fg-plus">
+          {I18n.t('smart_optimization_estimate_range', {
+            min: estimateConfirmation.minUsage,
+            max: estimateConfirmation.maxUsage,
+          })}
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-start gap-1 text-[13px] leading-5 coz-fg-secondary">
+        <IconCozInfoCircle className="mt-[3px] flex-shrink-0" />
+        <span>{I18n.t('smart_optimization_estimate_desc')}</span>
+      </div>
+
+      {createTaskError ? (
+        <Typography.Text
+          type="danger"
+          className="mt-3 block text-[13px] leading-5"
+        >
+          {createTaskError}
+        </Typography.Text>
+      ) : null}
+    </div>
+  ) : null;
+
   return (
     <Modal
       visible={visible}
@@ -899,10 +1124,35 @@ export default function SmartOptimizationModal({
             </Tooltip>
           </div>
         ) : step === 'prompt_detail' ? (
-          <div className="flex justify-end gap-2">
-            <Button onClick={handleBackToTable}>{I18n.t('prev_step')}</Button>
-            <Button loading={createTaskLoading} onClick={handleCreateTask}>
+          <div className="flex items-center justify-end gap-2">
+            {estimateError ? (
+              <Typography.Text type="danger" className="mr-auto text-[13px]">
+                {estimateError}
+              </Typography.Text>
+            ) : null}
+            <Button disabled={estimateLoading} onClick={handleBackToTable}>
+              {I18n.t('prev_step')}
+            </Button>
+            <Button
+              loading={estimateLoading}
+              disabled={estimateLoading}
+              onClick={handleEstimate}
+            >
               {I18n.t('smart_optimization_create_task')}
+            </Button>
+          </div>
+        ) : step === 'resource_confirm' ? (
+          <div className="flex justify-end gap-2">
+            <Button disabled={createTaskLoading} onClick={handleBackToMapping}>
+              {I18n.t('smart_optimization_estimate_back')}
+            </Button>
+            <Button
+              type="primary"
+              loading={createTaskLoading}
+              disabled={createTaskLoading}
+              onClick={handleConfirmCreate}
+            >
+              {I18n.t('smart_optimization_estimate_confirm')}
             </Button>
           </div>
         ) : undefined
@@ -924,6 +1174,8 @@ export default function SmartOptimizationModal({
             onSelectedRowsChange={handleSelectedRowsChange}
           />
         </div>
+      ) : step === 'resource_confirm' ? (
+        resourceConfirmView
       ) : (
         promptDetailView
       )}

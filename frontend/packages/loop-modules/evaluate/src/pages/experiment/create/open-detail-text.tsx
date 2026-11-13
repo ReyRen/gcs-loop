@@ -27,7 +27,7 @@ export function OpenDetailText({
           if (customOpen) {
             customOpen();
           } else {
-            window.open(url, '_blank');
+            window.open(url, '_self');
           }
         }}
       >

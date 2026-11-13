@@ -16,7 +16,7 @@ export default function SetTargetPreview(props: {
 }) {
   const { evalSet, jumpBtnClassName } = props;
   const { name, evaluation_set_version, id } = evalSet ?? {};
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   const versionId = evalSet?.evaluation_set_version?.id;
 
@@ -30,7 +30,7 @@ export default function SetTargetPreview(props: {
             return;
           }
           e.stopPropagation();
-          openBlank(`evaluation/datasets/${id}?version=${versionId}`);
+          openSelf(`evaluation/datasets/${id}?version=${versionId}`);
         }}
         enableLinkJump={true}
         jumpBtnClassName={jumpBtnClassName}

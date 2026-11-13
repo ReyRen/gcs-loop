@@ -139,7 +139,8 @@ export function OptimizationArea() {
   );
   const promptID = promptInfo?.id;
   const [keyword, setKeyword] = useState('');
-  const [status, setStatus] = useState<string | undefined>('Success');
+  // 默认展示全部状态，包含进行中的任务与历史任务
+  const [status, setStatus] = useState<string | undefined>(undefined);
   const [visibleTask, setVisibleTask] = useState<PromptOptimizeTask>();
 
   const service = usePagination(

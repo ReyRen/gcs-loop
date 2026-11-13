@@ -132,7 +132,7 @@ export function EvaluatorNameScoreTag(props: NameScoreTagProps) {
   } = props;
   const [visible, setVisible] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   const scoreRef = useRef<HTMLDivElement>(null);
   const { traceEvaluatorPlatformType } = useGlobalEvalConfig();
   const { score, correction } = evaluatorResult ?? {};
@@ -228,7 +228,7 @@ export function EvaluatorNameScoreTag(props: NameScoreTagProps) {
               <JumpIconButton
                 className={defaultShowAction ? '' : 'hidden group-hover:flex'}
                 onClick={() => {
-                  openBlank(jumpUrl);
+                  openSelf(jumpUrl);
                 }}
               />
             </div>

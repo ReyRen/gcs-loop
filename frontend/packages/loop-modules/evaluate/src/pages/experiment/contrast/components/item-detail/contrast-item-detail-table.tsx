@@ -33,7 +33,7 @@ function ExperimentDetailColumnHeader({
   experiment: Experiment;
   index: number;
 }) {
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   return (
     <div className="flex items-center gap-1">
       <TypographyText>
@@ -42,7 +42,7 @@ function ExperimentDetailColumnHeader({
       <JumpIconButton
         className="ml-auto"
         onClick={() => {
-          openBlank(`evaluation/experiments/${experiment?.id}`);
+          openSelf(`evaluation/experiments/${experiment?.id}`);
         }}
       />
     </div>

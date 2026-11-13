@@ -87,6 +87,20 @@ export const experimentRunStatusInfoList: ExperimentRunStatusInfo[] = [
   },
 ];
 
+/**
+ * 已完成（部分失败）：任务已结束，但存在执行失败的样本。
+ * 后端仍返回 status = Failed，仅作为展示层派生状态，不参与筛选。
+ */
+export const experimentPartialFailureStatusInfo: Omit<
+  ExperimentRunStatusInfo,
+  'status'
+> = {
+  name: I18n.t('experiment_completed_with_partial_failure'),
+  color: 'orange',
+  tagColor: 'yellow',
+  icon: <IconCozWarningCircleFill />,
+};
+
 /** 实验单条数据记录运行状态信息 */
 export interface ExperimentItemRunStatusInfo {
   name: string;

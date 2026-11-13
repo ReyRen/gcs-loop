@@ -29,7 +29,7 @@ export function OpenDetailText({
           if (onClick) {
             onClick();
           } else {
-            window.open(url);
+            window.open(url, '_self');
           }
         }}
         style={style}

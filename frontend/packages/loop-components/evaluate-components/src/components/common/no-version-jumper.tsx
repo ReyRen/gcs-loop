@@ -31,7 +31,7 @@ const NoVersionJumper = (props: NoVersionJumperProps) => {
             );
             onGoSubmit();
           } else {
-            window.open(targetUrl);
+            window.open(targetUrl, '_self');
           }
         }}
         className="flex-shrink-0 h-8 flex flex-row items-center cursor-pointer"

@@ -45,7 +45,7 @@ export function TagSelect(props: TagSelectProps) {
   } = props;
   const { spaceID } = useSpace();
   const { getTagCreateURL } = useResourcePageJump();
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
 
   const { loading, data, run } = useRequest(
     async (text?: string) => {
@@ -186,7 +186,7 @@ export function TagSelect(props: TagSelectProps) {
                   space_id: spaceID,
                 },
               );
-              openBlank(getTagCreateURL());
+              openSelf(getTagCreateURL());
             }}
           >
             <IconCozPlus className="w-4 h-4" />

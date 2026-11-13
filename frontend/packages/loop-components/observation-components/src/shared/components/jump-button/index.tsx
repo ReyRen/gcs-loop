@@ -51,7 +51,7 @@ export const JumpButton = ({ span }: Props) => {
         if (jumpButtonConfig.onClick) {
           jumpButtonConfig.onClick?.(span);
         } else {
-          window.open(targetTraceLink, '_blank');
+          window.open(targetTraceLink, '_self');
         }
       }}
     >

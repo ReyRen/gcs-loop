@@ -40,7 +40,7 @@ export function TagSelect({
   const [dropdownVisible, setDropdownVisible] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectRef = useRef<any>(null);
-  const { openBlank } = useOpenWindow();
+  const { openSelf } = useOpenWindow();
   const { getTagDetailURL, getTagCreateURL } = useResourcePageJump();
 
   const addTag = useRequest(
@@ -84,7 +84,7 @@ export function TagSelect({
                 onAdd?.(val);
               }}
               onDetail={info => {
-                openBlank(getTagDetailURL(info.tag_key_id || ''));
+                openSelf(getTagDetailURL(info.tag_key_id || ''));
               }}
             />
           ),
@@ -134,7 +134,7 @@ export function TagSelect({
         <div
           className="w-full pt-2 pl-[10px] cursor-pointer font-medium text-brand-9 flex items-center"
           onClick={() => {
-            openBlank(getTagCreateURL());
+            openSelf(getTagCreateURL());
           }}
         >
           <IconCozPlus />
