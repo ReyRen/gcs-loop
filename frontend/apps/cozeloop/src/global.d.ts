@@ -18,6 +18,18 @@ declare module '*.svg' {
 
 declare type Int64 = string | number;
 
+type PromptBuildMeta = {
+  app: string;
+  name: string;
+  version: string;
+  branch: string;
+  commit: string;
+  commitShort: string;
+  dirty: boolean;
+  builtAt: string;
+  mode: string;
+};
+
 // ====== wujie 微前端类型声明 ======
 interface WujieInstance {
   props: Record<string, unknown>;
@@ -32,4 +44,6 @@ declare interface Window {
   __WUJIE_MOUNT?: () => void;
   /** 子应用卸载生命周期（由子应用注册，wujie 调用） */
   __WUJIE_UNMOUNT?: () => void;
+  /** Prompt 微应用构建元数据（排障用）；子应用也会尽量回写到 parent */
+  __PROMPT_BUILD_META__?: PromptBuildMeta;
 }
