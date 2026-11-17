@@ -5,7 +5,10 @@ import { initIntl } from '@cozeloop/i18n-adapter';
 import { dynamicImportMdBoxStyle } from '@coze-arch/bot-md-box-adapter/style';
 import { pullFeatureFlags, type FEATURE_FLAGS } from '@coze-arch/bot-flags';
 
+import { publishPromptBuildMeta } from './build-meta';
 import { isWujieEnv, onWujieMount, onWujieUnmount } from './wujie-env';
+
+publishPromptBuildMeta();
 
 let root: Root | null = null;
 

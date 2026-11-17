@@ -2,7 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createRsbuildConfig } from '@cozeloop/rsbuild-config';
 
+import { collectPromptBuildMeta } from './build-meta.collect';
+
 const port = 8090;
+
+const PROMPT_BUILD_META = collectPromptBuildMeta({
+  mode: process.env.NODE_ENV || 'development',
+});
+// eslint-disable-next-line no-console -- build-time visibility for local deploy tracing
+console.warn('[build-meta] prompt', PROMPT_BUILD_META);
 
 export default createRsbuildConfig({
   /**
@@ -13,6 +21,8 @@ export default createRsbuildConfig({
   source: {
     define: {
       'process.env.API_SCHEMA_BASE_URL': JSON.stringify('/promptApi'),
+      // 与 API_SCHEMA 一样预先 JSON.stringify（shared formatDefineVars 不会再包一层 app define）
+      __PROMPT_BUILD_META__: JSON.stringify(PROMPT_BUILD_META),
     },
   },
   output: {
