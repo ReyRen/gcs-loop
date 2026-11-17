@@ -44,6 +44,7 @@ cd frontend
 ### 3. 安装全局依赖
 
 ```bash
+# 在 gcs-loop 仓库根（或 frontend，Rush 会往上找 rush.json）
 npm i -g pnpm@10.27.0 @microsoft/rush@5.172.1
 ```
 
@@ -63,7 +64,7 @@ rush update
 
 ```bash
 cd apps/cozeloop
-
+# windows上powershell找不到这个rushx命令，需要使用git bash终端，实际上在这个目录下运行npm run build也是可行的
 rushx dev
 ```
 
@@ -75,7 +76,7 @@ rushx dev
 
 ```bash
 cd apps/cozeloop
-
+# windows上powershell找不到这个rushx命令，需要使用git bash终端，实际上在这个目录下运行npm run build也是可行的
 rushx build
 ```
 
