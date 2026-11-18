@@ -32,6 +32,7 @@ export { LargeTxtRender } from './large-txt-render';
 export { InputSlider, formateDecimalPlacesString } from './input-slider';
 
 export { handleCopy, sleep } from './utils/basic';
+export { getWujiePopupContainer, isWujieEnv } from './utils/popup';
 export { uploadFile } from './upload';
 export { default as VersionList } from './version-list/version-list';
 export { default as VersionItem } from './version-list/version-item';
