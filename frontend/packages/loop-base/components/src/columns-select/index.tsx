@@ -19,6 +19,7 @@ import {
   type ColumnProps,
 } from '@coze-arch/coze-design';
 
+import { getWujiePopupContainer } from '@/utils/popup';
 import { useI18n } from '@/provider';
 // @ts-expect-error react-sortable-hoc ts type issue
 const { sortableContainer, sortableElement, sortableHandle } = sort;
@@ -245,6 +246,7 @@ export const ColumnSelector = ({
             content={I18n.t('column_management')}
             theme="dark"
             position="top"
+            getPopupContainer={getWujiePopupContainer}
           >
             <Button
               icon={<IconCozTableSetting />}

@@ -1,13 +1,23 @@
 // Copyright (c) 2025 coze-dev Authors
 // SPDX-License-Identifier: Apache-2.0
+import { useNavigate } from 'react-router-dom';
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 
 import type { UseRouteInfo } from '../src/types';
 import { createUseOpenWindow } from '../src/create-use-open-window';
 
+// Mock react-router-dom
+vi.mock('react-router-dom', () => ({
+  useNavigate: vi.fn(),
+}));
+
+const mockUseNavigate = vi.mocked(useNavigate);
+
 describe('createUseOpenWindow', () => {
   const mockGetBaseURL = vi.fn();
+  const mockNavigateBase = vi.fn();
   const mockUseRouteInfo: UseRouteInfo = vi.fn(() => ({
     app: 'test-app',
     subModule: 'test-module',
@@ -23,6 +33,7 @@ describe('createUseOpenWindow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetBaseURL.mockReturnValue('/space/123');
+    mockUseNavigate.mockReturnValue(mockNavigateBase);
     Object.defineProperty(window, 'open', {
       value: mockWindowOpen,
       writable: true,
@@ -174,5 +185,55 @@ describe('createUseOpenWindow', () => {
     expect(result.current.openBlank).toBe(firstRender.openBlank);
     expect(result.current.openSelf).toBe(firstRender.openSelf);
     expect(result.current.getURL).toBe(firstRender.getURL);
+  });
+
+  describe('wujie 环境', () => {
+    const originalLocation = window.location;
+
+    beforeEach(() => {
+      (window as unknown as Record<string, unknown>).__POWERED_BY_WUJIE__ =
+        true;
+      let href = '';
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: {
+          pathname: '/prompt/space/123',
+          get href() {
+            return href;
+          },
+          set href(value: string) {
+            href = value;
+          },
+        },
+      });
+    });
+
+    afterEach(() => {
+      delete (window as unknown as Record<string, unknown>)
+        .__POWERED_BY_WUJIE__;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    });
+
+    it('getURL 应补回 wujie 挂载前缀', () => {
+      const useOpenWindow = createUseOpenWindow(mockUseRouteInfo);
+      const { result } = renderHook(() => useOpenWindow());
+
+      expect(result.current.getURL('/profile')).toBe(
+        '/prompt/space/123/profile',
+      );
+    });
+
+    it('openSelf 应使用 react-router navigate 而非 window.open', () => {
+      const useOpenWindow = createUseOpenWindow(mockUseRouteInfo);
+      const { result } = renderHook(() => useOpenWindow());
+
+      result.current.openSelf('/profile');
+
+      expect(mockWindowOpen).not.toHaveBeenCalled();
+      expect(mockNavigateBase).toHaveBeenCalledWith('/space/123/profile');
+    });
   });
 });
