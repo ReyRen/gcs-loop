@@ -13942,6 +13942,11 @@
           "baseline_metrics": {
             "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationMetrics"
           },
+          "best_iteration": {
+            "description": "Authoritative selected result. Zero means the original Prompt was retained.",
+            "format": "int32",
+            "type": "integer"
+          },
           "best_metrics": {
             "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationMetrics"
           },
@@ -13960,6 +13965,13 @@
           "optimized_tool_list": {
             "items": {
               "$ref": "#/components/schemas/coze.loop.prompt.domain.prompt.Tool"
+            },
+            "type": "array"
+          },
+          "sample_results": {
+            "description": "The answers and scores belonging to optimized_prompt_message_list and best_metrics.",
+            "items": {
+              "$ref": "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationSampleEvaluation"
             },
             "type": "array"
           }

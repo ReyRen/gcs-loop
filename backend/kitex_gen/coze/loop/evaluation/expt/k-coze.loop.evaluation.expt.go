@@ -36989,6 +36989,34 @@ func (p *PromptOptimizeTaskResult_) FastRead(buf []byte) (int, error) {
 					goto SkipFieldError
 				}
 			}
+		case 7:
+			if fieldTypeId == thrift.I32 {
+				l, err = p.FastReadField7(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 8:
+			if fieldTypeId == thrift.LIST {
+				l, err = p.FastReadField8(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
 		default:
 			l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 			offset += l
@@ -37120,6 +37148,45 @@ func (p *PromptOptimizeTaskResult_) FastReadField6(buf []byte) (int, error) {
 	return offset, nil
 }
 
+func (p *PromptOptimizeTaskResult_) FastReadField7(buf []byte) (int, error) {
+	offset := 0
+
+	var _field *int32
+	if v, l, err := thrift.Binary.ReadI32(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = &v
+	}
+	p.BestIteration = _field
+	return offset, nil
+}
+
+func (p *PromptOptimizeTaskResult_) FastReadField8(buf []byte) (int, error) {
+	offset := 0
+
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
+		return offset, err
+	}
+	_field := make([]*PromptOptimizationSampleEvaluation, 0, size)
+	values := make([]PromptOptimizationSampleEvaluation, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+			return offset, err
+		} else {
+			offset += l
+		}
+
+		_field = append(_field, _elem)
+	}
+	p.SampleResults = _field
+	return offset, nil
+}
+
 func (p *PromptOptimizeTaskResult_) FastWrite(buf []byte) int {
 	return p.FastWriteNocopy(buf, nil)
 }
@@ -37128,11 +37195,13 @@ func (p *PromptOptimizeTaskResult_) FastWriteNocopy(buf []byte, w thrift.NocopyW
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField7(buf[offset:], w)
 		offset += p.fastWriteField1(buf[offset:], w)
 		offset += p.fastWriteField2(buf[offset:], w)
 		offset += p.fastWriteField4(buf[offset:], w)
 		offset += p.fastWriteField5(buf[offset:], w)
 		offset += p.fastWriteField6(buf[offset:], w)
+		offset += p.fastWriteField8(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
@@ -37147,6 +37216,8 @@ func (p *PromptOptimizeTaskResult_) BLength() int {
 		l += p.field4Length()
 		l += p.field5Length()
 		l += p.field6Length()
+		l += p.field7Length()
+		l += p.field8Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
@@ -37227,6 +37298,31 @@ func (p *PromptOptimizeTaskResult_) fastWriteField6(buf []byte, w thrift.NocopyW
 	return offset
 }
 
+func (p *PromptOptimizeTaskResult_) fastWriteField7(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetBestIteration() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 7)
+		offset += thrift.Binary.WriteI32(buf[offset:], *p.BestIteration)
+	}
+	return offset
+}
+
+func (p *PromptOptimizeTaskResult_) fastWriteField8(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	if p.IsSetSampleResults() {
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 8)
+		listBeginOffset := offset
+		offset += thrift.Binary.ListBeginLength()
+		var length int
+		for _, v := range p.SampleResults {
+			length++
+			offset += v.FastWriteNocopy(buf[offset:], w)
+		}
+		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
+	}
+	return offset
+}
+
 func (p *PromptOptimizeTaskResult_) field1Length() int {
 	l := 0
 	if p.IsSetOptimizedPromptMessageList() {
@@ -37286,6 +37382,28 @@ func (p *PromptOptimizeTaskResult_) field6Length() int {
 		l += thrift.Binary.FieldBeginLength()
 		l += thrift.Binary.ListBeginLength()
 		for _, v := range p.Iterations {
+			_ = v
+			l += v.BLength()
+		}
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskResult_) field7Length() int {
+	l := 0
+	if p.IsSetBestIteration() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.I32Length()
+	}
+	return l
+}
+
+func (p *PromptOptimizeTaskResult_) field8Length() int {
+	l := 0
+	if p.IsSetSampleResults() {
+		l += thrift.Binary.FieldBeginLength()
+		l += thrift.Binary.ListBeginLength()
+		for _, v := range p.SampleResults {
 			_ = v
 			l += v.BLength()
 		}
@@ -37364,6 +37482,26 @@ func (p *PromptOptimizeTaskResult_) DeepCopy(s interface{}) error {
 			}
 
 			p.Iterations = append(p.Iterations, _elem)
+		}
+	}
+
+	if src.BestIteration != nil {
+		tmp := *src.BestIteration
+		p.BestIteration = &tmp
+	}
+
+	if src.SampleResults != nil {
+		p.SampleResults = make([]*PromptOptimizationSampleEvaluation, 0, len(src.SampleResults))
+		for _, elem := range src.SampleResults {
+			var _elem *PromptOptimizationSampleEvaluation
+			if elem != nil {
+				_elem = &PromptOptimizationSampleEvaluation{}
+				if err := _elem.DeepCopy(elem); err != nil {
+					return err
+				}
+			}
+
+			p.SampleResults = append(p.SampleResults, _elem)
 		}
 	}
 

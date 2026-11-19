@@ -342,6 +342,19 @@ func ToExptDTO(experiment *entity.Experiment) *domain_expt.Experiment {
 		evaluatorIDVersionList = append(evaluatorIDVersionList, curEvaluatorIDVersionItem)
 	}
 
+	statusMessage := experiment.StatusMessage
+	if stats := experiment.Stats; statusMessage == "" && stats != nil &&
+		experiment.Status == entity.ExptStatus_Failed && experiment.ExptType != entity.ExptType_Online {
+		allEvaluated := stats.PendingItemCnt == 0 && stats.ProcessingItemCnt == 0 && stats.TerminatedItemCnt == 0
+		if experiment.TotalItemCount > 0 {
+			allEvaluated = allEvaluated && int64(stats.SuccessItemCnt)+int64(stats.FailItemCnt) == experiment.TotalItemCount
+		}
+		if allEvaluated && stats.SuccessItemCnt > 0 && stats.FailItemCnt > 0 {
+			// Keep the execution status for retry/filter logic; explain mixed sample outcomes in the read view.
+			statusMessage = fmt.Sprintf("评测已完成，部分样本执行失败（成功 %d 条，失败 %d 条）；成功结果已保留，可重试失败及未执行的样本。", stats.SuccessItemCnt, stats.FailItemCnt)
+		}
+	}
+
 	res := &domain_expt.Experiment{
 		ID:                        gptr.Of(experiment.ID),
 		Name:                      gptr.Of(experiment.Name),
@@ -354,7 +367,7 @@ func ToExptDTO(experiment *entity.Experiment) *domain_expt.Experiment {
 		TargetID:                  gptr.Of(experiment.TargetID),
 		EvaluatorVersionIds:       evaluatorVersionIDs,
 		Status:                    gptr.Of(domain_expt.ExptStatus(experiment.Status)),
-		StatusMessage:             gptr.Of(experiment.StatusMessage),
+		StatusMessage:             gptr.Of(statusMessage),
 		OfflineExptAnalysisStatus: gptr.Of(domain_expt.OfflineExptAnalysisStatus(experiment.OfflineExptAnalysisStatus)),
 		ExptStats:                 ToExptStatsDTO(experiment.Stats, experiment.AggregateResult),
 		TargetFieldMapping:        tm,

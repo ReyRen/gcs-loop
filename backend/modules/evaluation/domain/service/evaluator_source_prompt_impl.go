@@ -217,12 +217,13 @@ func (p *EvaluatorSourcePromptServiceImpl) chat(ctx context.Context, evaluatorVe
 	}
 
 	llmCallParam := &entity.LLMCallParam{
-		SpaceID:     exptSpaceID,
-		EvaluatorID: strconv.FormatInt(evaluatorVersion.EvaluatorID, 10),
-		UserID:      gptr.Of(userIDInContext),
-		Scenario:    entity.ScenarioEvaluator,
-		Messages:    evaluatorVersion.MessageList,
-		ModelConfig: evaluatorVersion.ModelConfig,
+		SpaceID:          exptSpaceID,
+		EvaluatorID:      strconv.FormatInt(evaluatorVersion.EvaluatorID, 10),
+		UserID:           gptr.Of(userIDInContext),
+		Scenario:         entity.ScenarioEvaluator,
+		EvaluatorScoring: true,
+		Messages:         evaluatorVersion.MessageList,
+		ModelConfig:      evaluatorVersion.ModelConfig,
 	}
 	if evaluatorVersion.ParseType == entity.ParseTypeFunctionCall {
 		llmCallParam.Tools = evaluatorVersion.Tools

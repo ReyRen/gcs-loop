@@ -76,7 +76,7 @@ func (r *runtimeApp) Chat(ctx context.Context, req *runtime.ChatRequest) (resp *
 	if err != nil {
 		return resp, errorx.NewByCode(llm_errorx.RequestNotValidCode, errorx.WithExtraMsg(err.Error()))
 	}
-	options := convertor.ModelAndTools2OptionDOs(req.GetModelConfig(), req.GetTools(), nil, nil)
+	options := chatOptions(req)
 	var respMsg *entity.Message
 	// 5. start span
 	var span looptracer.Span
@@ -136,7 +136,7 @@ func (r *runtimeApp) ChatStream(ctx context.Context, req *runtime.ChatRequest, s
 	if err != nil {
 		return errorx.NewByCode(llm_errorx.RequestNotValidCode, errorx.WithExtraMsg(err.Error()))
 	}
-	options := convertor.ModelAndTools2OptionDOs(req.GetModelConfig(), req.GetTools(), nil, nil)
+	options := chatOptions(req)
 	// 4. start trace
 	var span looptracer.Span
 	ctx, span = looptracer.GetTracer().StartSpan(ctx, model.Name, tracespec.VModelSpanType, looptracer.WithSpanWorkspaceID(strconv.FormatInt(req.GetBizParam().GetWorkspaceID(), 10)))
@@ -174,6 +174,20 @@ func (r *runtimeApp) ChatStream(ctx context.Context, req *runtime.ChatRequest, s
 		return errorx.NewByCode(llm_errorx.ParseModelRespFailedCode, errorx.WithExtraMsg(err.Error()))
 	}
 	return nil
+}
+
+func chatOptions(req *runtime.ChatRequest) []entity.Option {
+	opts := convertor.ModelAndTools2OptionDOs(req.GetModelConfig(), req.GetTools(), nil, nil)
+	// The optimizer also uses this scenario. Only the evaluator sets the internal scoring flag.
+	if req.GetBizParam().GetScenario() == common.ScenarioEvaluator {
+		var extra struct {
+			EvaluatorScoring bool `json:"evaluator_scoring"`
+		}
+		if raw := req.GetModelConfig().GetExtra(); raw != "" && json.Unmarshal([]byte(raw), &extra) == nil && extra.EvaluatorScoring {
+			opts = append(opts, entity.WithEvaluatorScoring())
+		}
+	}
+	return opts
 }
 
 func (r *runtimeApp) parseChatStreamResp(ctx context.Context, streamDO entity.IStreamReader, streamDTO runtime.LLMRuntimeService_ChatStreamServer,

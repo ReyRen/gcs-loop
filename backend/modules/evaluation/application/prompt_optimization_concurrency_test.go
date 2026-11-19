@@ -166,7 +166,16 @@ func TestPromptOptimizationSampleFailureCancelsRemainingCalls(t *testing.T) {
 	_, results, _, _, err := executor.evaluateCandidate(ctx, &promptOptimizationTaskPO{SpaceID: 1},
 		promptOptimizationRequestSnapshot{}, optimizationConcurrencyExperiment(), &rpc.PromptTemplate{}, samples, 1, 6)
 	require.ErrorContains(t, err, "invalid scoring result")
-	assert.Nil(t, results)
+	// Failed/aborted rows are retained for diagnostics, not mistaken for score 0.
+	require.Len(t, results, len(samples))
+	var failed int
+	for _, result := range results {
+		if result != nil && result.GetErrorMessage() != "" {
+			failed++
+			assert.Nil(t, result.OptimizedScore)
+		}
+	}
+	assert.Greater(t, failed, 0)
 	assert.Equal(t, int32(2), started.Load())
 }
 

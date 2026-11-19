@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/coze-dev/coze-loop/backend/infra/db"
 )
@@ -194,7 +195,16 @@ func (s *promptOptimizationStore) markRunningForRecovery(ctx context.Context) ([
 }
 
 func (s *promptOptimizationStore) createIteration(ctx context.Context, row *promptOptimizationIterationPO) error {
-	return s.db.NewSession(ctx, db.WithMaster()).WithContext(ctx).Create(row).Error
+	query := s.db.NewSession(ctx, db.WithMaster()).WithContext(ctx)
+	if row.IterationNo == 0 {
+		// Recovery may prepare the same baseline again. Keep one baseline row
+		// without storing its potentially large answers in the metrics column.
+		query = query.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "task_id"}, {Name: "iteration_no"}},
+			DoUpdates: clause.AssignmentColumns([]string{"candidate_template", "metrics", "sample_results"}),
+		})
+	}
+	return query.Create(row).Error
 }
 
 func (s *promptOptimizationStore) listIterations(ctx context.Context, taskID int64) ([]*promptOptimizationIterationPO, error) {

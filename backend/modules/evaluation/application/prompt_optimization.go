@@ -10,7 +10,6 @@ import (
 	"math"
 	"os"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,11 +23,13 @@ import (
 	"github.com/coze-dev/coze-loop/backend/infra/middleware/session"
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/expt"
 	promptdto "github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/consts"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/service"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/pkg/errno"
 	"github.com/coze-dev/coze-loop/backend/pkg/errorx"
+	"github.com/coze-dev/coze-loop/backend/pkg/json"
 	"github.com/coze-dev/coze-loop/backend/pkg/lang/goroutine"
 	"github.com/coze-dev/coze-loop/backend/pkg/logs"
 )
@@ -74,6 +75,13 @@ type promptOptimizeFieldMappingSnapshot struct {
 type promptOptimizationSampleRefSnapshot struct {
 	ItemID int64 `json:"item_id"`
 	TurnID int64 `json:"turn_id,omitempty"`
+}
+
+// Stored in the existing best_metrics JSON column. Answers remain in the
+// iteration table; zero identifies its baseline row, not a model call.
+type promptOptimizationBestResult struct {
+	*expt.PromptOptimizationMetrics
+	BestIteration *int32 `json:"best_iteration,omitempty"`
 }
 
 type promptOptimizationExecutor struct {
@@ -613,6 +621,7 @@ type optimizerSample struct {
 	DisplayVariables map[string]string
 	Reference        string
 	OriginalAnswer   string
+	TargetInput      *entity.EvalTargetInputData
 	EvaluatorRecords map[int64]*entity.EvaluatorRecord
 }
 
@@ -649,6 +658,9 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 	if err := stdjson.Unmarshal(row.RequestData, &request); err != nil {
 		return err
 	}
+	if request.MaxIterations <= 0 {
+		return errorx.New("prompt optimization requires at least one candidate iteration")
+	}
 	experiment, _, promptDO, err := p.loadSource(ctx, row.SpaceID, row.ExperimentID, &entity.Session{UserID: row.CreatedBy})
 	if err != nil {
 		return err
@@ -670,13 +682,29 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 		return err
 	}
 	baselineData, _ := stdjson.Marshal(baselineMetrics)
-	if err := p.store.updateTask(ctx, row.ID, map[string]any{"baseline_metrics": baselineData, "best_metrics": baselineData, "progress": 10}); err != nil {
+	original := promptDO.PromptCommit.Detail.PromptTemplate
+	originalData, _ := stdjson.Marshal(promptTemplateRPCToDTO(original))
+	baselineResultsData, _ := stdjson.Marshal(baselineResults)
+	baselineID, err := p.idgen.GenID(ctx)
+	if err != nil {
 		return err
 	}
-	original := promptDO.PromptCommit.Detail.PromptTemplate
+	if err := p.store.createIteration(ctx, &promptOptimizationIterationPO{
+		ID: baselineID, TaskID: row.ID, IterationNo: 0, CandidateTemplate: originalData,
+		Metrics: baselineData, SampleResults: baselineResultsData,
+	}); err != nil {
+		return err
+	}
+	bestData, _ := stdjson.Marshal(promptOptimizationBestResult{baselineMetrics, gptr.Of(int32(0))})
+	if err := p.store.updateTask(ctx, row.ID, map[string]any{
+		"baseline_metrics": baselineData, "best_metrics": bestData, "optimized_prompt_template": originalData, "progress": 10,
+	}); err != nil {
+		return err
+	}
 	best := cloneRPCPromptTemplate(original)
 	bestMetrics := baselineMetrics
 	bestResults := baselineResults
+	bestIteration := int32(0)
 	noImprovement := 0
 	var totalInputTokens, totalOutputTokens int64
 	for iteration := int32(1); iteration <= request.MaxIterations; iteration++ {
@@ -704,11 +732,11 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 		metrics, results, evaluationInputTokens, evaluationOutputTokens, evaluationErr := p.evaluateCandidate(
 			ctx, row, request, experiment, candidate, samples, iteration, request.MaxIterations,
 		)
-		if evaluationErr != nil {
-			return evaluationErr
-		}
 		totalInputTokens += evaluationInputTokens
 		totalOutputTokens += evaluationOutputTokens
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		metrics.InputTokens = gptr.Of(totalInputTokens)
 		metrics.OutputTokens = gptr.Of(totalOutputTokens)
 		candidateDTO := promptTemplateRPCToDTO(candidate)
@@ -726,10 +754,17 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 		}); err != nil {
 			return err
 		}
+		if evaluationErr != nil {
+			return evaluationErr
+		}
+		if metrics.AverageScore == nil {
+			return errorx.New("candidate iteration %d has no complete comparable evaluation result", iteration)
+		}
 		if betterOptimizationMetrics(metrics, bestMetrics) {
 			best, bestMetrics, bestResults = candidate, metrics, results
+			bestIteration = iteration
 			bestData, _ := stdjson.Marshal(promptTemplateRPCToDTO(best))
-			bestMetricsData, _ := stdjson.Marshal(bestMetrics)
+			bestMetricsData, _ := stdjson.Marshal(promptOptimizationBestResult{bestMetrics, &bestIteration})
 			if err := p.store.updateTask(ctx, row.ID, map[string]any{"optimized_prompt_template": bestData, "best_metrics": bestMetricsData}); err != nil {
 				return err
 			}
@@ -742,10 +777,10 @@ func (p *promptOptimizationExecutor) runStartedTask(ctx context.Context, row *pr
 		}
 	}
 	_ = p.store.updateTask(ctx, row.ID, map[string]any{"stage": string(expt.PromptOptimizationStageFinalizing), "progress": 95})
-	bestData, _ := stdjson.Marshal(promptTemplateRPCToDTO(best))
+	bestData, _ = stdjson.Marshal(promptTemplateRPCToDTO(best))
 	bestMetrics.InputTokens = gptr.Of(totalInputTokens)
 	bestMetrics.OutputTokens = gptr.Of(totalOutputTokens)
-	bestMetricsData, _ := stdjson.Marshal(bestMetrics)
+	bestMetricsData, _ := stdjson.Marshal(promptOptimizationBestResult{bestMetrics, &bestIteration})
 	now := time.Now().UnixMilli()
 	_, err = p.store.updateTaskIfStatus(ctx, row.ID, string(expt.PromptOptimizationStatusRunning), map[string]any{
 		"status": string(expt.PromptOptimizationStatusSucceeded), "stage": string(expt.PromptOptimizationStageCompleted),
@@ -820,11 +855,17 @@ func (p *promptOptimizationExecutor) loadSamples(ctx context.Context, row *promp
 							continue
 						}
 						sample.Variables[field.Key] = field.Content
+						if field.Name != "" {
+							sample.Variables[field.Name] = field.Content
+						}
 						sample.DisplayVariables[field.Key] = contentToDisplayString(field.Content)
 					}
 				}
 				if request.ReferenceAnswerField != "" {
 					sample.Reference = contentToDisplayString(sample.Variables[request.ReferenceAnswerField])
+				}
+				if payload.TargetOutput != nil && payload.TargetOutput.EvalTargetRecord != nil {
+					sample.TargetInput = payload.TargetOutput.EvalTargetRecord.EvalTargetInputData
 				}
 				if payload.TargetOutput != nil && payload.TargetOutput.EvalTargetRecord != nil && payload.TargetOutput.EvalTargetRecord.EvalTargetOutputData != nil {
 					outputs := payload.TargetOutput.EvalTargetRecord.EvalTargetOutputData.OutputFields
@@ -853,6 +894,84 @@ func (p *promptOptimizationExecutor) loadSamples(ctx context.Context, row *promp
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg(fmt.Sprintf("only %d of %d selected experiment rows are available", len(result), len(request.Samples))))
 	}
 	return result, nil
+}
+
+func optimizationPromptInput(sample optimizerSample, request promptOptimizationRequestSnapshot, experiment *entity.Experiment) (*entity.EvalTargetInputData, error) {
+	input := &entity.EvalTargetInputData{}
+	if sample.TargetInput != nil {
+		// Each replay owns its input, including history and multimodal content.
+		data, err := stdjson.Marshal(sample.TargetInput)
+		if err != nil {
+			return nil, err
+		}
+		if err := stdjson.Unmarshal(data, input); err != nil {
+			return nil, err
+		}
+	}
+	if input.InputFields == nil {
+		input.InputFields = map[string]*entity.Content{}
+	}
+	if input.Ext == nil {
+		input.Ext = map[string]string{}
+	}
+	// Older experiment execution removed the User field before persisting input.
+	// Recover missing fields from the experiment's actual mapping, never by
+	// inventing a dummy User message or assuming the dataset column is "input".
+	if experiment != nil && experiment.EvalConf != nil {
+		target := experiment.EvalConf.ConnectorConf.TargetConf
+		if target != nil && target.IngressConf != nil {
+			if adapter := target.IngressConf.EvalSetAdapter; adapter != nil {
+				for _, field := range adapter.FieldConfs {
+					if field == nil || input.InputFields[field.FieldName] != nil {
+						continue
+					}
+					content, err := optimizationFieldContent(sample.Variables, field.FromField)
+					if err != nil {
+						return nil, err
+					}
+					input.InputFields[field.FieldName] = content
+				}
+			}
+			if adapter := target.IngressConf.CustomConf; adapter != nil && input.Ext[consts.TargetExecuteExtRuntimeParamKey] == "" {
+				for _, field := range adapter.FieldConfs {
+					if field != nil && field.FieldName == consts.FieldAdapterBuiltinFieldNameRuntimeParam {
+						input.Ext[consts.TargetExecuteExtRuntimeParamKey] = field.Value
+					}
+				}
+			}
+		}
+	}
+	for promptKey, datasetKey := range request.VariableMappings {
+		content, err := optimizationFieldContent(sample.Variables, datasetKey)
+		if err != nil {
+			return nil, err
+		}
+		input.InputFields[promptKey] = content
+	}
+	return input, nil
+}
+
+func optimizationFieldContent(fields map[string]*entity.Content, fromField string) (*entity.Content, error) {
+	first, err := json.GetFirstJSONPathField(fromField)
+	if err != nil {
+		return nil, err
+	}
+	content := fields[first]
+	if first == fromField {
+		return content, nil
+	}
+	if content == nil || content.GetContentType() != entity.ContentTypeText {
+		return nil, nil
+	}
+	path, err := json.RemoveFirstJSONPathLevel(fromField)
+	if err != nil {
+		return nil, err
+	}
+	text, err := json.GetStringByJSONPath(content.GetText(), path)
+	if err != nil {
+		return nil, err
+	}
+	return textContent(text), nil
 }
 
 func (p *promptOptimizationExecutor) generateCandidate(ctx context.Context, row *promptOptimizationTaskPO, model *entity.ModelConfig,
@@ -1080,18 +1199,18 @@ func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row 
 				return err
 			}
 			started := time.Now()
-			result, inTokens, outTokens, err := p.evaluateSample(sampleCtx, row, request, candidate, sample, evaluatorByVersion)
+			result, inTokens, outTokens, err := p.evaluateSample(sampleCtx, row, request, candidate, sample, evaluatorByVersion, experiment)
 			mu.Lock()
 			defer mu.Unlock()
 			inputTokens += inTokens
 			outputTokens += outTokens
+			results[sampleIndex] = result
 			if err != nil {
 				return err
 			}
 			if err := sampleCtx.Err(); err != nil {
 				return err
 			}
-			results[sampleIndex] = result
 			completed++
 			// Serialize completed-count updates so out-of-order samples cannot regress progress.
 			p.updateEvaluationProgress(sampleCtx, row.ID, iteration, maxIterations, completed, len(samples))
@@ -1101,7 +1220,7 @@ func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row 
 		})
 	}
 	if err := group.Wait(); err != nil {
-		return nil, nil, inputTokens, outputTokens, err
+		return optimizationMetricsFromResults(results), results, inputTokens, outputTokens, err
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, nil, inputTokens, outputTokens, err
@@ -1111,40 +1230,48 @@ func (p *promptOptimizationExecutor) evaluateCandidate(ctx context.Context, row 
 
 func (p *promptOptimizationExecutor) evaluateSample(ctx context.Context, row *promptOptimizationTaskPO,
 	request promptOptimizationRequestSnapshot, candidate *rpc.PromptTemplate, sample optimizerSample,
-	evaluatorByVersion map[int64]*entity.Evaluator,
-) (*expt.PromptOptimizationSampleEvaluation, int64, int64, error) {
-	var inputTokens, outputTokens int64
-	result := &expt.PromptOptimizationSampleEvaluation{
+	evaluatorByVersion map[int64]*entity.Evaluator, experiment *entity.Experiment,
+) (result *expt.PromptOptimizationSampleEvaluation, inputTokens, outputTokens int64, err error) {
+	result = &expt.PromptOptimizationSampleEvaluation{
 		ItemID: gptr.Of(sample.ItemID), TurnID: gptr.Of(sample.TurnID), Variables: copyStringMap(sample.DisplayVariables),
 		ReferenceAnswer: optionalString(sample.Reference), OriginalAnswer: optionalString(sample.OriginalAnswer),
 		OriginalEvaluatorScores: map[string]float64{}, OptimizedEvaluatorScores: map[string]float64{},
 		OriginalEvaluatorReasons: map[string]string{}, OptimizedEvaluatorReasons: map[string]string{},
 	}
-	variables := make([]*entity.VariableVal, 0, len(request.VariableMappings))
-	for promptKey, datasetKey := range request.VariableMappings {
-		content := sample.Variables[datasetKey]
-		key := promptKey
-		value := contentToDisplayString(content)
-		variable := &entity.VariableVal{Key: &key, Value: &value}
-		if content != nil && content.GetContentType() != entity.ContentTypeText {
-			variable.Content = content
+	defer func() {
+		if err != nil {
+			result.ErrorMessage = gptr.Of(errorx.ErrorWithoutStack(err))
+			result.OptimizedScore = nil
 		}
-		variables = append(variables, variable)
+	}()
+	for versionID, record := range sample.EvaluatorRecords {
+		if record != nil {
+			key := strconv.FormatInt(versionID, 10)
+			if score := record.GetScore(); score != nil {
+				result.OriginalEvaluatorScores[key] = *score
+			}
+			result.OriginalEvaluatorReasons[key] = record.GetReasoning()
+		}
 	}
-	sort.Slice(variables, func(i, j int) bool { return gptr.Indirect(variables[i].Key) < gptr.Indirect(variables[j].Key) })
-	execResult, execErr := p.prompt.ExecutePrompt(ctx, row.SpaceID, &rpc.ExecutePromptParam{
-		PromptID: row.PromptID, PromptVersion: row.SourcePromptVersion, Variables: variables, OverridePromptTemplate: cloneRPCPromptTemplate(candidate),
-	})
+	if len(result.OriginalEvaluatorScores) > 0 {
+		result.OriginalScore = gptr.Of(averageMap(result.OriginalEvaluatorScores))
+	}
+	input, inputErr := optimizationPromptInput(sample, request, experiment)
+	if inputErr != nil {
+		return result, inputTokens, outputTokens, errorx.Wrapf(inputErr, "build candidate input for item %d", sample.ItemID)
+	}
+	executeParam := rpc.NewExecutePromptParam(row.PromptID, row.SourcePromptVersion, input)
+	executeParam.OverridePromptTemplate = cloneRPCPromptTemplate(candidate)
+	execResult, execErr := p.prompt.ExecutePrompt(ctx, row.SpaceID, executeParam)
 	if execErr != nil || execResult == nil {
 		message := "Prompt execution returned no result"
 		if execErr != nil {
 			message = errorx.ErrorWithoutStack(execErr)
 		}
-		result.ErrorMessage = &message
 		if ctx.Err() != nil {
-			return nil, inputTokens, outputTokens, ctx.Err()
+			return result, inputTokens, outputTokens, ctx.Err()
 		}
-		return result, inputTokens, outputTokens, nil
+		return result, inputTokens, outputTokens, errorx.New("execute candidate item %d: %s", sample.ItemID, message)
 	}
 	if execResult.TokenUsage != nil {
 		inputTokens += execResult.TokenUsage.InputTokens
@@ -1157,15 +1284,9 @@ func (p *promptOptimizationExecutor) evaluateSample(ctx context.Context, row *pr
 	result.OptimizedAnswer = &answer
 	for evaluatorVersionID, originalRecord := range sample.EvaluatorRecords {
 		key := strconv.FormatInt(evaluatorVersionID, 10)
-		if originalRecord != nil {
-			if score := originalRecord.GetScore(); score != nil {
-				result.OriginalEvaluatorScores[key] = *score
-			}
-			result.OriginalEvaluatorReasons[key] = originalRecord.GetReasoning()
-		}
 		evaluator := evaluatorByVersion[evaluatorVersionID]
 		if evaluator == nil || originalRecord == nil || originalRecord.EvaluatorInputData == nil {
-			continue
+			return result, inputTokens, outputTokens, errorx.New("candidate item %d is missing evaluator %d or its source input", sample.ItemID, evaluatorVersionID)
 		}
 		input := cloneEvaluatorInput(originalRecord.EvaluatorInputData)
 		if input.EvaluateTargetOutputFields == nil {
@@ -1181,25 +1302,44 @@ func (p *promptOptimizationExecutor) evaluateSample(ctx context.Context, row *pr
 			input.InputFields = make(map[string]*entity.Content)
 		}
 		input.InputFields[field] = answerContent
+		// Evaluator variables can have aliases (for example output <- actual_output).
+		// Updating only "actual_output" would keep scoring the old answer in output.
+		if experiment != nil && experiment.EvalConf != nil && experiment.EvalConf.ConnectorConf.EvaluatorsConf != nil {
+			conf := experiment.EvalConf.ConnectorConf.EvaluatorsConf.GetEvaluatorConf(evaluatorVersionID)
+			if conf != nil && conf.IngressConf != nil && conf.IngressConf.TargetAdapter != nil && evaluator.EvaluatorType != entity.EvaluatorTypeCode {
+				outputs := map[string]*entity.Content{consts.OutputSchemaKey: answerContent, field: answerContent}
+				for _, mapping := range conf.IngressConf.TargetAdapter.FieldConfs {
+					if mapping == nil {
+						continue
+					}
+					content, mappingErr := optimizationFieldContent(outputs, mapping.FromField)
+					if mappingErr != nil {
+						return result, inputTokens, outputTokens, errorx.Wrapf(mappingErr, "map candidate answer for evaluator %d", evaluatorVersionID)
+					}
+					input.InputFields[mapping.FieldName] = content
+					input.EvaluateTargetOutputFields[mapping.FieldName] = content
+				}
+			}
+		}
 		if err := ctx.Err(); err != nil {
-			return nil, inputTokens, outputTokens, err
+			return result, inputTokens, outputTokens, err
 		}
 		// PreHandle injects tools and suffixes; each sample must own its evaluator.
 		evaluatorData, err := stdjson.Marshal(evaluator)
 		if err != nil {
-			return nil, inputTokens, outputTokens, errorx.Wrapf(err, "clone evaluator %d", evaluatorVersionID)
+			return result, inputTokens, outputTokens, errorx.Wrapf(err, "clone evaluator %d", evaluatorVersionID)
 		}
 		var sampleEvaluator entity.Evaluator
 		if err := stdjson.Unmarshal(evaluatorData, &sampleEvaluator); err != nil {
-			return nil, inputTokens, outputTokens, errorx.Wrapf(err, "clone evaluator %d", evaluatorVersionID)
+			return result, inputTokens, outputTokens, errorx.Wrapf(err, "clone evaluator %d", evaluatorVersionID)
 		}
 		output, evalErr := p.evaluatorService.DebugEvaluator(ctx, &sampleEvaluator, input, nil, row.SpaceID)
 		if evalErr != nil {
-			return nil, inputTokens, outputTokens, errorx.Wrapf(evalErr,
+			return result, inputTokens, outputTokens, errorx.Wrapf(evalErr,
 				"evaluate candidate item %d with evaluator %d", sample.ItemID, evaluatorVersionID)
 		}
 		if output == nil || output.EvaluatorResult == nil {
-			return nil, inputTokens, outputTokens, errorx.NewByCode(errno.CommonInternalErrorCode,
+			return result, inputTokens, outputTokens, errorx.NewByCode(errno.CommonInternalErrorCode,
 				errorx.WithExtraMsg(fmt.Sprintf("evaluator %d returned no result for candidate item %d", evaluatorVersionID, sample.ItemID)))
 		}
 		if output.EvaluatorUsage != nil {
@@ -1211,7 +1351,7 @@ func (p *promptOptimizationExecutor) evaluateSample(ctx context.Context, row *pr
 			score = output.EvaluatorResult.Correction.Score
 		}
 		if err := validateOptimizationScore(score, sample.ItemID, evaluatorVersionID); err != nil {
-			return nil, inputTokens, outputTokens, err
+			return result, inputTokens, outputTokens, err
 		}
 		result.OptimizedEvaluatorScores[key] = *score
 		reason := output.EvaluatorResult.Reasoning
@@ -1220,8 +1360,10 @@ func (p *promptOptimizationExecutor) evaluateSample(ctx context.Context, row *pr
 		}
 		result.OptimizedEvaluatorReasons[key] = reason
 	}
-	originalScore, optimizedScore := averageMap(result.OriginalEvaluatorScores), averageMap(result.OptimizedEvaluatorScores)
-	result.OriginalScore, result.OptimizedScore = &originalScore, &optimizedScore
+	if len(result.OptimizedEvaluatorScores) == 0 || result.OriginalScore == nil || len(result.OptimizedEvaluatorScores) != len(evaluatorByVersion) {
+		return result, inputTokens, outputTokens, errorx.New("candidate item %d has incomplete evaluator scores", sample.ItemID)
+	}
+	result.OptimizedScore = gptr.Of(averageMap(result.OptimizedEvaluatorScores))
 	return result, inputTokens, outputTokens, nil
 }
 
@@ -1240,6 +1382,9 @@ func (p *promptOptimizationExecutor) updateEvaluationProgress(ctx context.Contex
 }
 
 func baselineOptimizationMetrics(samples []optimizerSample) (*expt.PromptOptimizationMetrics, []*expt.PromptOptimizationSampleEvaluation, error) {
+	if len(samples) == 0 {
+		return nil, nil, errorx.New("source experiment has no selected samples")
+	}
 	results := make([]*expt.PromptOptimizationSampleEvaluation, 0, len(samples))
 	for _, sample := range samples {
 		row := &expt.PromptOptimizationSampleEvaluation{
@@ -1250,7 +1395,7 @@ func baselineOptimizationMetrics(samples []optimizerSample) (*expt.PromptOptimiz
 		}
 		for versionID, record := range sample.EvaluatorRecords {
 			if record == nil {
-				continue
+				return nil, nil, errorx.New("source experiment item %d is missing evaluator %d result", sample.ItemID, versionID)
 			}
 			key := strconv.FormatInt(versionID, 10)
 			score := record.GetScore()
@@ -1259,6 +1404,9 @@ func baselineOptimizationMetrics(samples []optimizerSample) (*expt.PromptOptimiz
 			}
 			row.OriginalEvaluatorScores[key], row.OptimizedEvaluatorScores[key] = *score, *score
 			row.OriginalEvaluatorReasons[key], row.OptimizedEvaluatorReasons[key] = record.GetReasoning(), record.GetReasoning()
+		}
+		if len(row.OriginalEvaluatorScores) == 0 {
+			return nil, nil, errorx.New("source experiment item %d has no evaluator scores", sample.ItemID)
 		}
 		score := averageMap(row.OriginalEvaluatorScores)
 		row.OriginalScore, row.OptimizedScore = &score, &score
@@ -1283,14 +1431,23 @@ func validateOptimizationScore(score *float64, itemID, evaluatorVersionID int64)
 
 func optimizationMetricsFromResults(results []*expt.PromptOptimizationSampleEvaluation) *expt.PromptOptimizationMetrics {
 	metrics := &expt.PromptOptimizationMetrics{SampleCount: gptr.Of(int32(len(results))), EvaluatorAverageScores: map[string]float64{}}
+	// A failed or unscored row is not a zero score and must not turn an
+	// incomplete candidate into an apparently comparable average.
+	if len(results) == 0 {
+		return metrics
+	}
+	for _, result := range results {
+		if result == nil || result.GetErrorMessage() != "" || result.OriginalScore == nil || result.OptimizedScore == nil ||
+			validateOptimizationScore(result.OriginalScore, result.GetItemID(), 0) != nil ||
+			validateOptimizationScore(result.OptimizedScore, result.GetItemID(), 0) != nil {
+			return metrics
+		}
+	}
 	var sum float64
 	var scored int
 	evaluatorSums, evaluatorCounts := map[string]float64{}, map[string]int{}
 	var full, improved, regressed, unchanged int32
 	for _, result := range results {
-		if result == nil || result.OptimizedScore == nil {
-			continue
-		}
 		score := *result.OptimizedScore
 		sum += score
 		scored++
@@ -1324,10 +1481,10 @@ func optimizationMetricsFromResults(results []*expt.PromptOptimizationSampleEval
 }
 
 func betterOptimizationMetrics(candidate, current *expt.PromptOptimizationMetrics) bool {
-	if candidate == nil {
+	if candidate == nil || candidate.AverageScore == nil {
 		return false
 	}
-	if current == nil {
+	if current == nil || current.AverageScore == nil {
 		return true
 	}
 	ca, cu := gptr.Indirect(candidate.AverageScore), gptr.Indirect(current.AverageScore)
@@ -1412,8 +1569,7 @@ func (p *promptOptimizationExecutor) taskPOToDTO(ctx context.Context, row *promp
 		}
 	}
 	hasOptimizationResult := len(row.OptimizedPromptTemplate) > 0 || len(row.BaselineMetrics) > 0 || len(row.BestMetrics) > 0
-	canExposeOptimizationResult := row.Status == string(expt.PromptOptimizationStatusRunning) ||
-		row.Status == string(expt.PromptOptimizationStatusSucceeded)
+	canExposeOptimizationResult := row.Status != string(expt.PromptOptimizationStatusQueued)
 	if canExposeOptimizationResult && hasOptimizationResult {
 		result := &expt.PromptOptimizeTaskResult_{}
 		var optimizedTemplate promptdto.PromptTemplate
@@ -1421,10 +1577,14 @@ func (p *promptOptimizationExecutor) taskPOToDTO(ctx context.Context, row *promp
 			result.OptimizedPromptMessageList = optimizedTemplate.Messages
 		}
 		_ = stdjson.Unmarshal(row.BaselineMetrics, &result.BaselineMetrics)
-		_ = stdjson.Unmarshal(row.BestMetrics, &result.BestMetrics)
+		var best promptOptimizationBestResult
+		if stdjson.Unmarshal(row.BestMetrics, &best) == nil {
+			result.BestMetrics = best.PromptOptimizationMetrics
+			result.BestIteration = best.BestIteration
+		}
 		task.OptimizeResult_ = result
 	}
-	if withIterations && task.OptimizeResult_ != nil {
+	if (withIterations || withSamples) && task.OptimizeResult_ != nil {
 		iterations, err := p.store.listIterations(ctx, row.ID)
 		if err == nil {
 			for _, iteration := range iterations {
@@ -1433,8 +1593,13 @@ func (p *promptOptimizationExecutor) taskPOToDTO(ctx context.Context, row *promp
 				_ = stdjson.Unmarshal(iteration.Metrics, &item.Metrics)
 				if withSamples {
 					_ = stdjson.Unmarshal(iteration.SampleResults, &item.SampleResults)
+					if selected := task.OptimizeResult_.BestIteration; selected != nil && iteration.IterationNo == *selected {
+						task.OptimizeResult_.SampleResults = item.SampleResults
+					}
 				}
-				task.OptimizeResult_.Iterations = append(task.OptimizeResult_.Iterations, item)
+				if withIterations && iteration.IterationNo > 0 {
+					task.OptimizeResult_.Iterations = append(task.OptimizeResult_.Iterations, item)
+				}
 			}
 		}
 	}

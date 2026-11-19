@@ -511,6 +511,8 @@ type LLMCallParam struct {
 	Tools          []*Tool
 	ToolCallConfig *ToolCallConfig
 	ModelConfig    *ModelConfig
+	// EvaluatorScoring distinguishes scoring from candidate generation, which shares ScenarioEvaluator.
+	EvaluatorScoring bool
 }
 
 type SearchCustomEvalTargetParam struct {

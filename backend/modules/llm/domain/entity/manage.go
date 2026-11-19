@@ -219,6 +219,9 @@ type ProtocolConfigOpenAI struct {
 	ApiVersion               string `json:"api_version" yaml:"api_version" mapstructure:"api_version"`
 	ResponseFormatType       string `json:"response_format_type" yaml:"response_format_type" mapstructure:"response_format_type"`
 	ResponseFormatJsonSchema string `json:"response_format_json_schema" yaml:"response_format_json_schema" mapstructure:"response_format_json_schema"`
+
+	// Opt in only for vLLM-compatible models that support chat_template_kwargs.enable_thinking.
+	DisableThinkingForScoring bool `json:"disable_thinking_for_scoring,omitempty" yaml:"disable_thinking_for_scoring,omitempty" mapstructure:"disable_thinking_for_scoring"`
 }
 
 type ProtocolConfigClaude struct {

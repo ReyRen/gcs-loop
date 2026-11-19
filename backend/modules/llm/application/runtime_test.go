@@ -30,6 +30,30 @@ import (
 	"github.com/pkg/errors"
 )
 
+func TestChatOptionsOnlyMarksExplicitScoringCalls(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		scenario common.Scenario
+		extra    string
+		want     bool
+	}{
+		{"scorer", common.ScenarioEvaluator, `{"evaluator_scoring":true}`, true},
+		{"candidate generator", common.ScenarioEvaluator, "", false},
+		{"normal prompt", common.ScenarioPromptDebug, `{"evaluator_scoring":true}`, false},
+		{"invalid extra", common.ScenarioEvaluator, "invalid", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := &runtime.ChatRequest{
+				BizParam:    &druntime.BizParam{Scenario: &tc.scenario},
+				ModelConfig: &druntime.ModelConfig{MaxTokens: ptr.Of(int64(256)), Extra: &tc.extra},
+			}
+			got := entity.ApplyOptions(nil, chatOptions(req)...)
+			assert.Equal(t, tc.want, got.EvaluatorScoring)
+			assert.Equal(t, 256, ptr.From(got.MaxTokens))
+		})
+	}
+}
+
 func Test_runtimeApp_Chat(t *testing.T) {
 	req := &runtime.ChatRequest{
 		ModelConfig: &druntime.ModelConfig{

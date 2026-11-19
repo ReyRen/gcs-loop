@@ -1844,6 +1844,72 @@ func TestToExptDTO_RuntimeParam(t *testing.T) {
 	}
 }
 
+func TestToExptDTO_PartialFailureStatusMessage(t *testing.T) {
+	t.Parallel()
+
+	message := "评测已完成，部分样本执行失败（成功 27 条，失败 3 条）；成功结果已保留，可重试失败及未执行的样本。"
+	tests := []struct {
+		name    string
+		change  func(*entity.Experiment)
+		wantMsg string
+	}{
+		{name: "completed mixed results", wantMsg: message},
+		{name: "known sample total", change: func(e *entity.Experiment) { e.TotalItemCount = 30 }, wantMsg: message},
+		{name: "incomplete statistics", change: func(e *entity.Experiment) { e.TotalItemCount = 31 }},
+		{name: "pending", change: func(e *entity.Experiment) { e.Status = entity.ExptStatus_Pending }},
+		{name: "processing", change: func(e *entity.Experiment) { e.Status = entity.ExptStatus_Processing }},
+		{name: "retry still pending", change: func(e *entity.Experiment) { e.Stats.PendingItemCnt = 1 }},
+		{name: "sample still processing", change: func(e *entity.Experiment) { e.Stats.ProcessingItemCnt = 1 }},
+		{name: "terminated samples", change: func(e *entity.Experiment) { e.Stats.TerminatedItemCnt = 1 }},
+		{name: "all failed", change: func(e *entity.Experiment) { e.Stats.SuccessItemCnt = 0; e.Stats.FailItemCnt = 30 }},
+		{
+			name: "all succeeded",
+			change: func(e *entity.Experiment) {
+				e.Status = entity.ExptStatus_Success
+				e.Stats.SuccessItemCnt = 30
+				e.Stats.FailItemCnt = 0
+			},
+		},
+		{name: "user terminated", change: func(e *entity.Experiment) { e.Status = entity.ExptStatus_Terminated }},
+		{name: "system terminated", change: func(e *entity.Experiment) { e.Status = entity.ExptStatus_SystemTerminated }},
+		{name: "no statistics", change: func(e *entity.Experiment) { e.Stats = nil }},
+		{name: "online experiment", change: func(e *entity.Experiment) { e.ExptType = entity.ExptType_Online }},
+		{
+			name:    "preserve task error",
+			change:  func(e *entity.Experiment) { e.StatusMessage = "scheduler error" },
+			wantMsg: "scheduler error",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			experiment := &entity.Experiment{
+				Status:   entity.ExptStatus_Failed,
+				ExptType: entity.ExptType_Offline,
+				Stats:    &entity.ExptStats{SuccessItemCnt: 27, FailItemCnt: 3},
+			}
+			if tt.change != nil {
+				tt.change(experiment)
+			}
+			original := *experiment
+			var originalStats *entity.ExptStats
+			if experiment.Stats != nil {
+				stats := *experiment.Stats
+				originalStats = &stats
+			}
+
+			// List and detail endpoints share this converter.
+			result := ToExptDTOs([]*entity.Experiment{experiment})[0]
+
+			assert.Equal(t, tt.wantMsg, result.GetStatusMessage())
+			assert.Equal(t, domain_expt.ExptStatus(experiment.Status), result.GetStatus())
+			assert.Equal(t, ToExptStatsDTO(experiment.Stats, nil), result.ExptStats)
+			assert.Equal(t, original, *experiment, "read conversion must not modify persisted state")
+			assert.Equal(t, originalStats, experiment.Stats, "successful and failed sample counts must be preserved")
+		})
+	}
+}
+
 func TestToExptDTO_CreateTime(t *testing.T) {
 	t.Parallel()
 

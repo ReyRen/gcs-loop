@@ -5,6 +5,7 @@ package eino
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	arkmodel "github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
@@ -130,6 +131,12 @@ func openAIBuilder(ctx context.Context, model *entity.Model, opts ...entity.Opti
 	if pc := p.ProtocolConfigOpenAI; pc != nil {
 		cfg.ByAzure = pc.ByAzure
 		cfg.APIVersion = pc.ApiVersion
+		if ops.EvaluatorScoring && pc.DisableThinkingForScoring && !pc.ByAzure {
+			cfg.HTTPClient = &http.Client{
+				Timeout:   cfg.Timeout,
+				Transport: scoringTransport{RoundTripper: http.DefaultTransport},
+			}
+		}
 		var js acl_openai.ChatCompletionResponseFormatJSONSchema
 		if pc.ResponseFormatJsonSchema != "" {
 			if err := sonic.UnmarshalString(pc.ResponseFormatJsonSchema, &js); err != nil {

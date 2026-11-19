@@ -50554,6 +50554,10 @@ type PromptOptimizeTaskResult_ struct {
 	BaselineMetrics            *PromptOptimizationMetrics     `thrift:"baseline_metrics,4,optional" frugal:"4,optional,PromptOptimizationMetrics" form:"baseline_metrics" json:"baseline_metrics,omitempty" query:"baseline_metrics"`
 	BestMetrics                *PromptOptimizationMetrics     `thrift:"best_metrics,5,optional" frugal:"5,optional,PromptOptimizationMetrics" form:"best_metrics" json:"best_metrics,omitempty" query:"best_metrics"`
 	Iterations                 []*PromptOptimizationIteration `thrift:"iterations,6,optional" frugal:"6,optional,list<PromptOptimizationIteration>" form:"iterations" json:"iterations,omitempty" query:"iterations"`
+	// Authoritative selected result. Zero means the original Prompt was retained.
+	BestIteration *int32 `thrift:"best_iteration,7,optional" frugal:"7,optional,i32" form:"best_iteration" json:"best_iteration,omitempty" query:"best_iteration"`
+	// The answers and scores belonging to optimized_prompt_message_list and best_metrics.
+	SampleResults []*PromptOptimizationSampleEvaluation `thrift:"sample_results,8,optional" frugal:"8,optional,list<PromptOptimizationSampleEvaluation>" form:"sample_results" json:"sample_results,omitempty" query:"sample_results"`
 }
 
 func NewPromptOptimizeTaskResult_() *PromptOptimizeTaskResult_ {
@@ -50634,6 +50638,30 @@ func (p *PromptOptimizeTaskResult_) GetIterations() (v []*PromptOptimizationIter
 	}
 	return p.Iterations
 }
+
+var PromptOptimizeTaskResult__BestIteration_DEFAULT int32
+
+func (p *PromptOptimizeTaskResult_) GetBestIteration() (v int32) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetBestIteration() {
+		return PromptOptimizeTaskResult__BestIteration_DEFAULT
+	}
+	return *p.BestIteration
+}
+
+var PromptOptimizeTaskResult__SampleResults_DEFAULT []*PromptOptimizationSampleEvaluation
+
+func (p *PromptOptimizeTaskResult_) GetSampleResults() (v []*PromptOptimizationSampleEvaluation) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetSampleResults() {
+		return PromptOptimizeTaskResult__SampleResults_DEFAULT
+	}
+	return p.SampleResults
+}
 func (p *PromptOptimizeTaskResult_) SetOptimizedPromptMessageList(val []*prompt.Message) {
 	p.OptimizedPromptMessageList = val
 }
@@ -50652,6 +50680,12 @@ func (p *PromptOptimizeTaskResult_) SetBestMetrics(val *PromptOptimizationMetric
 func (p *PromptOptimizeTaskResult_) SetIterations(val []*PromptOptimizationIteration) {
 	p.Iterations = val
 }
+func (p *PromptOptimizeTaskResult_) SetBestIteration(val *int32) {
+	p.BestIteration = val
+}
+func (p *PromptOptimizeTaskResult_) SetSampleResults(val []*PromptOptimizationSampleEvaluation) {
+	p.SampleResults = val
+}
 
 var fieldIDToName_PromptOptimizeTaskResult_ = map[int16]string{
 	1: "optimized_prompt_message_list",
@@ -50660,6 +50694,8 @@ var fieldIDToName_PromptOptimizeTaskResult_ = map[int16]string{
 	4: "baseline_metrics",
 	5: "best_metrics",
 	6: "iterations",
+	7: "best_iteration",
+	8: "sample_results",
 }
 
 func (p *PromptOptimizeTaskResult_) IsSetOptimizedPromptMessageList() bool {
@@ -50684,6 +50720,14 @@ func (p *PromptOptimizeTaskResult_) IsSetBestMetrics() bool {
 
 func (p *PromptOptimizeTaskResult_) IsSetIterations() bool {
 	return p.Iterations != nil
+}
+
+func (p *PromptOptimizeTaskResult_) IsSetBestIteration() bool {
+	return p.BestIteration != nil
+}
+
+func (p *PromptOptimizeTaskResult_) IsSetSampleResults() bool {
+	return p.SampleResults != nil
 }
 
 func (p *PromptOptimizeTaskResult_) Read(iprot thrift.TProtocol) (err error) {
@@ -50747,6 +50791,22 @@ func (p *PromptOptimizeTaskResult_) Read(iprot thrift.TProtocol) (err error) {
 		case 6:
 			if fieldTypeId == thrift.LIST {
 				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 8:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField8(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -50877,6 +50937,40 @@ func (p *PromptOptimizeTaskResult_) ReadField6(iprot thrift.TProtocol) error {
 	p.Iterations = _field
 	return nil
 }
+func (p *PromptOptimizeTaskResult_) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field *int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.BestIteration = _field
+	return nil
+}
+func (p *PromptOptimizeTaskResult_) ReadField8(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*PromptOptimizationSampleEvaluation, 0, size)
+	values := make([]PromptOptimizationSampleEvaluation, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.SampleResults = _field
+	return nil
+}
 
 func (p *PromptOptimizeTaskResult_) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -50906,6 +51000,14 @@ func (p *PromptOptimizeTaskResult_) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField6(oprot); err != nil {
 			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
+			goto WriteFieldError
+		}
+		if err = p.writeField8(oprot); err != nil {
+			fieldId = 8
 			goto WriteFieldError
 		}
 	}
@@ -51058,6 +51160,50 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
 }
+func (p *PromptOptimizeTaskResult_) writeField7(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBestIteration() {
+		if err = oprot.WriteFieldBegin("best_iteration", thrift.I32, 7); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI32(*p.BestIteration); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+func (p *PromptOptimizeTaskResult_) writeField8(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSampleResults() {
+		if err = oprot.WriteFieldBegin("sample_results", thrift.LIST, 8); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteListBegin(thrift.STRUCT, len(p.SampleResults)); err != nil {
+			return err
+		}
+		for _, v := range p.SampleResults {
+			if err := v.Write(oprot); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
+}
 
 func (p *PromptOptimizeTaskResult_) String() string {
 	if p == nil {
@@ -51089,6 +51235,12 @@ func (p *PromptOptimizeTaskResult_) DeepEqual(ano *PromptOptimizeTaskResult_) bo
 		return false
 	}
 	if !p.Field6DeepEqual(ano.Iterations) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.BestIteration) {
+		return false
+	}
+	if !p.Field8DeepEqual(ano.SampleResults) {
 		return false
 	}
 	return true
@@ -51152,6 +51304,31 @@ func (p *PromptOptimizeTaskResult_) Field6DeepEqual(src []*PromptOptimizationIte
 		return false
 	}
 	for i, v := range p.Iterations {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
+}
+func (p *PromptOptimizeTaskResult_) Field7DeepEqual(src *int32) bool {
+
+	if p.BestIteration == src {
+		return true
+	} else if p.BestIteration == nil || src == nil {
+		return false
+	}
+	if *p.BestIteration != *src {
+		return false
+	}
+	return true
+}
+func (p *PromptOptimizeTaskResult_) Field8DeepEqual(src []*PromptOptimizationSampleEvaluation) bool {
+
+	if len(p.SampleResults) != len(src) {
+		return false
+	}
+	for i, v := range p.SampleResults {
 		_src := src[i]
 		if !v.DeepEqual(_src) {
 			return false

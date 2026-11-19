@@ -5,8 +5,13 @@ package rpc
 
 import (
 	"context"
+	"sort"
 
+	"github.com/bytedance/gg/gptr"
+
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/consts"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
+	"github.com/coze-dev/coze-loop/backend/pkg/json"
 )
 
 //go:generate mockgen -destination=mocks/prompt.go -package=mocks . IPromptRPCAdapter
@@ -30,6 +35,46 @@ type ExecutePromptParam struct {
 	// committed Prompt and is used by the experiment optimizer to score a
 	// candidate with the exact same runtime model/tools as the source version.
 	OverridePromptTemplate *PromptTemplate
+}
+
+// NewExecutePromptParam keeps experiment execution and optimization replay on
+// the same input contract. Reading a User query must not remove it from the
+// input snapshot that is subsequently persisted with the experiment record.
+func NewExecutePromptParam(promptID int64, version string, input *entity.EvalTargetInputData) *ExecutePromptParam {
+	param := &ExecutePromptParam{PromptID: promptID, PromptVersion: version}
+	if input == nil {
+		return param
+	}
+	param.History = input.HistoryMessages
+	for key, content := range input.InputFields {
+		if content == nil {
+			continue
+		}
+		if key == consts.EvalTargetInputFieldKeyPromptUserQuery {
+			param.UserQuery = &entity.Message{Role: entity.RoleUser, Content: content}
+			continue
+		}
+		variable := &entity.VariableVal{Key: gptr.Of(key), Value: content.Text, Content: content}
+		if content.Text != nil {
+			var messages []*entity.Message
+			if json.Unmarshal([]byte(*content.Text), &messages) == nil {
+				variable.PlaceholderMessages = make([]*entity.Message, 0, len(messages))
+				for _, message := range messages {
+					if message != nil && message.Content != nil {
+						variable.PlaceholderMessages = append(variable.PlaceholderMessages, message)
+					}
+				}
+			}
+		}
+		param.Variables = append(param.Variables, variable)
+	}
+	sort.Slice(param.Variables, func(i, j int) bool {
+		return gptr.Indirect(param.Variables[i].Key) < gptr.Indirect(param.Variables[j].Key)
+	})
+	if runtime := input.Ext[consts.TargetExecuteExtRuntimeParamKey]; runtime != "" {
+		param.RuntimeParam = gptr.Of(runtime)
+	}
+	return param
 }
 
 type ExecutePromptResult struct {

@@ -41,6 +41,12 @@ func TestLLMCallParamConvert(t *testing.T) {
 	assert.Equal(t, common.ScenarioEvaluator, *got.BizParam.Scenario)
 	assert.Equal(t, "100", *got.BizParam.ScenarioEntityID)
 	assert.Equal(t, runtimedto.RoleUser, got.Messages[0].Role)
+	assert.Empty(t, got.ModelConfig.GetExtra(), "sharing the evaluator scenario is not sufficient")
+
+	param.EvaluatorScoring = true
+	got = LLMCallParamConvert(param)
+	assert.JSONEq(t, `{"evaluator_scoring":true}`, got.ModelConfig.GetExtra())
+	assert.Equal(t, common.ScenarioEvaluator, got.BizParam.GetScenario())
 }
 
 func TestModelConfigDO2DTO(t *testing.T) {

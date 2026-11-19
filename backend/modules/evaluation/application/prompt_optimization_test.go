@@ -7,6 +7,7 @@ import (
 	"context"
 	stdjson "encoding/json"
 	"errors"
+	"math"
 	"testing"
 
 	"github.com/bytedance/gg/gptr"
@@ -15,6 +16,8 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/evaluation/expt"
+	promptdto "github.com/coze-dev/coze-loop/backend/kitex_gen/coze/loop/prompt/domain/prompt"
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/consts"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc"
 	rpcmocks "github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/component/rpc/mocks"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
@@ -53,6 +56,147 @@ func TestBetterOptimizationMetrics(t *testing.T) {
 		&expt.PromptOptimizationMetrics{AverageScore: gptr.Of(0.6)},
 		&expt.PromptOptimizationMetrics{AverageScore: gptr.Of(0.7)},
 	))
+}
+
+func TestOptimizationMetricsDoNotCompareIncompleteResults(t *testing.T) {
+	valid := &expt.PromptOptimizationSampleEvaluation{OriginalScore: gptr.Of(0.5), OptimizedScore: gptr.Of(0.9)}
+	for _, results := range [][]*expt.PromptOptimizationSampleEvaluation{
+		nil,
+		{nil},
+		{{OriginalScore: gptr.Of(0.5), ErrorMessage: gptr.Of("No user query found in messages.")}},
+		{valid, {OriginalScore: gptr.Of(0.5)}},
+		{{OptimizedScore: gptr.Of(0.5)}},
+		{{OriginalScore: gptr.Of(0.5), OptimizedScore: gptr.Of(math.NaN())}},
+	} {
+		metrics := optimizationMetricsFromResults(results)
+		assert.Nil(t, metrics.AverageScore)
+		assert.Nil(t, metrics.UnchangedCount)
+		assert.False(t, betterOptimizationMetrics(metrics, &expt.PromptOptimizationMetrics{AverageScore: gptr.Of(0.0)}))
+	}
+	metrics := optimizationMetricsFromResults([]*expt.PromptOptimizationSampleEvaluation{{OriginalScore: gptr.Of(0.0), OptimizedScore: gptr.Of(0.0)}})
+	require.NotNil(t, metrics.AverageScore)
+	assert.Equal(t, 0.0, *metrics.AverageScore)
+	assert.Equal(t, int32(1), metrics.GetUnchangedCount())
+}
+
+func TestPromptOptimizationReplayRestoresUserAndScorerMappings(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	prompt := rpcmocks.NewMockIPromptRPCAdapter(ctrl)
+	evaluators := servicemocks.NewMockEvaluatorService(ctrl)
+	experiment := optimizationConcurrencyExperiment()
+	experiment.EvalConf = &entity.EvaluationConfiguration{ConnectorConf: entity.Connector{
+		TargetConf: &entity.TargetConf{IngressConf: &entity.TargetIngressConf{
+			EvalSetAdapter: &entity.FieldAdapter{FieldConfs: []*entity.FieldConf{
+				{FieldName: "knowledge", FromField: "context"},
+				{FieldName: consts.EvalTargetInputFieldKeyPromptUserQuery, FromField: "question"},
+			}},
+		}},
+		EvaluatorsConf: &entity.EvaluatorsConf{EvaluatorConf: []*entity.EvaluatorConf{{EvaluatorVersionID: 101,
+			IngressConf: &entity.EvaluatorIngressConf{TargetAdapter: &entity.FieldAdapter{FieldConfs: []*entity.FieldConf{{FieldName: "output", FromField: "actual_output"}}}},
+		}}},
+	}}
+	sample := optimizerSample{ItemID: 10, TurnID: 20, OriginalAnswer: "原回答", Variables: map[string]*entity.Content{
+		"context": textContent("保修期12个月"), "question": textContent("保修期多久？"),
+	}, TargetInput: &entity.EvalTargetInputData{
+		InputFields:     map[string]*entity.Content{"knowledge": textContent("保修期12个月")},
+		HistoryMessages: []*entity.Message{{Role: entity.RoleAssistant, Content: textContent("您好")}},
+		Ext:             map[string]string{consts.TargetExecuteExtRuntimeParamKey: `{"model_config":{"model_id":"122","max_tokens":128}}`},
+	}, EvaluatorRecords: map[int64]*entity.EvaluatorRecord{101: {
+		EvaluatorInputData:  &entity.EvaluatorInputData{InputFields: map[string]*entity.Content{"output": textContent("原回答"), "input": textContent("保修期多久？")}},
+		EvaluatorOutputData: &entity.EvaluatorOutputData{EvaluatorResult: &entity.EvaluatorResult{Score: gptr.Of(0.5)}},
+	}}}
+	prompt.EXPECT().ExecutePrompt(gomock.Any(), int64(1), gomock.Any()).DoAndReturn(
+		func(_ context.Context, _ int64, param *rpc.ExecutePromptParam) (*rpc.ExecutePromptResult, error) {
+			require.NotNil(t, param.UserQuery)
+			assert.Equal(t, "保修期多久？", param.UserQuery.Content.GetText())
+			require.Len(t, param.History, 1)
+			assert.Equal(t, "您好", param.History[0].Content.GetText())
+			assert.Contains(t, *param.RuntimeParam, `"max_tokens":128`)
+			require.Len(t, param.Variables, 1)
+			assert.Equal(t, "保修期12个月", *param.Variables[0].Value)
+			assert.Equal(t, "仅根据{{knowledge}}回答", param.OverridePromptTemplate.Messages[0].Content)
+			return &rpc.ExecutePromptResult{Content: gptr.Of("12个月")}, nil
+		})
+	evaluators.EXPECT().DebugEvaluator(gomock.Any(), gomock.Any(), gomock.Any(), nil, int64(1)).DoAndReturn(
+		func(_ context.Context, _ *entity.Evaluator, input *entity.EvaluatorInputData, _ *entity.EvaluatorRunConfig, _ int64) (*entity.EvaluatorOutputData, error) {
+			assert.Equal(t, "12个月", input.InputFields["output"].GetText())
+			assert.Equal(t, "12个月", input.EvaluateTargetOutputFields["output"].GetText())
+			assert.Equal(t, "保修期多久？", input.InputFields["input"].GetText())
+			return &entity.EvaluatorOutputData{EvaluatorResult: &entity.EvaluatorResult{Score: gptr.Of(1.0)}}, nil
+		})
+	executor := &promptOptimizationExecutor{prompt: prompt, evaluatorService: evaluators}
+	metrics, results, _, _, err := executor.evaluateCandidate(context.Background(), &promptOptimizationTaskPO{SpaceID: 1, PromptID: 2, SourcePromptVersion: "0.0.4"},
+		promptOptimizationRequestSnapshot{VariableMappings: map[string]string{"knowledge": "context"}}, experiment,
+		&rpc.PromptTemplate{Messages: []*rpc.PromptMessage{{Role: "system", Content: "仅根据{{knowledge}}回答"}}}, []optimizerSample{sample}, 1, 6)
+	require.NoError(t, err)
+	assert.Equal(t, 1.0, metrics.GetAverageScore())
+	require.Len(t, results, 1)
+	assert.Equal(t, 0.5, results[0].GetOriginalScore())
+	assert.Equal(t, 1.0, results[0].GetOptimizedScore())
+	assert.Equal(t, "12个月", results[0].GetOptimizedAnswer())
+	assert.Equal(t, "原回答", sample.EvaluatorRecords[101].EvaluatorInputData.InputFields["output"].GetText())
+	assert.NotContains(t, sample.TargetInput.InputFields, consts.EvalTargetInputFieldKeyPromptUserQuery)
+}
+
+func TestPromptOptimizationPromptFailureIsNotNoImprovement(t *testing.T) {
+	t.Setenv(promptOptimizationSampleConcurrencyEnv, "1")
+	for _, providerErr := range []error{errors.New("No user query found in messages."), nil} {
+		ctrl := gomock.NewController(t)
+		prompt := rpcmocks.NewMockIPromptRPCAdapter(ctrl)
+		prompt.EXPECT().ExecutePrompt(gomock.Any(), int64(1), gomock.Any()).Return(nil, providerErr)
+		sample := optimizerSample{ItemID: 10, OriginalAnswer: "原回答", EvaluatorRecords: map[int64]*entity.EvaluatorRecord{101: {
+			EvaluatorInputData:  &entity.EvaluatorInputData{},
+			EvaluatorOutputData: &entity.EvaluatorOutputData{EvaluatorResult: &entity.EvaluatorResult{Score: gptr.Of(0.99)}},
+		}}}
+		executor := &promptOptimizationExecutor{prompt: prompt}
+		metrics, results, _, _, err := executor.evaluateCandidate(context.Background(), &promptOptimizationTaskPO{SpaceID: 1},
+			promptOptimizationRequestSnapshot{}, optimizationConcurrencyExperiment(), &rpc.PromptTemplate{}, []optimizerSample{sample, sample}, 1, 6)
+		require.ErrorContains(t, err, "execute candidate item 10")
+		assert.Nil(t, metrics.AverageScore)
+		require.NotNil(t, results[0])
+		assert.Equal(t, 0.99, results[0].GetOriginalScore())
+		assert.Nil(t, results[0].OptimizedScore)
+		assert.NotEmpty(t, results[0].GetErrorMessage())
+		assert.False(t, betterOptimizationMetrics(metrics, &expt.PromptOptimizationMetrics{AverageScore: gptr.Of(0.0)}))
+	}
+}
+
+func TestPromptOptimizationSelectedSnapshotIsAuthoritative(t *testing.T) {
+	for _, selected := range []int32{0, 2} {
+		for _, status := range []string{"running", "succeeded", "failed", "canceled"} {
+			rows := []*expt.PromptOptimizationSampleEvaluation{{ItemID: gptr.Of(int64(10)), OriginalAnswer: gptr.Of("原回答"), OptimizedAnswer: gptr.Of("选中回答"), OriginalScore: gptr.Of(0.5), OptimizedScore: gptr.Of(0.8)}}
+			metrics := optimizationMetricsFromResults(rows)
+			stored, err := stdjson.Marshal(promptOptimizationBestResult{metrics, &selected})
+			require.NoError(t, err)
+			template, err := stdjson.Marshal(&promptdto.PromptTemplate{Messages: []*promptdto.Message{{Content: gptr.Of("选中Prompt")}}})
+			require.NoError(t, err)
+			executor := &promptOptimizationExecutor{}
+			row := &promptOptimizationTaskPO{Status: status, BestMetrics: stored, OptimizedPromptTemplate: template}
+			task := executor.taskPOToDTO(context.Background(), row, false, false)
+			require.NotNil(t, task.OptimizeResult_)
+			assert.Equal(t, selected, task.OptimizeResult_.GetBestIteration())
+			assert.Equal(t, "选中Prompt", task.OptimizeResult_.OptimizedPromptMessageList[0].GetContent())
+			assert.Equal(t, 0.8, task.OptimizeResult_.GetBestMetrics().GetAverageScore())
+			assert.Empty(t, executor.taskPOToDTO(context.Background(), row, false, false).OptimizeResult_.SampleResults)
+		}
+	}
+}
+
+func TestPromptOptimizationNoImprovementKeepsBaselineAnswers(t *testing.T) {
+	samples := []optimizerSample{{ItemID: 10, OriginalAnswer: "12个月", EvaluatorRecords: map[int64]*entity.EvaluatorRecord{101: {
+		EvaluatorOutputData: &entity.EvaluatorOutputData{EvaluatorResult: &entity.EvaluatorResult{Score: gptr.Of(0.99)}},
+	}}}}
+	metrics, rows, err := baselineOptimizationMetrics(samples)
+	require.NoError(t, err)
+	assert.False(t, betterOptimizationMetrics(&expt.PromptOptimizationMetrics{AverageScore: gptr.Of(0.98)}, metrics))
+	stored, err := stdjson.Marshal(promptOptimizationBestResult{metrics, gptr.Of(int32(0))})
+	require.NoError(t, err)
+	task := (&promptOptimizationExecutor{}).taskPOToDTO(context.Background(), &promptOptimizationTaskPO{Status: "succeeded", BestMetrics: stored}, false, false)
+	assert.Equal(t, int32(0), task.OptimizeResult_.GetBestIteration())
+	assert.Equal(t, "12个月", rows[0].GetOptimizedAnswer())
+	assert.Equal(t, 0.99, rows[0].GetOriginalScore())
+	assert.Equal(t, 0.99, rows[0].GetOptimizedScore())
+	assert.Equal(t, int32(1), task.OptimizeResult_.GetBestMetrics().GetUnchangedCount())
 }
 
 func TestPromptOptimizationModelUsesConfiguredID(t *testing.T) {

@@ -123,14 +123,13 @@ class OpenAPIGeneratorTest(unittest.TestCase):
             )
 
     def test_evaluation_prompt_optimization_contract(self) -> None:
-        prefix = "/api/evaluation/v1/experiments/{expt_id}/prompt_optimizations"
+        prefix = "/api/prompt/v1/prompts/{prompt_id}/optimize_tasks"
         expected = {
-            ("get", f"{prefix}/prepare"),
+            ("post", f"{prefix}/evaluate"),
             ("post", prefix),
             ("post", f"{prefix}/list"),
-            ("get", f"{prefix}/{{optimization_id}}"),
-            ("post", f"{prefix}/{{optimization_id}}/cancel"),
-            ("post", f"{prefix}/{{optimization_id}}/apply_to_draft"),
+            ("post", f"{prefix}/{{task_id}}"),
+            ("post", f"{prefix}/{{task_id}}/terminate"),
         }
         for method, path in expected:
             operation = self.document["paths"][path][method]
@@ -141,36 +140,39 @@ class OpenAPIGeneratorTest(unittest.TestCase):
             "schema"
         ]
         self.assertTrue(
-            {"workspace_id", "samples", "variable_mappings"}.issubset(
+            {"workspace_id", "selected_item_id_list", "eval_set_to_target"}.issubset(
                 create_schema["required"]
             )
         )
         self.assertEqual(
-            create_schema["properties"]["samples"]["maxItems"], 20
+            create_schema["properties"]["selected_item_id_list"]["maxItems"], 500
         )
-
-        apply_path = f"{prefix}/{{optimization_id}}/apply_to_draft"
-        apply_schema = self.document["paths"][apply_path]["post"][
-            "requestBody"
-        ]["content"]["application/json"]["schema"]
-        self.assertIn("overwrite_existing_draft", apply_schema["properties"])
+        self.assertFalse(any("/prompt_optimizations" in path for path in self.document["paths"]))
 
         task_schema = self.document["components"]["schemas"][
-            "coze.loop.evaluation.expt.PromptOptimizationTask"
+            "coze.loop.evaluation.expt.PromptOptimizeTask"
         ]
         self.assertTrue(
             {
                 "status",
                 "stage",
                 "progress",
-                "baseline_metrics",
-                "best_metrics",
-                "original_prompt_template",
-                "optimized_prompt_template",
-                "iterations",
-                "applied_to_draft",
+                "optimize_target",
+                "optimize_result",
             }.issubset(task_schema["properties"])
         )
+        result = self.document["components"]["schemas"][
+            "coze.loop.evaluation.expt.PromptOptimizeTaskResult"
+        ]
+        self.assertTrue(
+            {"optimized_prompt_message_list", "baseline_metrics", "best_metrics", "iterations",
+             "best_iteration", "sample_results"}.issubset(result["properties"])
+        )
+        self.assertEqual(result["properties"]["best_iteration"]["type"], "integer")
+        self.assertEqual(result["properties"]["sample_results"]["items"]["$ref"],
+                         "#/components/schemas/coze.loop.evaluation.expt.PromptOptimizationSampleEvaluation")
+        self.assertNotIn("best_iteration", result.get("required", []))
+        self.assertNotIn("sample_results", result.get("required", []))
 
     def test_unannotated_body_field_is_documented_in_json_body(self) -> None:
         list_datasets = self.document["paths"]["/api/data/v1/datasets/list"][

@@ -258,6 +258,7 @@ func TestEvaluatorSourcePromptServiceImpl_Run_ContentRetryAndFreshTemplate(t *te
 	firstCall := llmProvider.EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, param *entity.LLMCallParam) (*entity.ReplyItem, error) {
 			assert.Equal(t, "Question: second sample", param.Messages[0].Content.GetText())
+			assert.True(t, param.EvaluatorScoring)
 			return &entity.ReplyItem{Content: &invalidContent}, nil
 		})
 	llmProvider.EXPECT().Call(gomock.Any(), gomock.Any()).After(firstCall).Return(

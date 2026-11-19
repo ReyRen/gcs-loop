@@ -8,9 +8,53 @@ import (
 
 	"github.com/bytedance/gg/gptr"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	"github.com/coze-dev/coze-loop/backend/modules/evaluation/consts"
 	"github.com/coze-dev/coze-loop/backend/modules/evaluation/domain/entity"
 )
+
+func TestNewExecutePromptParamPreservesExperimentInput(t *testing.T) {
+	query := &entity.Content{ContentType: gptr.Of(entity.ContentTypeText), Text: gptr.Of("保修期多久？")}
+	input := &entity.EvalTargetInputData{
+		InputFields: map[string]*entity.Content{
+			consts.EvalTargetInputFieldKeyPromptUserQuery: query,
+			"knowledge":   {ContentType: gptr.Of(entity.ContentTypeText), Text: gptr.Of("保修期为12个月。")},
+			"history_var": {Text: gptr.Of(`[{"role":2,"content":{"text":"上一轮问题"}},null,{"role":3}]`)},
+			"empty":       nil,
+		},
+		HistoryMessages: []*entity.Message{{Role: entity.RoleAssistant, Content: &entity.Content{Text: gptr.Of("您好")}}},
+		Ext:             map[string]string{consts.TargetExecuteExtRuntimeParamKey: `{"model_config":{"model_id":"122","max_tokens":256}}`},
+	}
+	param := NewExecutePromptParam(12, "0.0.4", input)
+	assert.Equal(t, int64(12), param.PromptID)
+	assert.Equal(t, "0.0.4", param.PromptVersion)
+	require.NotNil(t, param.UserQuery)
+	assert.Equal(t, entity.RoleUser, param.UserQuery.Role)
+	assert.Same(t, query, param.UserQuery.Content)
+	assert.Equal(t, input.HistoryMessages, param.History)
+	assert.Equal(t, input.Ext[consts.TargetExecuteExtRuntimeParamKey], *param.RuntimeParam)
+	require.Len(t, param.Variables, 2)
+	assert.Equal(t, "history_var", *param.Variables[0].Key)
+	require.Len(t, param.Variables[0].PlaceholderMessages, 1)
+	assert.Equal(t, "上一轮问题", param.Variables[0].PlaceholderMessages[0].Content.GetText())
+	assert.Equal(t, "knowledge", *param.Variables[1].Key)
+	// Original records must retain the User query for subsequent optimization.
+	assert.Same(t, query, input.InputFields[consts.EvalTargetInputFieldKeyPromptUserQuery])
+	assert.Len(t, input.InputFields, 4)
+}
+
+func TestNewExecutePromptParamKeepsMultimodalUserQuery(t *testing.T) {
+	content := &entity.Content{ContentType: gptr.Of(entity.ContentTypeMultipart)}
+	param := NewExecutePromptParam(1, "0.0.1", &entity.EvalTargetInputData{
+		InputFields: map[string]*entity.Content{consts.EvalTargetInputFieldKeyPromptUserQuery: content},
+	})
+	require.NotNil(t, param.UserQuery)
+	assert.Same(t, content, param.UserQuery.Content)
+	assert.Empty(t, param.Variables)
+	assert.Nil(t, param.RuntimeParam)
+	assert.Nil(t, NewExecutePromptParam(1, "0.0.1", nil).UserQuery)
+}
 
 func TestExecutePromptParam_RuntimeParam(t *testing.T) {
 	tests := []struct {

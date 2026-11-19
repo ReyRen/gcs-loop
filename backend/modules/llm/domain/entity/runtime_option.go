@@ -30,6 +30,8 @@ type Options struct {
 	Parameters map[string]string
 	// ParamValues
 	ParamValues map[string]*ParamValue
+	// EvaluatorScoring marks a scoring request, not an optimizer generating a candidate.
+	EvaluatorScoring bool
 }
 
 type Option struct {
@@ -184,6 +186,14 @@ func WithParamValues(p map[string]*ParamValue) Option {
 	return Option{
 		apply: func(opts *Options) {
 			opts.ParamValues = p
+		},
+	}
+}
+
+func WithEvaluatorScoring() Option {
+	return Option{
+		apply: func(opts *Options) {
+			opts.EvaluatorScoring = true
 		},
 	}
 }

@@ -1099,6 +1099,10 @@ struct PromptOptimizeTaskResult {
     4: optional PromptOptimizationMetrics baseline_metrics
     5: optional PromptOptimizationMetrics best_metrics
     6: optional list<PromptOptimizationIteration> iterations
+    // Authoritative selected result. Zero means the original Prompt was retained.
+    7: optional i32 best_iteration
+    // The answers and scores belonging to optimized_prompt_message_list and best_metrics.
+    8: optional list<PromptOptimizationSampleEvaluation> sample_results
 }
 
 struct PromptOptimizeTask {

@@ -74,52 +74,7 @@ func (t *PromptSourceEvalTargetServiceImpl) Execute(ctx context.Context, spaceID
 	if err != nil {
 		return evaluatorOutputData, entity.EvalTargetRunStatusFail, errorx.WrapByCode(err, errno.CommonInvalidParamCode)
 	}
-	exePromptParam := &rpc.ExecutePromptParam{
-		PromptID:      promptID,
-		PromptVersion: param.SourceTargetVersion,
-		Variables:     nil,
-		History:       param.Input.HistoryMessages,
-	}
-	vals := make([]*entity.VariableVal, 0)
-	for key, content := range param.Input.InputFields {
-		if key == consts.EvalTargetInputFieldKeyPromptUserQuery {
-			exePromptParam.UserQuery = &entity.Message{
-				Role:    entity.RoleUser,
-				Content: content,
-			}
-			delete(param.Input.InputFields, key)
-			continue
-		}
-		if content != nil {
-			variable := &entity.VariableVal{
-				Key:                 gptr.Of(key),
-				Value:               content.Text,
-				Content:             content,
-				PlaceholderMessages: nil,
-			}
-			// placeholder
-			placeholder := make([]*entity.Message, 0)
-			if content.Text != nil {
-				// 如果能反序列化成placeholder就传递给PE
-				err = json.Unmarshal([]byte(*content.Text), &placeholder)
-				if err == nil {
-					placeholderMessages := make([]*entity.Message, 0)
-					for _, message := range placeholder {
-						if message != nil && message.Content != nil {
-							placeholderMessages = append(placeholderMessages, message)
-						}
-					}
-					variable.PlaceholderMessages = placeholderMessages
-				}
-			}
-			vals = append(vals, variable)
-		}
-	}
-	exePromptParam.Variables = vals
-
-	if rtp := param.Input.Ext[consts.TargetExecuteExtRuntimeParamKey]; len(rtp) > 0 {
-		exePromptParam.RuntimeParam = gptr.Of(rtp)
-	}
+	exePromptParam := rpc.NewExecutePromptParam(promptID, param.SourceTargetVersion, param.Input)
 
 	// ExecutePrompt
 	executePromptResult, err := t.promptRPCAdapter.ExecutePrompt(ctx, spaceID, exePromptParam)

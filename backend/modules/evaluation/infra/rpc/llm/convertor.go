@@ -13,8 +13,12 @@ import (
 )
 
 func LLMCallParamConvert(param *commonentity.LLMCallParam) *runtime.ChatRequest {
+	modelConfig := ModelConfigDO2DTO(param.ModelConfig, param.ToolCallConfig)
+	if modelConfig != nil && param.EvaluatorScoring {
+		modelConfig.Extra = gptr.Of(`{"evaluator_scoring":true}`)
+	}
 	return &runtime.ChatRequest{
-		ModelConfig: ModelConfigDO2DTO(param.ModelConfig, param.ToolCallConfig),
+		ModelConfig: modelConfig,
 		Messages:    MessagesDO2DTO(param.Messages),
 		Tools:       ToolsDO2DTO(param.Tools),
 		BizParam: &runtimedto.BizParam{
