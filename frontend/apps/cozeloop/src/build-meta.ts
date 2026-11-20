@@ -9,6 +9,7 @@ export type PromptBuildMeta = {
   branch: string;
   commit: string;
   commitShort: string;
+  commitAt: string;
   dirty: boolean;
   builtAt: string;
   mode: string;
@@ -30,6 +31,7 @@ export const BUILD_META: PromptBuildMeta = Object.freeze({
   branch: injected?.branch || 'unknown',
   commit: injected?.commit || 'unknown',
   commitShort: injected?.commitShort || 'unknown',
+  commitAt: injected?.commitAt || 'unknown',
   dirty: Boolean(injected?.dirty),
   builtAt: injected?.builtAt || 'unknown',
   mode: injected?.mode || 'development',
