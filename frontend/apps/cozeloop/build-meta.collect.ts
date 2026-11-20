@@ -19,6 +19,22 @@ function runGit(cwd: string, command: string): string {
   }
 }
 
+/** 易读本地时间，例如 `2026-11-19 16:21:27 GMT+8` */
+export function formatReadableTime(
+  input: Date | string | number = new Date(),
+): string {
+  const d = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(d.getTime())) return 'unknown';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const offsetMin = -d.getTimezoneOffset();
+  const sign = offsetMin >= 0 ? '+' : '-';
+  const abs = Math.abs(offsetMin);
+  const tzHour = Math.floor(abs / 60);
+  const tzMin = abs % 60;
+  const tz = `GMT${sign}${tzHour}${tzMin ? `:${pad(tzMin)}` : ''}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${tz}`;
+}
+
 export type PromptBuildMeta = {
   app: string;
   name: string;
@@ -26,6 +42,7 @@ export type PromptBuildMeta = {
   branch: string;
   commit: string;
   commitShort: string;
+  commitAt: string;
   dirty: boolean;
   builtAt: string;
   mode: string;
@@ -53,6 +70,8 @@ export function collectPromptBuildMeta(options?: {
     branch = runGit(cwd, 'git name-rev --name-only HEAD') || 'HEAD';
   }
   const dirty = runGit(cwd, 'git status --porcelain') !== '';
+  const commitIso = runGit(cwd, 'git log -1 --format=%cI');
+  const commitAt = commitIso ? formatReadableTime(commitIso) : 'unknown';
 
   return {
     app: 'prompt',
@@ -61,8 +80,9 @@ export function collectPromptBuildMeta(options?: {
     branch,
     commit,
     commitShort: commit === 'unknown' ? 'unknown' : commit.slice(0, 7),
+    commitAt,
     dirty,
-    builtAt: new Date().toISOString(),
+    builtAt: formatReadableTime(new Date()),
     mode: options?.mode || process.env.NODE_ENV || 'development',
   };
 }

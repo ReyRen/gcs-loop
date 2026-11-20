@@ -25,6 +25,7 @@ type PromptBuildMeta = {
   branch: string;
   commit: string;
   commitShort: string;
+  commitAt: string;
   dirty: boolean;
   builtAt: string;
   mode: string;
